@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 96" role="img" aria-label="HayPaComer">
+  <rect x="24" y="18" width="8" height="56" rx="3" fill="#292524"/>
+  <rect x="64" y="18" width="8" height="56" rx="3" fill="#292524"/>
+  <path d="M18 46 H78" stroke="#b45309" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="48" cy="28" r="5" fill="#b45309"/>
+  <text x="104" y="62" font-family="Bricolage Grotesque, Hanken Grotesk, sans-serif" font-size="40" font-weight="600" fill="#292524">HayPaComer</text>
+</svg>

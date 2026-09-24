@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="HayPaComer mark">
+  <rect x="12" y="10" width="8" height="44" rx="3" fill="#292524"/>
+  <rect x="44" y="10" width="8" height="44" rx="3" fill="#292524"/>
+  <path d="M8 32 H56" stroke="#b45309" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="32" cy="19" r="4" fill="#b45309"/>
+</svg>
