@@ -191,7 +191,7 @@ The category splits into three brand clusters. Premium appliance makers (Samsung
 - "AI-powered recipes from ingredients you have".
 - "Save money and eat healthier" as twin promises.
 
-**Clichés to avoid:**
+**Cliches to avoid:**
 
 - Generic "AI kitchen assistant" and glowing-sparkle language.
 - "Snap a photo and dinner is solved" without evidence or proof.
@@ -213,7 +213,7 @@ The category splits into three brand clusters. Premium appliance makers (Samsung
 
 **Imagery patterns:** Overhead fridge photos, phone mockups with app screens, perfect produce, smiling families in spotless kitchens; maker photos for the hardware niche.
 
-**Design differentiation opportunities:** A measurement aesthetic (scale digits, grams, clear numbers over decoration), warm domestic realism (real containers, leftovers, tape labels), a calm utility palette that avoids both health-green clichés and AI-glow gradients, and a bilingual-ready humanist type family that reads well in small kitchen screens.
+**Design differentiation opportunities:** A measurement aesthetic (scale digits, grams, clear numbers over decoration), warm domestic realism (real containers, leftovers, tape labels), a calm utility palette that avoids both health-green cliches and AI-glow gradients, and a bilingual-ready humanist type family that reads well in small kitchen screens.
 
 ## 06 Differentiation opportunities
 
@@ -247,6 +247,6 @@ The category splits into three brand clusters. Premium appliance makers (Samsung
 
 **Messaging direction:** Lead with tonight's question and proof: grams required vs. measured, what expires first, what works when the connection fails. Mention AI as a helper that reduces friction, never as the source of truth.
 
-**Visual direction:** Warm, practical, instrument-like: scale numerics, high-contrast data, kitchen-counter photography with real containers; avoid green-wellness clichés and dark AI-gradient aesthetics.
+**Visual direction:** Warm, practical, instrument-like: scale numerics, high-contrast data, kitchen-counter photography with real containers; avoid green-wellness cliches and dark AI-gradient aesthetics.
 
 **What to avoid:** Claiming spoilage detection the system does not have; health scores; subscription metering language; "smart kitchen platform" abstraction; competing with Samsung on ecosystem or with camera apps on photo novelty.

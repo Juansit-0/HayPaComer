@@ -28,7 +28,7 @@ Status tracker for the ~79 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 
 - [x] 6. context, audience, competition, and positioning
 - [x] 7. strategy and name evaluation
-- [ ] 8. identity, voice, messaging, and story
+- [x] 8. identity, voice, messaging, and story
 - [ ] 9. design system, dtcg tokens, and wcag validation
 - [ ] 10. brand guidelines, readme application, and final assets
 - [ ] 11. close: rename if needed + public repository + branch protection + history push
