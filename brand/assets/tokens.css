@@ -1,0 +1,129 @@
+:root {
+  color-scheme: light dark;
+
+  --color-copper-500: #c2711c;
+  --color-copper-600: #b45309;
+  --color-copper-700: #9a3412;
+  --color-copper-800: #7c2d12;
+  --color-paprika-600: #c2410c;
+  --color-olive-600: #4d7c0f;
+  --color-olive-700: #3f6212;
+  --color-amber-500: #f59e0b;
+  --color-orange-600: #ea580c;
+  --color-lime-500: #84cc16;
+  --color-ink-950: #1c1917;
+  --color-ink-900: #292524;
+  --color-ink-600: #57534e;
+  --color-ink-500: #78716c;
+  --color-ink-400: #a8a29e;
+  --color-sand-50: #faf4ea;
+  --color-sand-100: #f5edde;
+  --color-sand-200: #eadfc8;
+  --color-sand-300: #d6ccbb;
+  --color-white: #ffffff;
+
+  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --size-h1: 40px;
+  --size-h2: 32px;
+  --size-h3: 24px;
+  --size-h4: 20px;
+  --size-body: 16px;
+  --size-small: 14px;
+  --size-data: 16px;
+  --leading-h1: 1.2;
+  --leading-h2: 1.25;
+  --leading-h3: 1.33;
+  --leading-h4: 1.4;
+  --leading-body: 1.5;
+  --leading-small: 1.43;
+  --leading-data: 1.5;
+
+  --space-0: 0;
+  --space-xs: 8px;
+  --space-s: 16px;
+  --space-m: 24px;
+  --space-l: 32px;
+  --space-xl: 48px;
+  --space-xxl: 80px;
+
+  --radius-6: 6px;
+  --radius-10: 10px;
+  --radius-14: 14px;
+  --radius-full: 999px;
+
+  --shadow-subtle: 0 1px 2px rgb(41 37 36 / 0.08);
+  --shadow-raised: 0 4px 12px rgb(41 37 36 / 0.12);
+
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  --color-bg: light-dark(var(--color-sand-50), var(--color-ink-950));
+  --color-surface: light-dark(var(--color-sand-100), var(--color-ink-900));
+  --color-text: light-dark(var(--color-ink-900), var(--color-sand-50));
+  --color-text-weak: light-dark(var(--color-ink-600), var(--color-sand-300));
+  --color-border: light-dark(var(--color-sand-200), var(--color-ink-600));
+  --color-border-strong: light-dark(var(--color-ink-500), var(--color-ink-400));
+  --color-primary: light-dark(var(--color-copper-600), var(--color-amber-500));
+  --color-primary-fg: light-dark(var(--color-white), var(--color-ink-950));
+  --color-primary-hover: light-dark(
+    var(--color-copper-700),
+    color-mix(in oklab, var(--color-amber-500), white 14%)
+  );
+  --color-primary-active: light-dark(
+    var(--color-copper-800),
+    color-mix(in oklab, var(--color-amber-500), black 12%)
+  );
+  --color-attention: light-dark(var(--color-paprika-600), var(--color-orange-600));
+  --color-attention-fg: light-dark(var(--color-white), var(--color-ink-950));
+  --color-positive: light-dark(var(--color-olive-600), var(--color-lime-500));
+  --color-positive-fg: light-dark(var(--color-white), var(--color-ink-950));
+  --color-focus: light-dark(var(--color-copper-600), var(--color-amber-500));
+
+  --button-primary-bg: var(--color-primary);
+  --button-primary-fg: var(--color-primary-fg);
+  --button-primary-bg-hover: var(--color-primary-hover);
+  --button-primary-bg-active: var(--color-primary-active);
+  --button-secondary-bg: transparent;
+  --button-secondary-fg: var(--color-text);
+  --button-secondary-border: var(--color-border-strong);
+  --button-secondary-bg-hover: var(--color-surface);
+  --button-ghost-fg: var(--color-primary);
+  --button-radius: var(--radius-10);
+
+  --input-bg: var(--color-surface);
+  --input-fg: var(--color-text);
+  --input-placeholder: var(--color-text-weak);
+  --input-border: var(--color-border-strong);
+  --input-focus-ring: var(--color-focus);
+  --input-radius: var(--radius-10);
+
+  --card-bg: var(--color-surface);
+  --card-border: var(--color-border);
+  --card-radius: var(--radius-14);
+  --card-padding: var(--space-m);
+
+  --badge-bg: var(--color-surface);
+  --badge-fg: var(--color-text-weak);
+  --badge-border: var(--color-border-strong);
+  --badge-radius: var(--radius-full);
+
+  --data-font: var(--font-data);
+  --data-size: var(--size-data);
+  --data-fg: var(--color-text);
+
+  --status-attention: var(--color-attention);
+  --status-positive: var(--color-positive);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+  }
+}
