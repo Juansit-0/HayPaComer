@@ -21,14 +21,14 @@ HayPaComer (working name, subject to the branding phase) is a smart home fridge:
    `brand-context` -> `target-audience` -> `competitor-branding` -> `brand-positioning` -> `brand-strategy` -> `brand-naming` (evaluate/refine "HayPaComer") -> `brand-identity` -> `brand-voice` -> `brand-messaging` -> `brand-story` -> `brand-guidelines` -> `brand-launch`.
    Color pipeline: `theme-factory` (palettes and fonts) -> `effective-ui-design` (OKLCH + WCAG 2.1 AA contrast) -> `design-system` (3-layer DTCG tokens) -> `frontend-design` + `impeccable` (UI) with `ui-ux-kit` as anti-slop gate.
    Deliverables: `brand/` (brand book, assets, `tokens.css`/`tokens.json`, `DESIGN.md`) and versioned `.agents/brand-context.md`.
-2. **Brand close**: rename folder/modules/packages if the name changes + create the public repository + push all history.
+2. **Brand close**: rename folder/modules/packages if the name changes + create the public repository + enable branch protection (PR review required on `main`) + push all history.
 3. **Technical Step 0 leftovers**: CI + Dependabot + F0 docs (architecture, patterns, responsible AI, agent, event protocol, ADRs).
 4. **Phases 1-7**: follow the numbered roadmap in `PLAN.md` section 9, one small step at a time.
 
 ## Project rules (non-negotiable)
 
 - **English everywhere**: code, identifiers, tests, documentation, UI, and commits. No emojis. No comments in code.
-- **Conventional Commits in English** with scope; small steps. Once the repository exists: `feat/*` branch -> PR -> green CI -> squash merge. Before the repository: local commits on `main`.
+- **Conventional Commits in English** with scope; small steps. Once the repository exists: `feat/*` branch -> PR -> green CI -> review approval -> squash merge (branch protection on `main`). Before the repository: local commits on `main`.
 - **8 single-responsibility modules**: `domain`, `application`, `adapter-persistence`, `adapter-sensors`, `adapter-ai`, `adapter-notifications`, `agent`, `web`. No frameworks in `domain`/`application`; boundaries enforced with `maven-enforcer` + ArchUnit.
 - One use case per class with a single public method; segregated ports (ISP); framework annotations only in `web` and adapters.
 - **AI never writes directly to the database**: it acts through validated tools with human confirmation and permissions; grams are measured, safety is decided by rules.

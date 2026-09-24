@@ -184,7 +184,7 @@ HayPaComer/
 
 - **Now**: local git; each completed step is a commit with Conventional Commits in English.
 - **After branding**: the public repository is created with the final name and all history is pushed.
-- **From the repository on**: each step goes in a `feat/*` branch -> PR -> green CI -> squash merge to `main`.
+- **From the repository on**: each step goes in a `feat/*` branch -> PR -> green CI -> review approval -> squash merge to `main`. Branch protection on `main` requires the PR review approval.
 - **Commit prefixes**: `feat(scope): ...`, `fix(scope): ...`, `docs: ...`, `test: ...`, `perf: ...`, `ci: ...`, `chore: ...`.
 - **Definition of Done per step**: compiles + tests + formatting + green PR.
 - Deliberately small steps (~79 PRs) so the project always moves forward in green and nothing gets lost.
@@ -208,7 +208,7 @@ HayPaComer/
 8. `docs(brand): identity, voice, messaging, and story`
 9. `docs(brand): design system, dtcg tokens, and wcag validation`
 10. `docs(brand): brand guidelines, readme application, and final assets`
-11. Close: rename if needed + `gh repo create` with the final name + history push.
+11. Close: rename if needed + `gh repo create` with the final name + `main` branch protection (PR review required) + history push.
 
 ### F1 - Domain and persistence (7)
 
