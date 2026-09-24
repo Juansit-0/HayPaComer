@@ -8,7 +8,7 @@ Smart home fridge that answers a daily question: **what can I cook right now wit
 
 ## Status
 
-Phase 0 - foundation complete: local git, Maven structure with 8 modules, F0 docs, CI, and enforcer boundaries. Phase 0.5 - brand complete in `brand/` (strategy, identity, voice, tokens). Next: create the public repository and start Phase 1 (domain and persistence).
+Phase 0 - foundation complete: local git, Maven structure with 8 modules, F0 docs, CI, and enforcer boundaries. Phase 0.5 - brand complete in `brand/` (strategy, identity, voice, tokens) and the repository is public. Next: Phase 1 (domain and persistence).
 
 ## Stack
 

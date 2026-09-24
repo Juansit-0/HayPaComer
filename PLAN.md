@@ -4,7 +4,7 @@
 > Expands the original proposal (`docs/proposal/HayPaComer.tex` and `HayPaComerSlides.tex`).
 
 - **Date**: September 2026
-- **Status**: plan approved; Step 0 and Phase 0.5 (brand) complete - name confirmed: HayPaComer. Next: brand close (public repository) and Phases 1-7
+- **Status**: plan approved; Step 0 and Phase 0.5 (brand) complete - name confirmed: HayPaComer; public repository created. Next: Phases 1-7
 - **Repository**: not created yet (public, after brand close with the final name)
 
 ---
@@ -346,5 +346,5 @@ Indicators: inventory updated, event processed, recipe respecting constraints, A
 - [x] Original proposal and slides moved to `docs/proposal/`
 - [x] CI + Dependabot + F0 docs (architecture, patterns, responsible AI, agent, event protocol, ADRs)
 - [x] Phase 0.5 (branding, colors, and tokens)
-- [ ] Public repository + branch protection + history push (no rename: name confirmed)
+- [x] Public repository + branch protection + history push (no rename: name confirmed)
 - [ ] Phases 1-7

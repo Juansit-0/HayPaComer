@@ -13,13 +13,12 @@ HayPaComer (name confirmed in Phase 0.5) is a smart home fridge: Java applicatio
 - Master plan v2 approved in `PLAN.md`: ~79 PRs, 8 SRP Maven modules, 23/23 GoF patterns, multi-AI agent, professional brand, expanded demo.
 - **19 skills installed globally** (they load in any session): 14 brand (`brand-*`, `target-audience`, `competitor-branding`) + 5 design (`theme-factory`, `design-system`, `effective-ui-design`, `frontend-design`, `ui-ux-kit`) + `impeccable`.
 - Local git with step commits; 8-module Maven structure; F0 docs; CI + Dependabot; enforcer + ArchUnit boundary tests. Technical Step 0 complete.
-- Brand phase (F0.5) complete in `brand/`: context, audience, competitors, positioning, strategy, naming (name confirmed: **HayPaComer**), identity, voice, messaging, story, brand book, and design tokens in `brand/assets/`. Pending: brand close (public repository + branch protection on `main`).
-- **GitHub repository: not created yet.** It is created at brand close with the final name (`gh repo create Juansit-0/HayPaComer --public`).
+- Brand phase (F0.5) complete in `brand/`: context, audience, competitors, positioning, strategy, naming (name confirmed: **HayPaComer**), identity, voice, messaging, story, launch plan, brand book, and design tokens in `brand/assets/`. Brand close complete: public repository with branch protection.
+- **Public repository: https://github.com/Juansit-0/HayPaComer** with `main` protected: PR required, 1 review approval (collaborator Jenifrutica), CI check `build` required, admins enforced.
 
 ## How to continue (agreed order)
 
-1. **Brand close** (next step): create the public repository with the name **HayPaComer** (`gh repo create Juansit-0/HayPaComer --public`), enable branch protection (PR review required on `main`), and push all history. No rename needed: the name is final.
-2. **Phases 1-7**: follow the numbered roadmap in `PLAN.md` section 9, one small step at a time, each in a `feat/*` branch with PR, green CI, and review approval.
+1. **Phases 1-7**: follow the numbered roadmap in `PLAN.md` section 9, one small step at a time, each in a `feat/*` branch with PR, green CI, and review approval by the collaborator.
 
 ## Project rules (non-negotiable)
 
