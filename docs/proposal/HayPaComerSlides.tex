@@ -1,0 +1,310 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,fit,calc}
+\usepackage{booktabs}
+\usepackage{array}
+
+\definecolor{ink}{HTML}{0B1320}
+\definecolor{panel}{HTML}{142338}
+\definecolor{panel2}{HTML}{1C314A}
+\definecolor{mint}{HTML}{5EEAD4}
+\definecolor{orange}{HTML}{FDBA74}
+\definecolor{cream}{HTML}{F8FAFC}
+\definecolor{muted}{HTML}{A9B8C8}
+\definecolor{red}{HTML}{FB7185}
+
+\setbeamercolor{normal text}{fg=cream,bg=ink}
+\setbeamercolor{background canvas}{bg=ink}
+\setbeamercolor{frametitle}{fg=cream,bg=ink}
+\setbeamercolor{title}{fg=cream}
+\setbeamercolor{subtitle}{fg=mint}
+\setbeamercolor{structure}{fg=mint}
+\setbeamercolor{block title}{fg=ink,bg=mint}
+\setbeamercolor{block body}{fg=cream,bg=panel}
+\setbeamercolor{alerted text}{fg=orange}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{blocks}[rounded][shadow=false]
+\setbeamertemplate{itemize item}{\color{mint}\small$\blacktriangleright$}
+\setbeamertemplate{footline}{%
+  \hfill\color{muted}\scriptsize\insertframenumber\, / \,\inserttotalframenumber\hspace{0.35cm}\vspace{0.2cm}}
+\setbeamertemplate{frametitle}{\vspace{0.35cm}\hspace{0.1cm}\insertframetitle\par\vspace{0.12cm}\hrule\vspace{0.18cm}}
+\setlength{\parskip}{3pt}
+\newcommand{\tagline}[1]{{\color{mint}\footnotesize\bfseries #1}}
+\newcommand{\bigaccent}[1]{{\color{orange}\fontsize{28}{30}\selectfont\bfseries #1}}
+\newcommand{\pill}[1]{\tikz[baseline=(x.base)]\node[fill=panel2,rounded corners=3pt,inner xsep=7pt,inner ysep=3pt](x){\color{mint}\scriptsize\bfseries #1};}
+
+\title{HayPaComer}
+\subtitle{La nevera que sabe qué hay, cuánto queda y qué puedes cocinar}
+\author{Proyecto de patrones de diseño en Java}
+\institute{\tagline{DEL INVENTARIO A UNA DECISIÓN REAL}}
+\date{Septiembre de 2026}
+
+\begin{document}
+
+{\setbeamertemplate{footline}{}
+\begin{frame}[plain]
+\begin{tikzpicture}[remember picture,overlay]
+\fill[panel] (current page.south west) rectangle ([xshift=4.4cm]current page.north west);
+\fill[mint] ([xshift=4.4cm]current page.south west) rectangle ([xshift=4.48cm]current page.north west);
+\node[anchor=north west] at ([xshift=0.7cm,yshift=-0.7cm]current page.north west) {\color{orange}\fontsize{42}{44}\selectfont\bfseries 01};
+\node[anchor=south west] at ([xshift=0.7cm,yshift=0.7cm]current page.south west) {\color{muted}\scriptsize JAVA  ·  ESP32  ·  IA};
+\end{tikzpicture}
+\vspace{0.8cm}
+\hspace{4.9cm}\begin{minipage}{0.62\textwidth}
+{\tagline{PROYECTO DE SOFTWARE + HARDWARE}}\\[0.25cm]
+{\usebeamerfont{title}\color{cream}\fontsize{35}{39}\selectfont\bfseries HayPaComer}\\[0.18cm]
+{\color{mint}\Large La nevera que sabe qué hay, cuánto queda y qué puedes cocinar.}\\[0.55cm]
+{\color{muted}\large Una aplicación Java conectada a una nevera instrumentada para reducir desperdicio y decidir mejor cada comida.}
+\end{minipage}
+\end{frame}}
+
+\begin{frame}{El problema no es cocinar}
+\tagline{TODOS LOS DÍAS, LA MISMA FRICCIÓN}
+\vspace{0.35cm}
+\begin{columns}[T,onlytextwidth]
+\column{0.33\textwidth}
+\begin{block}{\color{orange}¿Qué hay?}
+La comida está repartida, escondida y nadie tiene una respuesta confiable.
+\end{block}
+\column{0.33\textwidth}
+\begin{block}{\color{orange}¿Qué se vence?}
+Las sobras y productos abiertos desaparecen de la memoria de la casa.
+\end{block}
+\column{0.33\textwidth}
+\begin{block}{\color{orange}¿Alcanza?}
+Una receta dice “200 g”, pero en casa solo quedan 80 g.
+\end{block}
+\end{columns}
+\vfill
+\begin{center}
+{\color{cream}\Large\bfseries Se compra de más. Se desperdicia. Se improvisa.}\\[0.18cm]
+{\color{muted}\large La tecnología suele registrar productos; no ayuda a tomar la decisión de esta noche.}
+\end{center}
+\end{frame}
+
+\begin{frame}{La idea en una frase}
+\begin{center}
+\vspace{0.4cm}
+{\color{mint}\fontsize{24}{28}\selectfont\bfseries HayPaComer convierte la nevera en una decisión.}
+\vspace{0.45cm}
+\begin{tikzpicture}[node distance=0.55cm,>=Latex]
+\node[draw=mint,very thick,rounded corners=8pt,fill=panel,minimum width=2.7cm,minimum height=1cm] (a) {\color{cream}\bfseries Datos reales};
+\node[draw=orange,very thick,rounded corners=8pt,fill=panel,minimum width=2.7cm,minimum height=1cm,right=of a] (b) {\color{cream}\bfseries Java decide};
+\node[draw=mint,very thick,rounded corners=8pt,fill=panel,minimum width=2.7cm,minimum height=1cm,right=of b] (c) {\color{cream}\bfseries Cocina mejor};
+\draw[->,very thick,mint] (a)--(b);
+\draw[->,very thick,orange] (b)--(c);
+\end{tikzpicture}
+\vspace{0.55cm}
+\begin{columns}[T,onlytextwidth]
+\column{0.5\textwidth}
+\pill{INVENTARIO VIVO}\\[-1pt]
+Qué hay, cuánto pesa, de quién es y cuándo vence.
+\column{0.5\textwidth}
+\pill{COCINA AHORA}\\[-1pt]
+Una sugerencia posible en 5, 15 o 30 minutos.
+\end{columns}
+\end{center}
+\end{frame}
+
+\begin{frame}{¿Cómo se usa en la vida real?}
+\tagline{UN FLUJO DE 30 SEGUNDOS}
+\vspace{0.35cm}
+\begin{enumerate}
+\item Abrir la app: aparecen sobras, vencimientos y alertas.
+\item Elegir: ``15 minutos, una persona, Juan''.
+\item Pesar el ingrediente que se va a utilizar.
+\item Confirmar: alcanza, se reduce la porción o se sustituye.
+\item Cocinar: el sistema descuenta lo usado y actualiza el mercado.
+\end{enumerate}
+\vfill
+\begin{center}
+\begin{tikzpicture}[node distance=0.22cm]
+\node[fill=panel2,rounded corners=5pt,inner sep=8pt] (x) {\shortstack{\color{cream}\bfseries 18:40\\[-2pt]\color{mint}\scriptsize Abrir nevera}};
+\node[fill=panel2,rounded corners=5pt,inner sep=8pt,right=of x] (y) {\shortstack{\color{cream}\bfseries 18:41\\[-2pt]\color{mint}\scriptsize Pesar pollo}};
+\node[fill=panel2,rounded corners=5pt,inner sep=8pt,right=of y] (z) {\shortstack{\color{cream}\bfseries 18:42\\[-2pt]\color{mint}\scriptsize Sustituir}};
+\node[fill=orange,rounded corners=5pt,inner sep=8pt,right=of z] (w) {\shortstack{\color{ink}\bfseries 18:55\\[-2pt]\scriptsize Comer}};
+\draw[->,thick,mint] (x)--(y);\draw[->,thick,mint] (y)--(z);\draw[->,thick,orange] (z)--(w);
+\end{tikzpicture}
+\end{center}
+\end{frame}
+
+\begin{frame}{La pesa: el salto de “hay” a “alcanza”}
+\tagline{UNA CELDA DE CARGA · DOS MODOS}
+\begin{columns}[T,onlytextwidth]
+\column{0.47\textwidth}
+\begin{block}{Modo NEVERA}
+La bandeja mide el stock de un producto asignado. Si pasa de 842 g a 650 g, Java registra un consumo real de 192 g.
+\end{block}
+\begin{block}{Modo COCINA}
+Se tara el recipiente, se pone el ingrediente y se compara el peso con la receta.
+\end{block}
+\column{0.47\textwidth}
+\begin{center}
+\begin{tikzpicture}[scale=0.9]
+\draw[fill=panel2,draw=mint,very thick,rounded corners=5pt] (0,0) rectangle (4.5,2.5);
+\draw[fill=orange!80!ink,draw=orange,thick] (0.8,0.65) rectangle (3.7,1.15);
+\draw[fill=cream!80!ink,draw=cream] (1.3,1.15) rectangle (3.2,1.9);
+\node at (2.25,0.9) {\color{ink}\bfseries HX711};
+\node at (2.25,1.52) {\color{ink}\scriptsize ingrediente};
+\draw[->,very thick,mint] (2.25,2.5)--(2.25,3.1);
+\node[fill=mint,rounded corners=3pt,inner sep=4pt] at (2.25,3.35) {\color{ink}\bfseries 132 g};
+\end{tikzpicture}
+\vspace{0.25cm}
+\color{muted}\small ESP32 + HX711 + celda de carga\\
+\color{muted}\small tara + lectura estable + gramos reales
+\end{center}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Cuando no alcanza, no se rompe la receta}
+\tagline{MOTOR DE CANTIDADES Y SUSTITUCIONES}
+\begin{center}
+\begin{tikzpicture}[node distance=0.35cm,>=Latex]
+\node[fill=panel2,rounded corners=6pt,minimum width=3cm,minimum height=0.8cm] (r) {\color{cream}\bfseries Receta pide 200 g};
+\node[fill=panel2,rounded corners=6pt,minimum width=3cm,minimum height=0.8cm,right=1cm of r] (m) {\color{orange}\bfseries Se pesan 80 g};
+\node[fill=mint,rounded corners=6pt,minimum width=3cm,minimum height=0.8cm,right=1cm of m] (q) {\color{ink}\bfseries Java evalúa};
+\draw[->,very thick,mint] (r)--(m);\draw[->,very thick,mint] (m)--(q);
+\end{tikzpicture}
+\vspace{0.45cm}
+\end{center}
+\begin{columns}[T,onlytextwidth]
+\column{0.32\textwidth}
+\begin{block}{1 · Reducir}
+La receta baja de 2 porciones a 1.
+\end{block}
+\column{0.32\textwidth}
+\begin{block}{2 · Sustituir}
+Se pesa atún, huevo u otra alternativa permitida.
+\end{block}
+\column{0.32\textwidth}
+\begin{block}{3 · Faltante}
+La cantidad exacta cae a la lista de mercado.
+\end{block}
+\end{columns}
+\vfill
+\begin{center}\color{orange}\bfseries La IA sugiere. Java valida los gramos.\end{center}
+\end{frame}
+
+\begin{frame}{Hardware que sí se puede construir}
+\tagline{EL ESP32 MIDE; JAVA INTERPRETA}
+\begin{columns}[T,onlytextwidth]
+\column{0.52\textwidth}
+\begin{block}{Componentes}
+\begin{itemize}
+\item \textcolor{mint}{ESP32}: WiFi y lectura.
+\item \textcolor{mint}{Reed + imán}: puerta.
+\item \textcolor{mint}{DS18B20}: temperatura.
+\item \textcolor{mint}{HX711 + celda}: gramos reales.
+\item \textcolor{mint}{LED + buzzer}: alerta local.
+\end{itemize}
+\end{block}
+\column{0.45\textwidth}
+\begin{block}{Flujo}
+\begin{center}
+\color{cream}\bfseries Sensores\\[0.12cm]
+\color{mint}\Large $\downarrow$\\[0.12cm]
+\color{cream}\bfseries ESP32\\[0.12cm]
+\color{mint}\Large $\downarrow$\\[0.12cm]
+\color{orange}\bfseries Java\\[0.12cm]
+\color{mint}\Large $\downarrow$\\[0.12cm]
+\color{cream}\bfseries App
+\end{center}
+\end{block}
+\end{columns}
+\end{frame}
+
+\begin{frame}{La IA sin humo}
+\tagline{IA COMO AYUDANTE, NO COMO AUTORIDAD}
+\begin{columns}[T,onlytextwidth]
+\column{0.32\textwidth}
+\pill{SUGERIR}\vspace{0.1cm}\\
+Genera platos usando inventario, tiempo, preferencias y gramos medidos.
+\column{0.32\textwidth}
+\pill{INTERPRETAR}\vspace{0.1cm}\\
+Lee una etiqueta o recibo y propone producto, fecha y cantidad.
+\column{0.32\textwidth}
+\pill{EXPLICAR}\vspace{0.1cm}\\
+Redacta por qué conviene consumir algo primero o sustituirlo.
+\end{columns}
+\vfill
+\begin{block}{Regla de oro}
+La IA puede decir ``podrías usar atún''. Solo Java, con reglas y mediciones, decide si la cantidad alcanza. El usuario confirma antes de descontar.
+\end{block}
+\vspace{0.25cm}
+\begin{center}\color{muted}\small Si la API falla, el motor de reglas mantiene la aplicación funcionando.\end{center}
+\end{frame}
+
+\begin{frame}{Patrones que aparecen naturalmente}
+\tagline{NO USAMOS PATRONES PARA DECORAR: RESUELVEN CAMBIOS REALES}
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{itemize}
+\item \textcolor{mint}{Facade}: una entrada para consultar y cocinar.
+\item \textcolor{mint}{Adapter}: ESP32, OCR e IA hablan con Java.
+\item \textcolor{mint}{Bridge}: sensor físico separado de interpretación.
+\item \textcolor{mint}{Proxy}: hardware offline y alimentos privados.
+\item \textcolor{mint}{Composite}: nevera → zona → bandeja → alimento.
+\end{itemize}
+\column{0.48\textwidth}
+\begin{itemize}
+\item \textcolor{orange}{Builder}: construir plato con restricciones.
+\item \textcolor{orange}{Strategy}: gramos, unidades o sustituciones.
+\item \textcolor{orange}{Decorator}: vencido, sobra, en riesgo.
+\item \textcolor{orange}{Factory Method}: eventos y tipos de alimento.
+\item \textcolor{orange}{Flyweight}: metadatos compartidos.
+\end{itemize}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Demo: de la nevera al plato}
+\tagline{UNA HISTORIA QUE SE PUEDE MOSTRAR}
+\begin{enumerate}
+\item La puerta permanece abierta 40 segundos → LED rojo y buzzer.
+\item La leche baja de 842 g a 650 g → stock actualizado en 192 g.
+\item Se elige ``arroz con pollo, 15 minutos, 2 personas''.
+\item La receta pide 200 g de pollo; la pesa confirma solo 80 g.
+\item HayPaComer propone reducir a 1 porción o sustituir con atún.
+\item Se pesan 130 g de atún → Java valida, descuenta y actualiza mercado.
+\item La app recomienda sopa de ayer para la siguiente comida.
+\end{enumerate}
+\vfill
+\begin{center}{\color{mint}\Large\bfseries El sistema no adivina la nevera: la mide.}\end{center}
+\end{frame}
+
+\begin{frame}{Qué hace diferente a HayPaComer}
+\tagline{NO ES UNA APP DE RECETAS}
+\begin{columns}[T,onlytextwidth]
+\column{0.32\textwidth}
+\begin{block}{Recetas comunes}
+Parten de ingredientes ideales y cantidades perfectas.
+\end{block}
+\column{0.32\textwidth}
+\begin{block}{Nevera inteligente cara}
+Detecta alimentos, pero exige un electrodoméstico costoso.
+\end{block}
+\column{0.32\textwidth}
+\begin{block}{HayPaComer}
+Mide cantidades reales, acepta faltantes y funciona con hardware accesible.
+\end{block}
+\end{columns}
+\vfill
+\begin{center}
+{\color{orange}\fontsize{22}{25}\selectfont\bfseries Menos desperdicio.\\ Más decisiones correctas.}
+\end{center}
+\end{frame}
+
+{\setbeamertemplate{footline}{}
+\begin{frame}[plain]
+\begin{center}
+\vspace{1cm}
+{\color{mint}\fontsize{34}{38}\selectfont\bfseries HayPaComer}\\[0.35cm]
+{\color{cream}\Large La pregunta ya no es ``¿qué habrá?''}\\
+{\color{orange}\Large\bfseries Es: ``¿qué puedo hacer con lo que tengo?''}\\[1cm]
+\pill{JAVA}\hspace{0.2cm}\pill{ESP32}\hspace{0.2cm}\pill{HX711}\hspace{0.2cm}\pill{IA}\hspace{0.2cm}\pill{PATRONES}
+\end{center}
+\end{frame}}
+
+\end{document}
