@@ -6,7 +6,7 @@ Status tracker for the ~79 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 
 | Phase | Scope | Steps | Status |
 |---|---|---|---|
-| F0 | Foundation | 5 | in progress |
+| F0 | Foundation | 5 | done |
 | F0.5 | Brand | 5 + close | pending |
 | F1 | Domain and persistence | 7 | pending |
 | F2 | Application | 6 | pending |
@@ -21,8 +21,8 @@ Status tracker for the ~79 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 1. maven multi-module structure (8 srp modules) + gitignore + readme
 - [x] 2. move proposal and slides to docs/
 - [x] 3. roadmap, architecture, patterns, ai, agent, event protocol, and adrs
-- [ ] 4. build and test pipeline + dependabot
-- [ ] 5. dependency enforcer + archunit boundary tests
+- [x] 4. build and test pipeline + dependabot
+- [x] 5. dependency enforcer + archunit boundary tests
 
 ## Notes
 

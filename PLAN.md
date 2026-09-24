@@ -4,7 +4,7 @@
 > Expands the original proposal (`docs/proposal/HayPaComer.tex` and `HayPaComerSlides.tex`).
 
 - **Date**: September 2026
-- **Status**: plan approved; Step 0 in progress (19 skills installed, local git and Maven structure done, CI pending)
+- **Status**: plan approved; Step 0 complete (skills, local git, Maven structure, F0 docs, CI, enforcer + ArchUnit). Next: Phase 0.5 branding
 - **Repository**: not created yet (public, after brand close with the final name)
 
 ---
@@ -344,7 +344,7 @@ Indicators: inventory updated, event processed, recipe respecting constraints, A
 - [x] `AGENTS.md` + `CLAUDE.md` created to resume the project from any session
 - [x] Local `git init` + 8-module structure + `.gitignore` + README
 - [x] Original proposal and slides moved to `docs/proposal/`
-- [ ] CI + Dependabot + F0 docs (architecture, patterns, responsible AI, agent, event protocol, ADRs)
+- [x] CI + Dependabot + F0 docs (architecture, patterns, responsible AI, agent, event protocol, ADRs)
 - [ ] Phase 0.5 (branding, colors, and tokens)
 - [ ] Rename if needed + public repository + history push
 - [ ] Phases 1-7

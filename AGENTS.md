@@ -12,7 +12,7 @@ HayPaComer (working name, subject to the branding phase) is a smart home fridge:
 
 - Master plan v2 approved in `PLAN.md`: ~79 PRs, 8 SRP Maven modules, 23/23 GoF patterns, multi-AI agent, professional brand, expanded demo.
 - **19 skills installed globally** (they load in any session): 14 brand (`brand-*`, `target-audience`, `competitor-branding`) + 5 design (`theme-factory`, `design-system`, `effective-ui-design`, `frontend-design`, `ui-ux-kit`) + `impeccable`.
-- Local git repository initialized with step commits; 8-module Maven structure in place; original proposal moved to `docs/proposal/`. Pending: CI + Dependabot + F0 docs.
+- Local git with step commits; 8-module Maven structure; F0 docs; CI + Dependabot; enforcer + ArchUnit boundary tests. Technical Step 0 complete. Next: Phase 0.5 branding.
 - **GitHub repository: intentionally NOT created yet.** It is created at brand close with the final name (`gh repo create Juansit-0/<final-name> --public`).
 
 ## How to continue (agreed order)
@@ -22,7 +22,7 @@ HayPaComer (working name, subject to the branding phase) is a smart home fridge:
    Color pipeline: `theme-factory` (palettes and fonts) -> `effective-ui-design` (OKLCH + WCAG 2.1 AA contrast) -> `design-system` (3-layer DTCG tokens) -> `frontend-design` + `impeccable` (UI) with `ui-ux-kit` as anti-slop gate.
    Deliverables: `brand/` (brand book, assets, `tokens.css`/`tokens.json`, `DESIGN.md`) and versioned `.agents/brand-context.md`.
 2. **Brand close**: rename folder/modules/packages if the name changes + create the public repository + enable branch protection (PR review required on `main`) + push all history.
-3. **Technical Step 0 leftovers**: CI + Dependabot + F0 docs (architecture, patterns, responsible AI, agent, event protocol, ADRs).
+3. **Technical Step 0 leftovers**: done (CI, Dependabot, F0 docs, enforcer + ArchUnit).
 4. **Phases 1-7**: follow the numbered roadmap in `PLAN.md` section 9, one small step at a time.
 
 ## Project rules (non-negotiable)
