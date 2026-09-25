@@ -23,8 +23,32 @@ Prototype hardware for HayPaComer: ESP32 module, door contact, temperature probe
 | 10 | Jumper wires | Dupont female-female and male-female, 20 cm | 1 set | 8,000 - 15,000 | https://listado.mercadolibre.com.co/cables-dupont-jumper |
 | 11 | Multimeter (recommended) | Digital, continuity and DC voltage | 1 | 25,000 - 45,000 | https://listado.mercadolibre.com.co/multimetro-digital |
 | 12 | Tray and mount | Acrylic or wood plate for the fridge-mode tray, M3/M4 screws, double-sided tape | 1 | 10,000 - 20,000 | https://listado.mercadolibre.com.co/base-acrilico-proyectos |
+| 13 | Demo rig | Small styrofoam cooler or wooden box with a hinged lid to simulate the fridge door and cold zone | 1 | 15,000 - 40,000 | https://listado.mercadolibre.com.co/nevera-icopor-pequena |
 
 Reference total: 120,000 - 230,000 COP (around 30 - 55 USD), the multimeter being the most optional item. Verified local alternatives if MercadoLibre shipping fails: Electronilab (Bogota, same-day dispatch) and Mactronica (Medellin) stock the same parts, with load cell + HX711 around 17,500 - 22,500 COP and the MC-38 around 6,900 COP.
+
+## Demo day kit (not electronics)
+
+These are needed to present the final demo but are usually already owned or cost little:
+
+| Item | Why | Notes |
+|---|---|---|
+| Laptop with Java 25 | Runs the server, UI, SSE panel, and voice | Any modern laptop; Chrome or Edge for Web Speech |
+| Phone | Telegram notifications and photo-to-recipe | Same WiFi/hotspot as the laptop and ESP32 |
+| WiFi network or phone hotspot | ESP32, laptop, and phone on one network | Classroom WiFi is often captive; a hotspot is safer |
+| Micro-USB or USB-C data cable | Flashing the ESP32 | Many boards ship without one; a charge-only cable will not work |
+| Power strip and extension cord | Fridge-area power for the 5 V supply and laptop | Useful whenever the demo table is far from an outlet |
+| Mounting tape, velcro, and cable ties | Reed switch, magnet, probe, and cable strain relief | Double-sided foam tape works on fridge plastic |
+| Known weight or kitchen scale (optional) | Calibrating the load cell quickly | A 500 g reference or any kitchen scale is enough |
+| Project box (optional) | Hiding the electronics neatly | Improves the look; not required for function |
+| Backup video of the demo (recommended) | Protection against hardware or network failure on stage | Record the full acceptance flow once the system works |
+
+## Software and secrets for the demo
+
+- `.env` with the AI key (Gemini or any OpenAI-compatible endpoint) and the Telegram bot token plus chat id; never committed.
+- Rule-based fallback enabled, so the demo survives with no key at all; the AI outage scenario is part of the script.
+- The ESP32 simulator covers door, temperature, and weight events, so the full demo can be rehearsed before the hardware arrives.
+- Demo script and acceptance checklist live in `docs/demo` (created in F7).
 
 ## Wiring plan (proposed, finalized in F3 and F4)
 
