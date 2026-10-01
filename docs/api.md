@@ -1,0 +1,199 @@
+# REST API
+
+All business logic, AI, and the agent run in the backend. The web UI and the ESP32 talk to it only through this API and the SSE stream; AI provider keys never leave the server.
+
+- Base path: `/api/v1`. Production host: `https://api.haypacomer.dev` (web UI at `https://haypacomer.dev`).
+- Format: JSON; errors as RFC 7807 `application/problem+json`.
+- Authentication: `Authorization: Bearer <access JWT>` for people; `X-Device-Key: <key>` for ESP32 devices.
+- Roles are per household: `OWNER`, `MEMBER`, `GUEST`. Food ownership (private, shared, ask first, grants) is checked on every inventory read and write.
+- Pagination: `?page=&size=&sort=`; collections return `{ items, page, size, total }`.
+- Writes that may be retried accept `Idempotency-Key`.
+- OpenAPI at `/v3/api-docs` and Swagger UI at `/swagger-ui` is the contract; this file is the catalog.
+
+Access column: `public` (no token), `user` (any authenticated person), `member` (MEMBER or OWNER of the household), `guest` (any role in the household), `owner`, `device`.
+
+## Authentication
+
+| Method | Path | Access | Purpose |
+|---|---|---|---|
+| POST | `/auth/register` | public | Create account, send verification email |
+| POST | `/auth/login` | public | Email and password -> access JWT + refresh token |
+| POST | `/auth/refresh` | public | Rotate refresh token, new access JWT |
+| POST | `/auth/logout` | user | Revoke the current refresh token family |
+| POST | `/auth/verify-email` | public | Confirm email with token |
+| POST | `/auth/forgot-password` | public | Send reset token (same response whether the email exists or not) |
+| POST | `/auth/reset-password` | public | Set new password with reset token |
+
+## Me
+
+| Method | Path | Access | Purpose |
+|---|---|---|---|
+| GET | `/me` | user | Profile and household memberships |
+| PATCH | `/me` | user | Update display name |
+| DELETE | `/me` | user | Delete account |
+| PUT | `/me/password` | user | Change password (revokes other sessions) |
+| GET | `/me/notification-preferences` | user | Channel preferences |
+| PUT | `/me/notification-preferences` | user | Update channels and Telegram chat id |
+
+## Households and members
+
+| Method | Path | Access | Purpose |
+|---|---|---|---|
+| POST | `/households` | user | Create household (caller becomes OWNER) |
+| GET | `/households` | user | Households of the caller |
+| GET | `/households/{h}` | guest | Household detail |
+| PATCH | `/households/{h}` | owner | Rename, currency, timezone |
+| DELETE | `/households/{h}` | owner | Delete household |
+| GET | `/households/{h}/members` | guest | Members and roles |
+| PATCH | `/households/{h}/members/{u}` | owner | Change role |
+| DELETE | `/households/{h}/members/{u}` | owner | Remove member (or self leave) |
+| POST | `/households/{h}/invitations` | owner | Invite by email with role |
+| GET | `/households/{h}/invitations` | owner | Pending invitations |
+| DELETE | `/households/{h}/invitations/{id}` | owner | Cancel invitation |
+| POST | `/invitations/{token}/accept` | user | Join household |
+| GET | `/households/{h}/members/{u}/profile` | guest | Diet, goals, allergies |
+| PUT | `/households/{h}/members/{u}/profile` | member | Update own profile (OWNER may update any) |
+
+## Fridges, zones, and trays
+
+| Method | Path | Access | Purpose |
+|---|---|---|---|
+| POST, GET | `/households/{h}/fridges` | owner, guest | Create, list fridges |
+| GET, PATCH, DELETE | `/fridges/{f}` | guest, owner, owner | Fridge detail, thresholds, delete |
+| POST, GET | `/fridges/{f}/zones` | owner, guest | Create, list zones |
+| PATCH, DELETE | `/zones/{z}` | owner | Update, delete zone |
+| POST, GET | `/zones/{z}/trays` | owner, guest | Create, list trays |
+| PATCH, DELETE | `/trays/{t}` | owner | Update, delete tray |
+| GET | `/fridges/{f}/twin` | guest | Digital twin: tree with items, expiry, and status |
+
+## Catalog
+
+| Method | Path | Access | Purpose |
+|---|---|---|---|
+| GET | `/foods?q=` | user | Search food metadata (flyweight catalog) |
+| GET | `/foods/{id}` | user | Food detail with allergens |
+| GET | `/allergens` | user | Allergen list |
+| GET | `/substitution-rules?from=` | user | Allowed substitutions |
+
+## Inventory
+
+| Method | Path | Access | Purpose |
+|---|---|---|---|
+| GET | `/households/{h}/items` | guest | Inventory, filters by zone, status, owner, expiry |
+| POST | `/households/{h}/items` | member | Add item (grams, tray, owner, visibility, expiry) |
+| GET | `/items/{id}` | guest | Item detail (respects ownership) |
+| PATCH | `/items/{id}` | member | Move, relabel, change visibility or expiry |
+| DELETE | `/items/{id}` | member | Remove item |
+| POST | `/items/{id}/consume` | member | Discount grams (manual or from scale reading) |
+| POST | `/items/{id}/discard` | member | Discard as waste |
+| GET | `/households/{h}/items/expiring?days=` | guest | Items expiring soon |
+| GET | `/items/{id}/movements` | guest | Movement history |
+| POST | `/items/{id}/grants` | member | Owner grants access to another member |
+| DELETE | `/items/{id}/grants/{u}` | member | Revoke grant |
+| POST | `/households/{h}/inventory/undo` | member | Undo last command (memento) |
+| GET, POST | `/households/{h}/snapshots` | member | List, create snapshots |
+| POST | `/snapshots/{id}/restore` | owner | Restore snapshot |
+
+## Devices and sensor events
+
+| Method | Path | Access | Purpose |
+|---|---|---|---|
+| POST | `/households/{h}/devices` | owner | Register device; returns API key once |
+| GET | `/households/{h}/devices` | guest | Devices with last seen |
+| DELETE | `/devices/{d}` | owner | Revoke device key |
+| POST | `/events` | device | Ingest door, temperature, or weight event (idempotent by event id) |
+| GET | `/fridges/{f}/doors` | guest | Door openings |
+| GET | `/fridges/{f}/temperatures?from=&to=` | guest | Temperature series |
+| GET | `/fridges/{f}/cold-incidents` | guest | Cold-chain incidents |
+| PATCH | `/cold-incidents/{id}` | member | Mark reviewed or closed |
+
+## Scale
+
+| Method | Path | Access | Purpose |
+|---|---|---|---|
+| POST | `/devices/{d}/scale/tare` | member, device | Tare |
+| POST | `/devices/{d}/scale/calibrate` | owner | Calibrate with known weight |
+| PUT | `/devices/{d}/scale/mode` | member | Switch FRIDGE or COOKING mode |
+| GET | `/devices/{d}/scale/reading` | guest | Latest stable reading |
+
+## Recipes, cook now, and substitutions
+
+| Method | Path | Access | Purpose |
+|---|---|---|---|
+| POST, GET | `/households/{h}/recipes` | member, guest | Create, list recipes |
+| GET, PATCH, DELETE | `/recipes/{id}` | guest, member, member | Recipe detail, update, delete |
+| POST | `/recipes/{id}/clone` | member | Clone template (prototype) |
+| POST | `/recipes/{id}/scale` | guest | Rescale portions |
+| POST | `/recipes/{id}/evaluate` | guest | Enough, reduce, substitute, or missing per requirement |
+| POST | `/households/{h}/suggestions` | guest | Cook now: minutes, people, equipment -> up to three options with evidence |
+| POST | `/households/{h}/rescue` | guest | Rescue mode suggestions |
+| POST | `/suggestions/{id}/accept` | member | Accept suggestion (household learning) |
+| POST | `/substitutions/propose` | member | Propose substitute for a requirement |
+| POST | `/substitutions/{id}/verify` | member | Verify with weighed grams and allergies |
+| POST | `/substitutions/{id}/accept` | member | Accept verified substitution |
+
+## Guided cooking
+
+| Method | Path | Access | Purpose |
+|---|---|---|---|
+| POST | `/cooking-sessions` | member | Start session for recipe and servings |
+| GET | `/cooking-sessions/{id}` | guest | Current state and step |
+| POST | `/cooking-sessions/{id}/next` | member | Next step |
+| POST | `/cooking-sessions/{id}/pause` | member | Pause |
+| POST | `/cooking-sessions/{id}/resume` | member | Resume |
+| POST | `/cooking-sessions/{id}/finish` | member | Finish and discount used grams |
+| POST | `/cooking-sessions/{id}/steps/{n}/weigh` | member | Guided weighing for a step |
+
+## Market list and weekly plan
+
+| Method | Path | Access | Purpose |
+|---|---|---|---|
+| GET | `/households/{h}/market-list` | guest | Current list grouped without duplicates |
+| POST | `/households/{h}/market-list/items` | member | Add item |
+| PATCH, DELETE | `/market-items/{id}` | member | Update, remove |
+| POST | `/market-items/{id}/check` | member | Mark bought |
+| POST | `/households/{h}/market-list/from-plan` | member | Add plan delta |
+| POST | `/households/{h}/weekly-plans` | member | Generate 7-day rescue-first plan |
+| GET | `/households/{h}/weekly-plans/current` | guest | Current plan |
+| PATCH | `/plan-entries/{id}` | member | Change an entry |
+| POST | `/weekly-plans/{id}/clone` | member | Clone plan (prototype) |
+
+## Notifications and analytics
+
+| Method | Path | Access | Purpose |
+|---|---|---|---|
+| GET | `/notifications` | user | Caller notifications |
+| PATCH | `/notifications/{id}/read` | user | Mark read |
+| GET | `/households/{h}/analytics/summary?month=` | guest | Kg saved, money avoided, waste |
+| GET | `/households/{h}/analytics/ranking?month=` | guest | Per-member ranking |
+| GET | `/households/{h}/analytics/trend?months=` | guest | Monthly trend |
+
+## AI and agent
+
+| Method | Path | Access | Purpose |
+|---|---|---|---|
+| POST | `/agent/chat` | guest | Chef chat; streams answer, trace, and confirmation requests over SSE |
+| GET | `/agent/conversations` | user | Caller conversations |
+| GET | `/agent/conversations/{id}` | user | Conversation messages |
+| GET | `/agent/runs/{id}/trace` | user | Visible trace: tools, arguments, results |
+| GET | `/agent/confirmations` | user | Pending writes proposed by the agent |
+| POST | `/agent/confirmations/{id}/approve` | member | Approve; runs the real use case |
+| POST | `/agent/confirmations/{id}/reject` | user | Reject |
+| GET | `/households/{h}/agent/memory` | guest | Household memory |
+| PATCH | `/households/{h}/agent/memory` | member | Edit memory entries |
+| DELETE | `/households/{h}/agent/memory` | owner | Clear memory |
+| POST | `/ai/intent` | member | Text -> structured command preview |
+| POST | `/ai/label-reader` | member | Photo of label or receipt -> item preview (multipart) |
+| POST | `/ai/photo-recipe` | member | Photo -> verifiable recipe preview (multipart) |
+| GET | `/households/{h}/ai/audit` | owner | AI latency, valid and rejected responses, fallback usage |
+
+## Realtime and operations
+
+| Method | Path | Access | Purpose |
+|---|---|---|---|
+| GET | `/households/{h}/stream` | guest | SSE: events, alerts, inventory changes, twin updates |
+| GET | `/actuator/health` | public | Health (PostgreSQL, Redis, AI provider) |
+| GET | `/v3/api-docs` | public | OpenAPI document |
+| GET | `/swagger-ui` | public | API explorer |
+
+Each endpoint ships in the roadmap step of its feature (see `PLAN.md` section 9), with MockMvc tests for success, validation, and authorization failures.
