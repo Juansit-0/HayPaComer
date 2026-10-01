@@ -11,7 +11,7 @@ HayPaComer covers 23/23 GoF patterns. Honesty rule: each pattern is used in a re
 | Creational | Prototype | Clonable weekly-plan and recipe templates | F6 |
 | Structural | Adapter | `Esp32EventAdapter`, `Hx711ReadingAdapter`, Gemini and OpenAI-compatible adapters, OCR and QR adapters into the common Java model | F3 |
 | Structural | Bridge | Measurement source (door, weight, temperature) x interpretation (stock, cold chain, usable quantity) | F3 |
-| Structural | Composite | Fridge -> zone -> tray -> food as a navigable tree | F1 |
+| Structural | Composite | `Fridge` -> `Zone` -> `Tray` -> `FoodItem` behind the sealed `FridgeNode` interface; totals and item counts are computed uniformly at every level. Test: `FridgeTest` | F1 |
 | Structural | Decorator | Expired, leftover, at-risk, and ownership states | F1 |
 | Structural | Facade | `HayPaComerFacade` exposes the system without subsystem details | F2 |
 | Structural | Flyweight | `FoodMetadataCatalog` shares one `FoodMetadata` per food (category, units, conversion factors, allergens); quantity and dates stay per item. Test: `FoodMetadataCatalogTest` | F1 |

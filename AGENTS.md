@@ -24,7 +24,8 @@ HayPaComer (name confirmed in Phase 0.5) is a smart home fridge: Java applicatio
 - Hardware for the demo: bill of materials with MercadoLibre Colombia links in `docs/hardware.md`.
 - 2026-09-30: plan extended with data model and ER diagram (`docs/database.md`), REST catalog (`docs/api.md`), JWT authentication, PostgreSQL + Flyway for relational data, Redis for all AI state, domain haypacomer.dev (ADRs 0014-0017).
 - Step 14 done in `feat/domain-quantities-flyweight` (stacked on #8): `Grams`, `Quantity`, `Unit`, `ConversionFactors`, `FoodMetadata`, `FoodMetadataCatalog` (flyweight); Spotless and JaCoCo active.
-- **Next action:** step 15: `feat(domain): fridge-zone-tray-food composite`. The user makes every commit, push, and PR; agents only edit files and hand over commands.
+- Step 15 done in `feat/domain-fridge-composite` (stacked on step 14): sealed `FridgeNode` with `Fridge`, `Zone`, `Tray`, `FoodItem` (composite).
+- **Next action:** step 16: `feat(domain): iterator to traverse the tree`. The user makes every commit, push, and PR; agents only edit files and hand over commands.
 
 ## How to continue (agreed order)
 
