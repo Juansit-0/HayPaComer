@@ -1,4 +1,4 @@
-package com.haypacomer.application;
+package dev.haypacomer.application;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
@@ -14,7 +14,7 @@ class ApplicationBoundariesTest {
   void applicationDoesNotDependOnFrameworks() {
     noClasses()
         .that()
-        .resideInAPackage("com.haypacomer.application..")
+        .resideInAPackage("dev.haypacomer.application..")
         .should()
         .dependOnClassesThat()
         .resideInAnyPackage("org.springframework..", "jakarta..", "javax..", "org.hibernate..")
