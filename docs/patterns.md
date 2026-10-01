@@ -14,7 +14,7 @@ HayPaComer covers 23/23 GoF patterns. Honesty rule: each pattern is used in a re
 | Structural | Composite | Fridge -> zone -> tray -> food as a navigable tree | F1 |
 | Structural | Decorator | Expired, leftover, at-risk, and ownership states | F1 |
 | Structural | Facade | `HayPaComerFacade` exposes the system without subsystem details | F2 |
-| Structural | Flyweight | Shared food metadata; quantity and dates stay per item | F1 |
+| Structural | Flyweight | `FoodMetadataCatalog` shares one `FoodMetadata` per food (category, units, conversion factors, allergens); quantity and dates stay per item. Test: `FoodMetadataCatalogTest` | F1 |
 | Structural | Proxy | Offline hardware cache and private food protection | F7 |
 | Behavioral | Chain of Responsibility | Event validation chain (range, timestamp, mode, stability, duplicates) | F3 |
 | Behavioral | Command | Auditable inventory commands | F2 |

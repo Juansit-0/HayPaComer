@@ -8,8 +8,8 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 |---|---|---|---|
 | F0 | Foundation | 5 | done |
 | F0.5 | Brand | 5 + close | done |
-| F0.9 | Data model and domain name | 2 | in progress |
-| F1 | Domain and persistence | 9 | pending |
+| F0.9 | Data model and domain name | 2 | done |
+| F1 | Domain and persistence | 9 | in progress |
 | F1.5 | Authentication | 6 | pending |
 | F2 | Application | 6 | pending |
 | F3 | Door and temperature sensors | 8 | pending |
@@ -38,10 +38,14 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 ## F0.9 detail
 
 - [x] 12. data model, er diagram, api catalog, and adrs 14-17
-- [ ] 13. rename packages and groupId to dev.haypacomer
+- [x] 13. rename packages and groupId to dev.haypacomer
+
+## F1 detail
+
+- [x] 14. quantities, units, and food metadata (flyweight)
 
 ## Notes
 
 - Before the public repository exists, steps are local commits on `main`.
 - After repository creation: `feat/*` branch -> PR -> green CI -> review approval -> squash merge.
-- JaCoCo coverage checks (>= 80% in `domain` and `application`) are added with the first domain code in F1.
+- JaCoCo line coverage check (>= 80%) is active in `domain` since step 14 and is enabled in `application` with its first use case. Spotless (google-java-format) runs `check` on every build; run `mvn spotless:apply` before committing.
