@@ -16,6 +16,14 @@ HayPaComer (name confirmed in Phase 0.5) is a smart home fridge: Java applicatio
 - Brand phase (F0.5) complete in `brand/`: context, audience, competitors, positioning, strategy, naming (name confirmed: **HayPaComer**), identity, voice, messaging, story, launch plan, brand book, and design tokens in `brand/assets/`. Brand close complete: public repository with branch protection.
 - **Public repository: https://github.com/Juansit-0/HayPaComer** with `main` protected: PR required, 1 review approval (collaborator Jenifrutica), CI check `build` required, admins enforced.
 
+## Where we left off
+
+- Date: 2026-09-24. All Phase 0 (foundation) and Phase 0.5 (brand) work is merged on `main`; CI green; 24 commits of history.
+- Pending: collaborator **Jenifrutica must accept the repository invite** before any PR can be approved.
+- Open: five Dependabot PRs (#1 to #5: JUnit 6.1.3, enforcer 3.6.3, ArchUnit 1.5.0, actions/checkout v7, actions/setup-java v6). Review carefully; the JUnit 6 bump is a major version.
+- Hardware for the demo: bill of materials with MercadoLibre Colombia links in `docs/hardware.md`.
+- **Next action:** Phase 1, step 12: `feat(domain): quantities, units, and food metadata (flyweight)` in a `feat/*` branch, PR, green CI, and approval by Jenifrutica.
+
 ## How to continue (agreed order)
 
 1. **Phases 1-7**: follow the numbered roadmap in `PLAN.md` section 9, one small step at a time, each in a `feat/*` branch with PR, green CI, and review approval by the collaborator.
