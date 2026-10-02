@@ -1,6 +1,6 @@
 # Roadmap status
 
-Status tracker for the ~79 steps defined in `PLAN.md` section 9. `PLAN.md` remains the source of truth.
+Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remains the source of truth.
 
 ## Phases
 
@@ -8,12 +8,14 @@ Status tracker for the ~79 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 |---|---|---|---|
 | F0 | Foundation | 5 | done |
 | F0.5 | Brand | 5 + close | done |
-| F1 | Domain and persistence | 7 | pending |
+| F0.9 | Data model and domain name | 2 | in progress |
+| F1 | Domain and persistence | 9 | pending |
+| F1.5 | Authentication | 6 | pending |
 | F2 | Application | 6 | pending |
 | F3 | Door and temperature sensors | 8 | pending |
 | F4 | HX711 scale | 5 | pending |
 | F5 | Quantities, substitutions, and guided cooking | 8 | pending |
-| F6 | AI, web, and agent | 19 | pending |
+| F6 | AI, web, and agent | 21 | pending |
 | F7 | Analytics, robustness, and demo | 16 | pending |
 
 ## F0 detail
@@ -32,6 +34,11 @@ Status tracker for the ~79 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 9. design system, dtcg tokens, and wcag validation
 - [x] 10. brand guidelines, readme application, and final assets
 - [x] 11. close: public repository + branch protection + history push (no rename: name confirmed)
+
+## F0.9 detail
+
+- [x] 12. data model, er diagram, api catalog, and adrs 14-17
+- [ ] 13. rename packages and groupId to dev.haypacomer
 
 ## Notes
 

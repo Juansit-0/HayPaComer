@@ -28,7 +28,7 @@ What becomes easier or harder.
 | ADR | Title | Status |
 |---|---|---|
 | 0001 | Stack and module layout | accepted |
-| 0002 | SQLite persistence over JDBC | accepted |
+| 0002 | SQLite persistence over JDBC | superseded by 0014 |
 | 0003 | Web UI with SSE instead of JavaFX | accepted |
 | 0004 | Decoupled AI behind `RecommendationEngine` | accepted |
 | 0005 | Agent with validated tools, never direct database writes | accepted |
@@ -40,3 +40,7 @@ What becomes easier or harder.
 | 0011 | Module boundaries enforced by enforcer and ArchUnit | accepted |
 | 0012 | Brand and design skills for the branding phase | accepted |
 | 0013 | English as the project language | accepted |
+| 0014 | PostgreSQL with Flyway for relational data | accepted |
+| 0015 | Redis for AI state | accepted |
+| 0016 | JWT authentication with rotating refresh tokens | accepted |
+| 0017 | haypacomer.dev domain and dev.haypacomer packages | accepted |

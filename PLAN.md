@@ -5,7 +5,8 @@
 
 - **Date**: September 2026
 - **Status**: plan approved; Step 0 and Phase 0.5 (brand) complete - name confirmed: HayPaComer; public repository created. Next: Phases 1-7
-- **Repository**: not created yet (public, after brand close with the final name)
+- **Repository**: https://github.com/Juansit-0/HayPaComer
+- **Domain**: haypacomer.dev (web UI) and api.haypacomer.dev (REST API)
 
 ---
 
@@ -23,8 +24,8 @@ HayPaComer is a smart home fridge that answers a daily question: **"what can I c
 | AI | Real agent layer (tools, memory, proactivity, visible trace) with multi-agent supervisor Chef/Market/Cold/Coach; 6 AI roles; hands-free voice and photo-to-recipe |
 | Patterns | Full 23/23 GoF coverage, each with a real role, its own test, and documented justification |
 | Brand | Professional brand phase from scratch (19 skills: 14 brand + 5 design) before naming the repository |
-| Engineering | Professional stack (Java 25 LTS + Spring Boot 4.1.1 + Maven multi-module with 8 SRP modules), CI, coverage, formatting, security |
-| Process | Roadmap of small steps: ~79 PRs with branch, green CI, and squash merge |
+| Engineering | Professional stack (Java 25 LTS + Spring Boot 4.1.1 + Maven multi-module with 8 SRP modules), PostgreSQL + Redis, REST API with JWT authentication, CI, coverage, formatting, security |
+| Process | Roadmap of small steps: ~92 PRs with branch, green CI, and squash merge |
 
 ---
 
@@ -93,7 +94,24 @@ Trigger (chat / schedule / event) -> AgentRuntime
 - **Multi-agent supervisor**: routes to lightweight Chef, Market, Cold, and Coach specialists that share tools and memory.
 - **Proactivity**: scheduled and event briefings (door open, high temperature, expiry clusters).
 - **Extras**: hands-free voice in the kitchen (Web Speech) and photo to structured, verifiable recipe.
+- **Backend only**: AI and the agent run in the backend (`adapter-ai` + `agent`); the web UI and the ESP32 reach them only through the REST API and SSE; provider keys never leave the server.
 - **Governance**: per-case JSON contract, schema validation, step budget, timeouts, tool allowlist, no personal data, `AiAuditService` (latency, valid/rejected, fallback), and keys only in environment variables.
+
+### 4.3 AI storage (Redis)
+
+Everything AI lives in Redis; everything else lives in PostgreSQL. Full key map in `docs/database.md`.
+
+| Key | Type | TTL | Content |
+|---|---|---|---|
+| `agent:memory:{householdId}` | Hash | none | Preferences, usual quantities, accepted dishes, decisions |
+| `agent:conv:{conversationId}` | Stream | 7 d | Chef chat messages |
+| `agent:run:{runId}` / `agent:trace:{runId}` | Hash / Stream | 30 d | Run status and visible trace |
+| `agent:pending:{confirmationId}` | Hash | 10 min | Write proposed by the agent awaiting human confirmation |
+| `ai:audit` | Capped stream | none | Latency, valid/rejected, fallback |
+| `ai:cache:{sha256}` | String | 1 h | Validated AI response cache (Proxy) |
+| `ai:cb:{provider}`, `ai:ratelimit:{userId}` | Hash, counter | none, 1 min | Circuit breaker and rate limit |
+
+Rule kept: the agent never writes to PostgreSQL; an approved confirmation runs the real use case, which validates and writes. Losing Redis loses history and caches, never stock, grams, or safety decisions.
 
 ---
 
@@ -108,6 +126,15 @@ Honesty rule: each pattern is used in a real production flow, has a specific tes
 | Behavioral (11) | Chain of Responsibility (event validation), Command (auditable commands), Interpreter (units and quantities), Iterator (tree traversal), Mediator (guided cooking), Memento (undo and snapshots), Observer (panel, notifications, analytics), State (cooking and cold chain), Strategy (evaluation, channels, plan), Template Method (reports), Visitor (analytics over the composite) |
 
 Architecture and resilience bonus: Clean Architecture, Repository, DTO, Dependency Injection, MVC, and Circuit Breaker.
+
+### 5.1 Adapter pattern in HayPaComer
+
+The Adapter pattern lives in the project code, not only in Spring Boot, at two levels:
+
+- **Ports and adapters (hexagonal)**: `application` defines ports; the `adapter-*` modules implement them (`PostgresInventoryRepository implements InventoryRepository`, `RedisAgentMemoryStore implements AgentMemoryStore`, `TelegramChannel implements NotificationChannel`, `JwtTokenIssuer implements TokenIssuer`).
+- **GoF Adapter (class level)**, each with its own test: `Esp32EventAdapter` (ESP32 JSON -> `SensorEvent`), `Hx711ReadingAdapter` (raw counts + calibration -> `Grams`), `GeminiRecommendationAdapter` and `OpenAiCompatibleRecommendationAdapter` (provider APIs -> `RecommendationEngine`), `OcrLabelReaderAdapter` and `QrLabelAdapter` (external libraries -> `LabelReader`).
+
+Full table in `docs/architecture.md`.
 
 ---
 
@@ -134,11 +161,15 @@ Architecture and resilience bonus: Clean Architecture, Repository, DTO, Dependen
 | Language | Java 25 LTS |
 | Framework | Spring Boot 4.1.1 |
 | Build | Maven multi-module with 8 SRP modules: `domain`, `application`, `adapter-persistence`, `adapter-sensors`, `adapter-ai`, `adapter-notifications`, `agent`, `web` |
-| Persistence | SQLite with WAL, indexes, and prepared statements (JDBC) |
+| Persistence | PostgreSQL 18 + Flyway migrations for all relational data (ER model in `docs/database.md`) |
+| AI state | Redis 8 (AOF) for agent memory, conversations, traces, confirmations, and AI cache |
+| Security | Spring Security + JWT access tokens + rotating refresh tokens; BCrypt; per-device API keys |
+| API | REST `/api/v1` (~95 endpoints, catalog in `docs/api.md`) + SSE |
+| Infra | Docker Compose (PostgreSQL, Redis); domain haypacomer.dev |
 | Web | Static UI served by Spring + SSE for real time |
 | Hardware | ESP32 + reed switch + DS18B20 + HX711 + load cell + LED/buzzer |
 | AI | Gemini and OpenAI-compatible endpoints, always behind `RecommendationEngine` + rules |
-| Quality | JUnit 5, JaCoCo >= 80% in domain/application, Spotless, OpenAPI, Actuator, Dependabot, CI |
+| Quality | JUnit 5, Testcontainers, JaCoCo >= 80% in domain/application, Spotless, OpenAPI, Actuator, Dependabot, CI |
 
 ### 7.2 Target structure
 
@@ -150,6 +181,8 @@ HayPaComer/
 |   |-- proposal/             # Original proposal and slides (tex + pdf)
 |   |-- ROADMAP.md            # This plan with per-step status
 |   |-- architecture.md
+|   |-- database.md           # ER diagram + Redis key map
+|   |-- api.md                # REST endpoint catalog
 |   |-- patterns.md
 |   |-- responsible-ai.md
 |   |-- agent.md
@@ -157,26 +190,36 @@ HayPaComer/
 |   '-- adr/                  # Architecture decisions
 |-- domain/                   # Domain model and business rules (pure Java, no Spring)
 |-- application/              # Use cases and ports (interfaces)
-|-- adapter-persistence/      # SQLite persistence
+|-- adapter-persistence/      # PostgreSQL repositories + Redis AI stores
 |-- adapter-sensors/          # ESP32 and event simulator
 |-- adapter-ai/               # Rules, Gemini, and OpenAI-compatible + JSON contracts
 |-- adapter-notifications/    # Telegram/web/log channels
 |-- agent/                    # Agent runtime, tools, memory, and supervisor
-|-- web/                      # Spring app: REST, SSE, UI, OpenAPI, Actuator
+|-- web/                      # Spring app: REST, SSE, UI, security, OpenAPI, Actuator
 |-- firmware/esp32/           # reed+DS18B20 and HX711 sketches
 |-- simulator/                # Event injector for hardware-free demo
+|-- docker-compose.yml        # PostgreSQL + Redis
 '-- README.md
 ```
 
 ### 7.3 Quality standards
 
-- Tests: unit tests per service and pattern, integration with temporary SQLite and MockMvc; minimum 80% coverage in the core.
-- Boundaries: `maven-enforcer` forbids frameworks in `domain`/`application`; ArchUnit validates module dependencies (isolated adapters, nobody depends on `web`).
+- Tests: unit tests per service and pattern, integration with Testcontainers (PostgreSQL, Redis) and MockMvc; minimum 80% coverage in the core.
+- Boundaries: `maven-enforcer` forbids frameworks (Spring, JDBC, Redis, JWT libraries) in `domain`/`application`; ArchUnit validates module dependencies (isolated adapters, nobody depends on `web`).
 - Single responsibility: one use case per class with a single public method; ports segregated by interface (ISP); framework annotations only in `web` and adapters.
 - Formatting: Spotless (google-java-format); the build fails if not formatted.
 - Reliability: input validation, idempotent event ingestion, timeouts + retries with backoff, Circuit Breaker, global RFC 7807 error handler, health checks.
-- Performance: WAL, indexes, prepared statements, and paginated history.
+- Performance: indexes, partial unique indexes, optimistic locking, and paginated history.
 - Security: zero secrets in the repository; environment variables; strict `.gitignore`.
+
+### 7.4 Security and authentication
+
+- Passwords hashed with BCrypt (cost 12) behind the `PasswordHasher` port.
+- Access JWT (15 min; claims `sub`, `hid`, `role`, `jti`; key from `JWT_SECRET`) and opaque refresh token (30 days) stored as SHA-256 hash, rotated on every use with reuse detection by family.
+- Household-scoped roles: `OWNER` (members, devices, fridges), `MEMBER` (inventory, cooking, market), `GUEST` (read and own items). Food ownership (private, shared, ask first, grants) is a domain rule.
+- ESP32 devices authenticate with a revocable per-device key in `X-Device-Key`.
+- Email verification, password reset, invitations, login lockout, audit log, RFC 7807 errors, CORS only for `https://haypacomer.dev`.
+- Model in `docs/database.md`; decision in ADR 0016.
 
 ---
 
@@ -187,11 +230,11 @@ HayPaComer/
 - **From the repository on**: each step goes in a `feat/*` branch -> PR -> green CI -> review approval -> squash merge to `main`. Branch protection on `main` requires the PR review approval.
 - **Commit prefixes**: `feat(scope): ...`, `fix(scope): ...`, `docs: ...`, `test: ...`, `perf: ...`, `ci: ...`, `chore: ...`.
 - **Definition of Done per step**: compiles + tests + formatting + green PR.
-- Deliberately small steps (~79 PRs) so the project always moves forward in green and nothing gets lost.
+- Deliberately small steps (~92 PRs) so the project always moves forward in green and nothing gets lost.
 
 ---
 
-## 9. Roadmap - ~79 PRs
+## 9. Roadmap - ~92 PRs
 
 ### F0 - Foundation (5)
 
@@ -210,100 +253,119 @@ HayPaComer/
 10. `docs(brand): brand guidelines, readme application, and final assets`
 11. Close: rename if needed + `gh repo create` with the final name + `main` branch protection (PR review required) + history push.
 
-### F1 - Domain and persistence (7)
+### F0.9 - Data model and domain name (2)
 
-12. `feat(domain): quantities, units, and food metadata (flyweight)`
-13. `feat(domain): fridge-zone-tray-food composite`
-14. `feat(domain): iterator to traverse the tree`
-15. `feat(domain): recipes, steps, requirements, and members`
-16. `feat(domain): food profiles with allergies and diets`
-17. `feat(domain): expired, leftover, at-risk, and ownership decorators`
-18. `feat(persistence): sqlite schema, repositories, and tests`
+12. `docs: data model, er diagram, api catalog, and adrs 14-17`
+13. `chore: rename packages and groupId to dev.haypacomer`
+
+### F1 - Domain and persistence (9)
+
+14. `feat(domain): quantities, units, and food metadata (flyweight)`
+15. `feat(domain): fridge-zone-tray-food composite`
+16. `feat(domain): iterator to traverse the tree`
+17. `feat(domain): recipes, steps, requirements, and members`
+18. `feat(domain): food profiles with allergies and diets`
+19. `feat(domain): expired, leftover, at-risk, and ownership decorators`
+20. `feat(domain): users, households, memberships, and roles`
+21. `chore(infra): docker compose with postgresql and redis`
+22. `feat(persistence): postgresql schema with flyway, repositories, and testcontainers`
+
+### F1.5 - Authentication (6)
+
+23. `feat(application): register, login, refresh, and logout use cases with ports`
+24. `feat(web): spring security with jwt and rotating refresh tokens`
+25. `feat(web): household-scoped authorization and food ownership checks`
+26. `feat(web): invitations, email verification, and password reset`
+27. `feat(web): esp32 device api keys`
+28. `test(security): authentication and authorization integration tests`
 
 ### F2 - Application (6)
 
-19. `feat(application): haypacomer facade (facade)`
-20. `feat(application): live inventory with permissions`
-21. `feat(application): collaborative market list without duplicates`
-22. `feat(application): auditable inventory commands (command)`
-23. `feat(application): undo and snapshots (memento)`
-24. `test(application): services and business rules`
+29. `feat(application): haypacomer facade (facade)`
+30. `feat(application): live inventory with permissions`
+31. `feat(application): collaborative market list without duplicates`
+32. `feat(application): auditable inventory commands (command)`
+33. `feat(application): undo and snapshots (memento)`
+34. `test(application): services and business rules`
 
 ### F3 - Door and temperature sensors (8)
 
-25. `feat(sensors): esp32 adapter and simulator (adapter)`
-26. `feat(sensors): abstract factory for real and simulated hardware`
-27. `feat(sensors): measurement-interpretation bridge and door alert (bridge)`
-28. `feat(sensors): event validation chain (chain of responsibility)`
-29. `feat(sensors): cold chain and under-review state`
-30. `feat(web): rest event intake with validation and idempotency`
-31. `feat(firmware): esp32 reed + ds18b20 with json events`
-32. `test(sensors): noise, duplicates, and thresholds`
+35. `feat(sensors): esp32 adapter and simulator (adapter)`
+36. `feat(sensors): abstract factory for real and simulated hardware`
+37. `feat(sensors): measurement-interpretation bridge and door alert (bridge)`
+38. `feat(sensors): event validation chain (chain of responsibility)`
+39. `feat(sensors): cold chain and under-review state`
+40. `feat(web): rest event intake with device key, validation, and idempotency`
+41. `feat(firmware): esp32 reed + ds18b20 with json events`
+42. `test(sensors): noise, duplicates, and thresholds`
 
 ### F4 - HX711 scale (5)
 
-33. `feat(scale): tare, stable reading, and calibration`
-34. `feat(scale): fridge mode with measured stock discount`
-35. `feat(scale): cooking mode against recipe requirement`
-36. `feat(firmware): esp32 hx711 with stable reading`
-37. `test(scale): tare, stability, and calibration`
+43. `feat(scale): tare, stable reading, and calibration (hx711 adapter)`
+44. `feat(scale): fridge mode with measured stock discount`
+45. `feat(scale): cooking mode against recipe requirement`
+46. `feat(firmware): esp32 hx711 with stable reading`
+47. `test(scale): tare, stability, and calibration`
 
 ### F5 - Quantities, substitutions, and guided cooking (8)
 
-38. `feat(quantity): enough/reduce/substitute/missing evaluator (strategy)`
-39. `feat(quantity): quantity and unit interpreter`
-40. `feat(quantity): substitutions with proportion, limits, and allergies`
-41. `feat(cooking): cooking session with states and resume (state)`
-42. `feat(cooking): session, scale, and timer mediator`
-43. `feat(cooking): timers and guided weighing per step`
-44. `feat(quantity): automatic missing items to the market list`
-45. `test(quantity): portions, substitutions, and step progression`
+48. `feat(quantity): enough/reduce/substitute/missing evaluator (strategy)`
+49. `feat(quantity): quantity and unit interpreter`
+50. `feat(quantity): substitutions with proportion, limits, and allergies`
+51. `feat(cooking): cooking session with states and resume (state)`
+52. `feat(cooking): session, scale, and timer mediator`
+53. `feat(cooking): timers and guided weighing per step`
+54. `feat(quantity): automatic missing items to the market list`
+55. `test(quantity): portions, substitutions, and step progression`
 
-### F6 - AI, web, and agent (19)
+### F6 - AI, web, and agent (21)
 
-46. `feat(ai): offline rule engine`
-47. `feat(ai): gemini and openai-compatible adapters with validated json`
-48. `feat(application): suggestion builder with constraints and profiles`
-49. `feat(application): single fridge session and private food proxy`
-50. `feat(planning): 7-day weekly plan with rescue-first strategy`
-51. `feat(planning): clonable plan and recipe templates (prototype)`
-52. `feat(planning): plan delta into the market list`
-53. `feat(web): now, fridge, and market interface`
-54. `feat(web): live sse panel and digital twin (observer)`
-55. `feat(notifications): telegram, web, and log channels (observer, strategy)`
-56. `feat(web): openapi, rfc7807 errors, and actuator health`
-57. `feat(agent): plan-tool-observation runtime with budget`
-58. `feat(agent): tool registry with validation and permissions`
-59. `feat(agent): editable household memory`
-60. `feat(agent): trace console and human confirmations`
-61. `feat(agent): chef, market, cold, and coach multi-agent supervisor`
-62. `feat(ai): photo to structured, verifiable recipe`
-63. `feat(agent): chef chat as an agent with evidence`
-64. `test(ai): response contract, weekly plan, and offline fallback`
+56. `feat(ai): offline rule engine`
+57. `feat(ai): gemini and openai-compatible adapters with validated json`
+58. `feat(ai): redis response cache, rate limit, and circuit breaker state`
+59. `feat(application): suggestion builder with constraints and profiles`
+60. `feat(application): single fridge session and private food proxy`
+61. `feat(planning): 7-day weekly plan with rescue-first strategy`
+62. `feat(planning): clonable plan and recipe templates (prototype)`
+63. `feat(planning): plan delta into the market list`
+64. `feat(web): now, fridge, and market interface`
+65. `feat(web): live sse panel and digital twin (observer)`
+66. `feat(notifications): telegram, web, and log channels (observer, strategy)`
+67. `feat(web): openapi catalog, rfc7807 errors, and actuator health`
+68. `feat(persistence): redis stores for agent memory, conversations, traces, and confirmations`
+69. `feat(agent): plan-tool-observation runtime with budget`
+70. `feat(agent): tool registry with validation and permissions`
+71. `feat(agent): editable household memory`
+72. `feat(agent): trace console and human confirmations`
+73. `feat(agent): chef, market, cold, and coach multi-agent supervisor`
+74. `feat(ai): photo to structured, verifiable recipe`
+75. `feat(agent): chef chat as an agent with evidence`
+76. `test(ai): response contract, weekly plan, and offline fallback`
 
 ### F7 - Analytics, robustness, and demo (16)
 
-65. `feat(analytics): consumption, avoided waste, and money saved`
-66. `feat(analytics): reports with template method and visitor`
-67. `feat(web): analytics dashboard with charts and household ranking`
-68. `feat(application): degraded mode with cache and retries (proxy)`
-69. `feat(ai): circuit breaker and degraded responses (circuit breaker, null object)`
-70. `feat(agent): proactive briefings by schedule and events`
-71. `feat(agent): reactive copilot with live scale`
-72. `feat(agent): market agent with budget`
-73. `feat(agent): cold incident investigation`
-74. `feat(agent): anti-waste coach and weekly digest`
-75. `feat(agent): hands-free voice in the kitchen (web speech)`
-76. `perf(persistence): indexes, wal, and inventory queries`
-77. `test(integration): full demo flow and extreme noise`
-78. `docs(demo): expanded demo script`
-79. `docs: final readme with badges, architecture, and patterns`
-80. `chore(release): v1.0.0`
+77. `feat(analytics): consumption, avoided waste, and money saved`
+78. `feat(analytics): reports with template method and visitor`
+79. `feat(web): analytics dashboard with charts and household ranking`
+80. `feat(application): degraded mode with cache and retries (proxy)`
+81. `feat(ai): circuit breaker and degraded responses (circuit breaker, null object)`
+82. `feat(agent): proactive briefings by schedule and events`
+83. `feat(agent): reactive copilot with live scale`
+84. `feat(agent): market agent with budget`
+85. `feat(agent): cold incident investigation`
+86. `feat(agent): anti-waste coach and weekly digest`
+87. `feat(agent): hands-free voice in the kitchen (web speech)`
+88. `perf(persistence): indexes, partitions, and inventory queries`
+89. `test(integration): full demo flow and extreme noise`
+90. `docs(demo): expanded demo script`
+91. `docs: final readme with badges, architecture, and patterns`
+92. `chore(release): v1.0.0`
 
 ---
 
 ## 10. Final demo (acceptance criteria)
 
+0. Ana logs in as MEMBER and cannot consume Juan's private yogurt until Juan grants access.
 1. Door open 40 s -> buzzer + Telegram notification + live SSE panel with the perishable under review.
 2. Milk removal in Fridge mode: 842 g -> 650 g, stock updated to 192 g.
 3. "Organize dinner and notify Ana": the supervisor splits across Chef, Market, and Coach with a visible trace of tools and grams; the user confirms.
@@ -321,7 +383,7 @@ Indicators: inventory updated, event processed, recipe respecting constraints, A
 ## 11. Recorded decisions (ADR base)
 
 1. Stack: Java 25 LTS + Spring Boot 4.1.1 + Maven multi-module with 8 single-responsibility modules: `domain`, `application`, `adapter-persistence`, `adapter-sensors`, `adapter-ai`, `adapter-notifications`, `agent`, `web`.
-2. SQLite persistence (WAL + indexes) over JDBC.
+2. ~~SQLite persistence (WAL + indexes) over JDBC.~~ Superseded by 14.
 3. Web UI served by Spring + SSE; JavaFX discarded.
 4. Decoupled AI: `RecommendationEngine` with offline rule engine + Gemini and OpenAI-compatible adapters with strict validated JSON.
 5. Agent with validated tools: AI never writes directly to the database; multi-agent supervisor.
@@ -333,6 +395,10 @@ Indicators: inventory updated, event processed, recipe respecting constraints, A
 11. Single-responsibility modules enforced by `maven-enforcer` + ArchUnit (isolated adapters; nobody depends on `web`).
 12. AI skills for brand and design: 19 global (14 brand + 5 design); `design-system` replaces the obsolete `design-system-generator`.
 13. Project language: English for code, tests, documentation, UI, and commits; no comments in code; no emojis.
+14. PostgreSQL 18 with Flyway for all relational data; Testcontainers in integration tests.
+15. Redis for all AI state (memory, conversations, traces, confirmations, cache, circuit breaker); never source of truth.
+16. Spring Security with JWT access tokens and rotating refresh tokens; household roles; per-device API keys.
+17. Domain haypacomer.dev; Maven groupId and Java packages `dev.haypacomer`.
 
 ---
 
@@ -347,4 +413,6 @@ Indicators: inventory updated, event processed, recipe respecting constraints, A
 - [x] CI + Dependabot + F0 docs (architecture, patterns, responsible AI, agent, event protocol, ADRs)
 - [x] Phase 0.5 (branding, colors, and tokens)
 - [x] Public repository + branch protection + history push (no rename: name confirmed)
+- [x] Data model (ER), REST API catalog, authentication, PostgreSQL + Redis, haypacomer.dev added to the plan
+- [ ] Package rename to `dev.haypacomer`
 - [ ] Phases 1-7

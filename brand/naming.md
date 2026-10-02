@@ -57,7 +57,7 @@
 
 **Logo potential:** Strong. The three beats (Hay / Pa' / Comer) allow a stacked wordmark, a "pa'" apostrophe as a graphic device, and a cutlery or tray mark built from the "H".
 
-**Domain and trademark risk:** The phrase is generic colloquial Spanish, so trademark scope is limited but conflict is unlikely; domain variants are the main check (haypacomer.com, haypacomer.app).
+**Domain and trademark risk:** The phrase is generic colloquial Spanish, so trademark scope is limited but conflict is unlikely; domain variants are the main check; the chosen domain is haypacomer.dev (HSTS preloaded, HTTPS mandatory).
 
 **Fits the audience:** Yes. It speaks the audience's own words, which is the whole brand voice in one name.
 
@@ -78,7 +78,7 @@ If the team decides that category-defining measurement matters more than warmth,
 
 ## Before you finalize
 
-- [ ] Check domain availability (haypacomer.com, haypacomer.app)
+- [ ] Register haypacomer.dev (chosen domain, ADR 0017)
 - [ ] Check trademark in the target category and market
 - [ ] Check social handles availability
 - [ ] Say it out loud in Spanish and English: does it feel natural?

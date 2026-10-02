@@ -14,14 +14,15 @@ Phase 0 - foundation complete: local git, Maven structure with 8 modules, F0 doc
 
 - Java 25 LTS + Spring Boot 4.1.1
 - Maven multi-module with 8 SRP modules: `domain`, `application`, `adapter-persistence`, `adapter-sensors`, `adapter-ai`, `adapter-notifications`, `agent`, `web`
-- SQLite (WAL) over JDBC; web UI with SSE
+- PostgreSQL (Flyway) for relational data, Redis for AI state; REST API with JWT authentication; web UI with SSE
+- Domain: haypacomer.dev
 - Hardware: ESP32 + reed switch + DS18B20 + HX711 + load cell
 
 ## Documentation
 
 - [`PLAN.md`](PLAN.md) - master plan and roadmap
 - [`brand/brand-book.md`](brand/brand-book.md) - brand guide, strategy, voice, and tokens
-- [`docs/`](docs) - architecture, patterns, responsible AI, agent, event protocol, ADRs
+- [`docs/`](docs) - architecture, data model, REST API, patterns, responsible AI, agent, event protocol, ADRs
 - [`docs/proposal/`](docs/proposal) - original proposal (LaTeX + PDF)
 
 ## Demo promise
