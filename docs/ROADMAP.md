@@ -67,6 +67,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 30. live inventory with permissions
 - [x] 31. collaborative market list without duplicates
 - [x] 32. auditable inventory commands (command)
+- [x] 33. undo and snapshots (memento)
 
 ## Notes
 

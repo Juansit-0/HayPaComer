@@ -11,7 +11,9 @@ import dev.haypacomer.application.household.HouseholdNotFoundException;
 import dev.haypacomer.application.household.InvitationEmailMismatchException;
 import dev.haypacomer.application.inventory.FoodItemNotFoundException;
 import dev.haypacomer.application.inventory.FoodNotInCatalogException;
+import dev.haypacomer.application.inventory.NothingToUndoException;
 import dev.haypacomer.application.inventory.PermissionRequiredException;
+import dev.haypacomer.application.inventory.SnapshotNotFoundException;
 import dev.haypacomer.domain.household.AccessDeniedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -74,6 +76,16 @@ public class ApiExceptionHandler {
   @ExceptionHandler(FoodNotInCatalogException.class)
   ProblemDetail foodNotInCatalog(FoodNotInCatalogException exception) {
     return problem(HttpStatus.UNPROCESSABLE_CONTENT, "Unknown food", exception.getMessage());
+  }
+
+  @ExceptionHandler(NothingToUndoException.class)
+  ProblemDetail nothingToUndo(NothingToUndoException exception) {
+    return problem(HttpStatus.CONFLICT, "Nothing to undo", exception.getMessage());
+  }
+
+  @ExceptionHandler(SnapshotNotFoundException.class)
+  ProblemDetail snapshotNotFound(SnapshotNotFoundException exception) {
+    return problem(HttpStatus.NOT_FOUND, "Not found", exception.getMessage());
   }
 
   @ExceptionHandler(PermissionRequiredException.class)

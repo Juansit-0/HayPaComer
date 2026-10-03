@@ -96,9 +96,9 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 | GET | `/households/{h}/activity?limit=` | guest | Audited inventory commands, newest first |
 | POST | `/households/{h}/items/{id}/grants` | owner of the item | Grant access to another member |
 | DELETE | `/households/{h}/items/{id}/grants/{u}` | owner of the item | Revoke grant |
-| POST | `/households/{h}/inventory/undo` | member | Undo last command (memento) |
-| GET, POST | `/households/{h}/snapshots` | member | List, create snapshots |
-| POST | `/snapshots/{id}/restore` | owner | Restore snapshot |
+| POST | `/households/{h}/inventory/undo` | author of the change or owner | Undo the latest inventory change (multi-level; 409 when nothing is left) |
+| GET, POST | `/households/{h}/snapshots` | guest, member | List manual snapshots, take one with an optional reason |
+| POST | `/households/{h}/snapshots/{id}/restore` | owner | Restore a manual snapshot and close the undo history |
 
 ## Devices and sensor events
 

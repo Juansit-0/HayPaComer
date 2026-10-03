@@ -14,6 +14,7 @@ import dev.haypacomer.application.inventory.ChangeFoodOwnership.SetVisibility;
 import dev.haypacomer.application.support.InMemoryFridgeRepository;
 import dev.haypacomer.application.support.InMemoryHouseholdRepository;
 import dev.haypacomer.application.support.InMemoryInventoryStores;
+import dev.haypacomer.application.support.InMemorySnapshotStore;
 import dev.haypacomer.domain.food.Allergen;
 import dev.haypacomer.domain.food.FoodCategory;
 import dev.haypacomer.domain.food.FoodMetadata;
@@ -108,6 +109,7 @@ class LiveInventoryTest {
             guard,
             stores.audit,
             stores.unitOfWork,
+            new InMemorySnapshotStore(),
             clock);
     changeOwnership =
         new ChangeFoodOwnership(households, fridges, stores.ownerships, stores.movements);
