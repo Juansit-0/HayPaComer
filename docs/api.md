@@ -155,10 +155,13 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 
 | Method | Path | Access | Purpose |
 |---|---|---|---|
-| GET | `/households/{h}/market-list` | guest | Current list grouped without duplicates |
-| POST | `/households/{h}/market-list/items` | member | Add item |
-| PATCH, DELETE | `/market-items/{id}` | member | Update, remove |
-| POST | `/market-items/{id}/check` | member | Mark bought |
+| GET | `/households/{h}/market-list` | guest | Pending items grouped by category plus checked items |
+| POST | `/households/{h}/market-list/items` | member | Add a catalog food; a pending duplicate is merged by adding grams |
+| PATCH | `/households/{h}/market-list/items/{id}` | member | Change grams |
+| POST | `/households/{h}/market-list/items/{id}/check` | member | Mark bought |
+| DELETE | `/households/{h}/market-list/items/{id}/check` | member | Unmark (409 if the food is pending again) |
+| DELETE | `/households/{h}/market-list/items/{id}` | member | Remove |
+| DELETE | `/households/{h}/market-list/checked` | member | Clear bought items |
 | POST | `/households/{h}/market-list/from-plan` | member | Add plan delta |
 | POST | `/households/{h}/weekly-plans` | member | Generate 7-day rescue-first plan |
 | GET | `/households/{h}/weekly-plans/current` | guest | Current plan |
