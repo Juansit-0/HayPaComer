@@ -55,6 +55,7 @@ final class KitchenDtos {
       LocalDate expiresOn,
       Set<FoodStatus> statuses,
       boolean edible,
+      boolean usable,
       int rescuePriority) {
 
     static InventoryItemResponse from(InventoryEntry entry) {
@@ -68,6 +69,7 @@ final class KitchenDtos {
           item.expiresOn().orElse(null),
           entry.food().statuses(),
           entry.food().isEdible(),
+          entry.usable(),
           entry.food().rescuePriority());
     }
   }

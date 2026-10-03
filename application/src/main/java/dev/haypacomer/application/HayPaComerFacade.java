@@ -52,6 +52,7 @@ public final class HayPaComerFacade {
 
   public List<InventoryEntry> rescueFirst(UserId actor, HouseholdId household) {
     return inventory(actor, household).stream()
+        .filter(InventoryEntry::usable)
         .filter(entry -> entry.food().isEdible())
         .filter(entry -> entry.food().rescuePriority() > 0)
         .toList();

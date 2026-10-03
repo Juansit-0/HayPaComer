@@ -9,6 +9,8 @@ import dev.haypacomer.application.auth.UserNotFoundException;
 import dev.haypacomer.application.device.DeviceNotFoundException;
 import dev.haypacomer.application.household.HouseholdNotFoundException;
 import dev.haypacomer.application.household.InvitationEmailMismatchException;
+import dev.haypacomer.application.inventory.FoodItemNotFoundException;
+import dev.haypacomer.application.inventory.FoodNotInCatalogException;
 import dev.haypacomer.application.inventory.PermissionRequiredException;
 import dev.haypacomer.domain.household.AccessDeniedException;
 import org.springframework.http.HttpStatus;
@@ -62,6 +64,16 @@ public class ApiExceptionHandler {
   @ExceptionHandler(HouseholdNotFoundException.class)
   ProblemDetail householdNotFound(HouseholdNotFoundException exception) {
     return problem(HttpStatus.NOT_FOUND, "Not found", exception.getMessage());
+  }
+
+  @ExceptionHandler(FoodItemNotFoundException.class)
+  ProblemDetail foodItemNotFound(FoodItemNotFoundException exception) {
+    return problem(HttpStatus.NOT_FOUND, "Not found", exception.getMessage());
+  }
+
+  @ExceptionHandler(FoodNotInCatalogException.class)
+  ProblemDetail foodNotInCatalog(FoodNotInCatalogException exception) {
+    return problem(HttpStatus.UNPROCESSABLE_CONTENT, "Unknown food", exception.getMessage());
   }
 
   @ExceptionHandler(PermissionRequiredException.class)

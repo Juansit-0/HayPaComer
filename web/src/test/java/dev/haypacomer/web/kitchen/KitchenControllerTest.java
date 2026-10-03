@@ -132,7 +132,7 @@ class KitchenControllerTest {
     Tray tray = fridge.trays().findFirst().orElseThrow();
     FoodItem soup = tray.children().getFirst();
     InventoryEntry entry =
-        new InventoryEntry(fridge.id(), tray.id(), new AtRiskFood(new PlainFood(soup)));
+        new InventoryEntry(fridge.id(), tray.id(), new AtRiskFood(new PlainFood(soup)), true);
     when(facade.inventory(juan, household)).thenReturn(List.of(entry));
     when(facade.rescueFirst(juan, household)).thenReturn(List.of(entry));
     when(facade.snapshot(any(), any())).thenReturn(new KitchenSnapshot(1, Grams.of(300), 1, 0));
@@ -141,7 +141,8 @@ class KitchenControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].name").value("Soup"))
         .andExpect(jsonPath("$[0].statuses[0]").value("AT_RISK"))
-        .andExpect(jsonPath("$[0].rescuePriority").value(2));
+        .andExpect(jsonPath("$[0].rescuePriority").value(2))
+        .andExpect(jsonPath("$[0].usable").value(true));
     mvc.perform(get(path("/inventory?rescueFirst=true")).header("Authorization", bearer()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()").value(1));
