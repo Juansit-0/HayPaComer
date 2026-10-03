@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.haypacomer.application.audit.ListActivity;
 import dev.haypacomer.application.fridge.FridgeLayout;
 import dev.haypacomer.application.fridge.SetUpFridge;
 import dev.haypacomer.application.inventory.ChangeFoodOwnership.Grant;
@@ -43,6 +44,7 @@ import java.time.ZoneOffset;
 import java.util.Currency;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -63,9 +65,7 @@ class LiveInventoryTest {
   private Fridge fridge;
   private Tray rack;
 
-  private StockFood stockFood;
-  private ConsumeFood consumeFood;
-  private DiscardFood discardFood;
+  private ExecuteInventoryCommand commands;
   private ChangeFoodOwnership changeOwnership;
   private ViewInventory viewInventory;
 
@@ -98,13 +98,17 @@ class LiveInventoryTest {
             true,
             10,
             Set.of()));
-    stockFood =
-        new StockFood(
-            households, fridges, stores.ownerships, stores.movements, stores.catalog, clock);
-    consumeFood =
-        new ConsumeFood(households, fridges, stores.ownerships, stores.movements, guard, clock);
-    discardFood =
-        new DiscardFood(households, fridges, stores.ownerships, stores.movements, guard, clock);
+    commands =
+        new ExecuteInventoryCommand(
+            households,
+            fridges,
+            stores.ownerships,
+            stores.movements,
+            stores.catalog,
+            guard,
+            stores.audit,
+            stores.unitOfWork,
+            clock);
     changeOwnership =
         new ChangeFoodOwnership(households, fridges, stores.ownerships, stores.movements);
     viewInventory =
@@ -112,17 +116,33 @@ class LiveInventoryTest {
   }
 
   private FoodItem stock(UserId actor, String food, long gross, long tare, Visibility visibility) {
-    return stockFood.stock(
-        actor,
-        household.id(),
-        new StockCommand(
-            fridge.id(),
-            rack.id(),
-            food,
-            Grams.of(gross),
-            Grams.of(tare),
-            TODAY.plusDays(5),
-            visibility));
+    CommandOutcome outcome =
+        commands.execute(
+            actor,
+            new StockFoodCommand(
+                UUID.randomUUID(),
+                household.id(),
+                fridge.id(),
+                rack.id(),
+                food,
+                Grams.of(gross),
+                Grams.of(tare),
+                TODAY.plusDays(5),
+                visibility));
+    return fridge.findItem(outcome.item()).orElseThrow();
+  }
+
+  private Grams consume(UserId actor, FoodItemId item, long grams, MovementSource source) {
+    return commands
+        .execute(
+            actor,
+            new ConsumeFoodCommand(
+                UUID.randomUUID(), household.id(), item, Grams.of(grams), source))
+        .remaining();
+  }
+
+  private void discard(UserId actor, FoodItemId item) {
+    commands.execute(actor, new DiscardFoodCommand(UUID.randomUUID(), household.id(), item));
   }
 
   @Test
@@ -142,11 +162,18 @@ class LiveInventoryTest {
     assertThrows(
         IllegalArgumentException.class,
         () ->
-            stockFood.stock(
+            commands.execute(
                 juan,
-                household.id(),
-                new StockCommand(
-                    FridgeId.newId(), rack.id(), "Milk", Grams.of(1), null, null, null)));
+                new StockFoodCommand(
+                    UUID.randomUUID(),
+                    household.id(),
+                    FridgeId.newId(),
+                    rack.id(),
+                    "Milk",
+                    Grams.of(1),
+                    null,
+                    null,
+                    null)));
     assertThrows(
         AccessDeniedException.class, () -> stock(guest, "Yogurt", 125, 0, Visibility.SHARED));
     assertEquals(Grams.of(125), stock(guest, "Yogurt", 125, 0, Visibility.PRIVATE).quantity());
@@ -156,26 +183,23 @@ class LiveInventoryTest {
   void consumesMeasuredGramsAndRemovesEmptyItems() {
     FoodItem milk = stock(juan, "Milk", 892, 50, null);
 
-    assertEquals(
-        Grams.of(650),
-        consumeFood.consume(ana, household.id(), milk.id(), Grams.of(192), MovementSource.SCALE));
-    assertEquals(
-        Grams.ZERO,
-        consumeFood.consume(ana, household.id(), milk.id(), Grams.of(650), MovementSource.MANUAL));
+    assertEquals(Grams.of(650), consume(ana, milk.id(), 192, MovementSource.SCALE));
+    assertEquals(Grams.ZERO, consume(ana, milk.id(), 650, MovementSource.MANUAL));
     assertTrue(fridge.findItem(milk.id()).isEmpty());
     assertEquals(
         List.of(MovementType.ADD, MovementType.CONSUME, MovementType.CONSUME),
         stores.movements.history(milk.id()).stream().map(InventoryMovement::type).toList());
     assertThrows(
-        FoodItemNotFoundException.class,
-        () ->
-            consumeFood.consume(
-                ana, household.id(), milk.id(), Grams.of(1), MovementSource.MANUAL));
+        FoodItemNotFoundException.class, () -> consume(ana, milk.id(), 1, MovementSource.MANUAL));
     assertThrows(
         IllegalArgumentException.class,
         () ->
-            consumeFood.consume(
-                ana, household.id(), FoodItemId.newId(), Grams.ZERO, MovementSource.MANUAL));
+            new ConsumeFoodCommand(
+                UUID.randomUUID(),
+                household.id(),
+                FoodItemId.newId(),
+                Grams.ZERO,
+                MovementSource.MANUAL));
   }
 
   @Test
@@ -183,22 +207,16 @@ class LiveInventoryTest {
     FoodItem yogurt = stock(juan, "Yogurt", 125, 0, Visibility.PRIVATE);
 
     assertThrows(
-        AccessDeniedException.class,
-        () ->
-            consumeFood.consume(
-                ana, household.id(), yogurt.id(), Grams.of(50), MovementSource.MANUAL));
+        AccessDeniedException.class, () -> consume(ana, yogurt.id(), 50, MovementSource.MANUAL));
     assertThrows(
         AccessDeniedException.class,
         () -> changeOwnership.change(ana, household.id(), yogurt.id(), new Grant(ana)));
 
     changeOwnership.change(juan, household.id(), yogurt.id(), new Grant(ana));
-    assertEquals(
-        Grams.of(75),
-        consumeFood.consume(ana, household.id(), yogurt.id(), Grams.of(50), MovementSource.MANUAL));
+    assertEquals(Grams.of(75), consume(ana, yogurt.id(), 50, MovementSource.MANUAL));
 
     changeOwnership.change(juan, household.id(), yogurt.id(), new Revoke(ana));
-    assertThrows(
-        AccessDeniedException.class, () -> discardFood.discard(ana, household.id(), yogurt.id()));
+    assertThrows(AccessDeniedException.class, () -> discard(ana, yogurt.id()));
     assertThrows(
         IllegalArgumentException.class,
         () -> changeOwnership.change(juan, household.id(), yogurt.id(), new Grant(UserId.newId())));
@@ -210,15 +228,60 @@ class LiveInventoryTest {
 
     assertThrows(
         PermissionRequiredException.class,
-        () ->
-            consumeFood.consume(
-                ana, household.id(), yogurt.id(), Grams.of(10), MovementSource.MANUAL));
+        () -> consume(ana, yogurt.id(), 10, MovementSource.MANUAL));
 
     changeOwnership.change(juan, household.id(), yogurt.id(), new SetVisibility(Visibility.SHARED));
-    FoodItem discarded = discardFood.discard(ana, household.id(), yogurt.id());
+    discard(ana, yogurt.id());
 
-    assertEquals(Grams.of(125), discarded.quantity());
+    assertTrue(fridge.findItem(yogurt.id()).isEmpty());
+    assertEquals(0, new BigDecimal("-125").compareTo(stores.movementLog.getLast().deltaGrams()));
     assertEquals(MovementType.DISCARD, stores.movementLog.getLast().type());
+  }
+
+  @Test
+  void replayedCommandsDoNotApplyTwice() {
+    FoodItem milk = stock(juan, "Milk", 892, 50, null);
+    ConsumeFoodCommand consume =
+        new ConsumeFoodCommand(
+            UUID.randomUUID(), household.id(), milk.id(), Grams.of(192), MovementSource.SCALE);
+
+    CommandOutcome first = commands.execute(ana, consume);
+    CommandOutcome retry = commands.execute(ana, consume);
+
+    assertFalse(first.replayed());
+    assertTrue(retry.replayed());
+    assertEquals(Grams.of(650), retry.remaining());
+    assertEquals(Grams.of(650), milk.quantity());
+    assertEquals(2, stores.movements.history(milk.id()).size());
+  }
+
+  @Test
+  void everyCommandIsAuditedInsideAUnitOfWork() {
+    FoodItem milk = stock(juan, "Milk", 892, 50, null);
+    consume(ana, milk.id(), 192, MovementSource.SCALE);
+    discard(ana, milk.id());
+
+    assertEquals(3, stores.unitsOfWork);
+    assertEquals(
+        List.of("STOCK_FOOD", "CONSUME_FOOD", "DISCARD_FOOD"),
+        stores.auditEntries.stream().map(entry -> entry.action()).toList());
+    assertEquals("192.00", stores.auditEntries.get(1).detail().get("grams"));
+    assertEquals("650.00", stores.auditEntries.get(1).detail().get("remainingGrams"));
+    assertEquals(milk.id().value(), stores.auditEntries.get(2).entityId());
+    assertEquals(
+        List.of("DISCARD_FOOD", "CONSUME_FOOD"),
+        new ListActivity(households, stores.audit)
+            .list(juan, household.id(), 2).stream().map(entry -> entry.action()).toList());
+  }
+
+  @Test
+  void failedCommandsAreNotAudited() {
+    FoodItem yogurt = stock(juan, "Yogurt", 125, 0, Visibility.PRIVATE);
+
+    assertThrows(
+        AccessDeniedException.class, () -> consume(ana, yogurt.id(), 10, MovementSource.MANUAL));
+
+    assertEquals(1, stores.auditEntries.size());
   }
 
   @Test

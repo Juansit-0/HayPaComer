@@ -16,7 +16,9 @@ import dev.haypacomer.domain.inventory.MovementSource;
 import dev.haypacomer.domain.inventory.MovementType;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 final class HouseholdInventory {
@@ -51,6 +53,20 @@ final class HouseholdInventory {
     throw new FoodItemNotFoundException();
   }
 
+  Optional<FoodItem> find(HouseholdId household, FoodItemId item) {
+    return fridges.findByHousehold(household).stream()
+        .flatMap(fridge -> fridge.findItem(item).stream())
+        .findFirst();
+  }
+
+  Optional<InventoryMovement> movement(UUID commandId) {
+    return movements.findByCommand(commandId);
+  }
+
+  List<Fridge> fridges(HouseholdId household) {
+    return fridges.findByHousehold(household);
+  }
+
   FoodOwnershipRepository ownerships() {
     return ownerships;
   }
@@ -60,6 +76,7 @@ final class HouseholdInventory {
   }
 
   void record(
+      UUID commandId,
       HouseholdId household,
       FoodItemId item,
       UserId actor,
@@ -68,7 +85,7 @@ final class HouseholdInventory {
       MovementSource source,
       Instant at) {
     movements.record(
-        new InventoryMovement(UUID.randomUUID(), household, item, actor, type, delta, source, at));
+        new InventoryMovement(commandId, household, item, actor, type, delta, source, at));
   }
 
   record Located(Fridge fridge, FoodItem item) {}
