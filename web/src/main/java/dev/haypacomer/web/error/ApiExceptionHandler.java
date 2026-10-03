@@ -5,6 +5,8 @@ import dev.haypacomer.application.auth.InvalidCredentialsException;
 import dev.haypacomer.application.auth.InvalidPasswordException;
 import dev.haypacomer.application.auth.TooManyLoginAttemptsException;
 import dev.haypacomer.application.auth.UserNotFoundException;
+import dev.haypacomer.application.household.HouseholdNotFoundException;
+import dev.haypacomer.application.inventory.PermissionRequiredException;
 import dev.haypacomer.domain.household.AccessDeniedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -37,6 +39,21 @@ public class ApiExceptionHandler {
   @ExceptionHandler(UserNotFoundException.class)
   ProblemDetail userNotFound(UserNotFoundException exception) {
     return problem(HttpStatus.NOT_FOUND, "Not found", exception.getMessage());
+  }
+
+  @ExceptionHandler(HouseholdNotFoundException.class)
+  ProblemDetail householdNotFound(HouseholdNotFoundException exception) {
+    return problem(HttpStatus.NOT_FOUND, "Not found", exception.getMessage());
+  }
+
+  @ExceptionHandler(PermissionRequiredException.class)
+  ProblemDetail permissionRequired(PermissionRequiredException exception) {
+    return problem(HttpStatus.FORBIDDEN, "Permission required", exception.getMessage());
+  }
+
+  @ExceptionHandler(IllegalStateException.class)
+  ProblemDetail conflict(IllegalStateException exception) {
+    return problem(HttpStatus.CONFLICT, "Conflict", exception.getMessage());
   }
 
   @ExceptionHandler(AccessDeniedException.class)
