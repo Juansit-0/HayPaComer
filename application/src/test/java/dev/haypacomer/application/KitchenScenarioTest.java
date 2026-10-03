@@ -22,6 +22,7 @@ import dev.haypacomer.application.inventory.ViewInventory;
 import dev.haypacomer.application.market.AddToMarketList;
 import dev.haypacomer.application.market.ViewMarketList;
 import dev.haypacomer.application.port.MarketListRepository;
+import dev.haypacomer.application.support.InMemoryColdChainRepository;
 import dev.haypacomer.application.support.InMemoryFridgeRepository;
 import dev.haypacomer.application.support.InMemoryHouseholdRepository;
 import dev.haypacomer.application.support.InMemoryInventoryStores;
@@ -136,7 +137,12 @@ class KitchenScenarioTest {
             new GetHousehold(households),
             new SetUpFridge(households, fridges),
             new ListFridges(households, fridges),
-            new ViewInventory(households, fridges, stores.ownerships, FreshnessPolicy.DEFAULT),
+            new ViewInventory(
+                households,
+                fridges,
+                stores.ownerships,
+                new InMemoryColdChainRepository(),
+                FreshnessPolicy.DEFAULT),
             clock);
   }
 

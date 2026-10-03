@@ -6,6 +6,7 @@ import dev.haypacomer.application.auth.InvalidPasswordException;
 import dev.haypacomer.application.auth.InvalidTokenException;
 import dev.haypacomer.application.auth.TooManyLoginAttemptsException;
 import dev.haypacomer.application.auth.UserNotFoundException;
+import dev.haypacomer.application.coldchain.FridgeNotFoundException;
 import dev.haypacomer.application.device.DeviceNotFoundException;
 import dev.haypacomer.application.household.HouseholdNotFoundException;
 import dev.haypacomer.application.household.InvitationEmailMismatchException;
@@ -56,6 +57,11 @@ public class ApiExceptionHandler {
   @ExceptionHandler(InvitationEmailMismatchException.class)
   ProblemDetail invitationMismatch(InvitationEmailMismatchException exception) {
     return problem(HttpStatus.FORBIDDEN, "Invitation not for this account", exception.getMessage());
+  }
+
+  @ExceptionHandler(FridgeNotFoundException.class)
+  ProblemDetail fridgeNotFound(FridgeNotFoundException exception) {
+    return problem(HttpStatus.NOT_FOUND, "Not found", exception.getMessage());
   }
 
   @ExceptionHandler(DeviceNotFoundException.class)

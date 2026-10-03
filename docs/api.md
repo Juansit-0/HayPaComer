@@ -112,8 +112,8 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 | POST | `/device/events` | device | Ingest door, temperature, or weight event (idempotent by event id) |
 | GET | `/fridges/{f}/doors` | guest | Door openings |
 | GET | `/fridges/{f}/temperatures?from=&to=` | guest | Temperature series |
-| GET | `/fridges/{f}/cold-incidents` | guest | Cold-chain incidents |
-| PATCH | `/cold-incidents/{id}` | member | Mark reviewed or closed |
+| GET | `/households/{h}/cold-chain` | guest | Cold-chain state per fridge: phase, since, peak, recovered, last reading |
+| POST | `/households/{h}/fridges/{f}/cold-chain/review` | member | Human review after recovery closes the incident (409 while out of range or nothing to review) |
 
 ## Scale
 
