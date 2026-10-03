@@ -25,8 +25,9 @@ HayPaComer (name confirmed in Phase 0.5) is a smart home fridge: Java applicatio
 - Step 16 merged (#12): `FridgeTreeIterator` (depth-first and breadth-first), `FridgeNode` is `Iterable`.
 - Step 17 merged (#13): `Recipe`, `RecipeStep`, `RecipeRequirement`, `StepWeighing`, `RecipeSource`, `Member`, `MemberId`; recipes scale to servings and collect allergens.
 - Step 18 merged (#14): `Diet`, `FoodProfile`, `ProfileConflict`, `ConflictReason`, `DiningGroup`; checks foods and recipes against allergies, diets, and avoided foods per member.
-- Step 19 in `feat/domain-food-decorators`: `StockedFood` with `PlainFood` and decorators `ExpiredFood`, `AtRiskFood`, `LeftoverFood`, `OwnedFood` (`Ownership`, `Visibility`), `FreshnessPolicy`, and `RESCUE_ORDER`.
-- **Next action:** step 20: `feat(domain): users, households, memberships, and roles`. The user makes every commit, push, and PR; agents only edit files and hand over commands.
+- Step 19 merged (#15): `StockedFood` with `PlainFood` and decorators `ExpiredFood`, `AtRiskFood`, `LeftoverFood`, `OwnedFood` (`Ownership`, `Visibility`), `FreshnessPolicy`, and `RESCUE_ORDER`.
+- Step 20 in `feat/domain-users-households`: `User`, `UserId`, `EmailAddress`, `PasswordHash` (identity); `Household` aggregate with `Membership`, `Role`, `Permission`, `AccessDeniedException` (exactly one owner, transfer ownership, membership maps a user to a `MemberId`).
+- **Next action:** step 21: `chore(infra): docker compose with postgresql and redis`. The user makes every commit, push, and PR; agents only edit files and hand over commands.
 
 ## How to continue (agreed order)
 

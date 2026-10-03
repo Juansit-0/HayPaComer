@@ -1,0 +1,14 @@
+package dev.haypacomer.domain.household;
+
+public enum Permission {
+  VIEW_HOUSEHOLD,
+  MANAGE_OWN_ITEMS,
+  EDIT_INVENTORY,
+  COOK,
+  MANAGE_MARKET_LIST,
+  MANAGE_MEMBERS,
+  MANAGE_HOUSEHOLD,
+  MANAGE_FRIDGES,
+  MANAGE_DEVICES,
+  DELETE_HOUSEHOLD
+}
