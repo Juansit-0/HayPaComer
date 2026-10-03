@@ -23,8 +23,9 @@ HayPaComer (name confirmed in Phase 0.5) is a smart home fridge: Java applicatio
 - 2026-09-30: plan extended with data model and ER diagram (`docs/database.md`), REST catalog (`docs/api.md`), JWT authentication, PostgreSQL + Flyway for relational data, Redis for all AI state, domain haypacomer.dev (ADRs 0014-0017).
 - 2026-10-02: PRs #1 to #11 merged (steps 12-15, Dependabot including JUnit 6.1.3 and ArchUnit 1.5.1). Step 14: `Grams`, `Quantity`, `Unit`, `ConversionFactors`, `FoodMetadata`, `FoodMetadataCatalog` (flyweight); Spotless and JaCoCo active. Step 15: sealed `FridgeNode` with `Fridge`, `Zone`, `Tray`, `FoodItem` (composite).
 - Step 16 merged (#12): `FridgeTreeIterator` (depth-first and breadth-first), `FridgeNode` is `Iterable`.
-- Step 17 in `feat/domain-recipes-members`: `Recipe`, `RecipeStep`, `RecipeRequirement`, `StepWeighing`, `RecipeSource`, `Member`, `MemberId`; recipes scale to servings and collect allergens.
-- **Next action:** step 18: `feat(domain): food profiles with allergies and diets`. The user makes every commit, push, and PR; agents only edit files and hand over commands.
+- Step 17 merged (#13): `Recipe`, `RecipeStep`, `RecipeRequirement`, `StepWeighing`, `RecipeSource`, `Member`, `MemberId`; recipes scale to servings and collect allergens.
+- Step 18 in `feat/domain-food-profiles`: `Diet`, `FoodProfile`, `ProfileConflict`, `ConflictReason`, `DiningGroup`; checks foods and recipes against allergies, diets, and avoided foods per member.
+- **Next action:** step 19: `feat(domain): expired, leftover, at-risk, and ownership decorators`. The user makes every commit, push, and PR; agents only edit files and hand over commands.
 
 ## How to continue (agreed order)
 

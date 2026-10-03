@@ -46,6 +46,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 15. fridge-zone-tray-food composite
 - [x] 16. iterator to traverse the tree
 - [x] 17. recipes, steps, requirements, and members
+- [x] 18. food profiles with allergies and diets
 
 ## Notes
 
