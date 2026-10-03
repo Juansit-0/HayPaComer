@@ -65,6 +65,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 
 - [x] 29. haypacomer facade (facade)
 - [x] 30. live inventory with permissions
+- [x] 31. collaborative market list without duplicates
 
 ## Notes
 
