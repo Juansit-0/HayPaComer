@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public final class Fridge implements FridgeNode {
 
@@ -35,7 +34,7 @@ public final class Fridge implements FridgeNode {
   }
 
   public Optional<Tray> findTray(TrayId trayId) {
-    return zones.stream().flatMap(zone -> zone.find(trayId).stream()).findFirst();
+    return trays().filter(tray -> tray.id().equals(trayId)).findFirst();
   }
 
   public Optional<Tray> locate(FoodItemId itemId) {
@@ -43,7 +42,7 @@ public final class Fridge implements FridgeNode {
   }
 
   public Optional<FoodItem> findItem(FoodItemId itemId) {
-    return trays().flatMap(tray -> tray.find(itemId).stream()).findFirst();
+    return foodItems().filter(item -> item.id().equals(itemId)).findFirst();
   }
 
   public void place(FoodItem item, TrayId trayId) {
@@ -96,9 +95,5 @@ public final class Fridge implements FridgeNode {
     return findTray(trayId)
         .orElseThrow(
             () -> new IllegalArgumentException("Tray not in fridge " + name + ": " + trayId));
-  }
-
-  private Stream<Tray> trays() {
-    return zones.stream().flatMap(zone -> zone.children().stream());
   }
 }

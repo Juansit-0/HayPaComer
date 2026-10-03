@@ -14,27 +14,25 @@ HayPaComer (name confirmed in Phase 0.5) is a smart home fridge: Java applicatio
 - **19 skills installed globally** (they load in any session): 14 brand (`brand-*`, `target-audience`, `competitor-branding`) + 5 design (`theme-factory`, `design-system`, `effective-ui-design`, `frontend-design`, `ui-ux-kit`) + `impeccable`.
 - Local git with step commits; 8-module Maven structure; F0 docs; CI + Dependabot; enforcer + ArchUnit boundary tests. Technical Step 0 complete.
 - Brand phase (F0.5) complete in `brand/`: context, audience, competitors, positioning, strategy, naming (name confirmed: **HayPaComer**), identity, voice, messaging, story, launch plan, brand book, and design tokens in `brand/assets/`. Brand close complete: public repository with branch protection.
-- **Public repository: https://github.com/Juansit-0/HayPaComer** with `main` protected: PR required, 1 review approval (collaborator Jenifrutica), CI check `build` required, admins enforced.
+- **Public repository: https://github.com/Juansit-0/HayPaComer** with `main` protected: PR required, CI check `build` required (strict), admins enforced, 0 review approvals (removed 2026-10-02; the owner merges).
 
 ## Where we left off
 
 - Date: 2026-09-24. All Phase 0 (foundation) and Phase 0.5 (brand) work is merged on `main`; CI green; 24 commits of history.
-- Pending: collaborator **Jenifrutica must accept the repository invite** before any PR can be approved.
-- Open: five Dependabot PRs (#1 to #5: JUnit 6.1.3, enforcer 3.6.3, ArchUnit 1.5.0, actions/checkout v7, actions/setup-java v6). Review carefully; the JUnit 6 bump is a major version.
 - Hardware for the demo: bill of materials with MercadoLibre Colombia links in `docs/hardware.md`.
 - 2026-09-30: plan extended with data model and ER diagram (`docs/database.md`), REST catalog (`docs/api.md`), JWT authentication, PostgreSQL + Flyway for relational data, Redis for all AI state, domain haypacomer.dev (ADRs 0014-0017).
-- Step 14 done in `feat/domain-quantities-flyweight` (stacked on #8): `Grams`, `Quantity`, `Unit`, `ConversionFactors`, `FoodMetadata`, `FoodMetadataCatalog` (flyweight); Spotless and JaCoCo active.
-- Step 15 done in `feat/domain-fridge-composite` (stacked on step 14): sealed `FridgeNode` with `Fridge`, `Zone`, `Tray`, `FoodItem` (composite).
-- **Next action:** step 16: `feat(domain): iterator to traverse the tree`. The user makes every commit, push, and PR; agents only edit files and hand over commands.
+- 2026-10-02: PRs #1 to #11 merged (steps 12-15, Dependabot including JUnit 6.1.3 and ArchUnit 1.5.1). Step 14: `Grams`, `Quantity`, `Unit`, `ConversionFactors`, `FoodMetadata`, `FoodMetadataCatalog` (flyweight); Spotless and JaCoCo active. Step 15: sealed `FridgeNode` with `Fridge`, `Zone`, `Tray`, `FoodItem` (composite).
+- Step 16 in `feat/domain-fridge-iterator`: `FridgeTreeIterator` (depth-first and breadth-first), `FridgeNode` is `Iterable`.
+- **Next action:** step 17: `feat(domain): recipes, steps, requirements, and members`. The user makes every commit, push, and PR; agents only edit files and hand over commands.
 
 ## How to continue (agreed order)
 
-1. **Phases 1-7**: follow the numbered roadmap in `PLAN.md` section 9, one small step at a time, each in a `feat/*` branch with PR, green CI, and review approval by the collaborator.
+1. **Phases 1-7**: follow the numbered roadmap in `PLAN.md` section 9, one small step at a time, each in a `feat/*` branch with PR, green CI, and squash merge by the owner.
 
 ## Project rules (non-negotiable)
 
 - **English everywhere**: code, identifiers, tests, documentation, UI, and commits. No emojis. No comments in code.
-- **Conventional Commits in English** with scope; small steps. Once the repository exists: `feat/*` branch -> PR -> green CI -> review approval -> squash merge (branch protection on `main`). Before the repository: local commits on `main`.
+- **Conventional Commits in English** with scope; small steps. Once the repository exists: `feat/*` branch -> PR -> green CI -> squash merge (branch protection on `main`). Before the repository: local commits on `main`.
 - **8 single-responsibility modules**: `domain`, `application`, `adapter-persistence`, `adapter-sensors`, `adapter-ai`, `adapter-notifications`, `agent`, `web`. No frameworks in `domain`/`application`; boundaries enforced with `maven-enforcer` + ArchUnit.
 - Relational data in PostgreSQL; all AI state in Redis. AI runs only in the backend.
 - One use case per class with a single public method; segregated ports (ISP); framework annotations only in `web` and adapters.

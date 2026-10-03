@@ -227,7 +227,7 @@ HayPaComer/
 
 - **Now**: local git; each completed step is a commit with Conventional Commits in English.
 - **After branding**: the public repository is created with the final name and all history is pushed.
-- **From the repository on**: each step goes in a `feat/*` branch -> PR -> green CI -> review approval -> squash merge to `main`. Branch protection on `main` requires the PR review approval.
+- **From the repository on**: each step goes in a `feat/*` branch -> PR -> green CI -> squash merge to `main`. Branch protection on `main` requires a PR and the `build` check; no review approval is required (removed 2026-10-02).
 - **Commit prefixes**: `feat(scope): ...`, `fix(scope): ...`, `docs: ...`, `test: ...`, `perf: ...`, `ci: ...`, `chore: ...`.
 - **Definition of Done per step**: compiles + tests + formatting + green PR.
 - Deliberately small steps (~92 PRs) so the project always moves forward in green and nothing gets lost.
