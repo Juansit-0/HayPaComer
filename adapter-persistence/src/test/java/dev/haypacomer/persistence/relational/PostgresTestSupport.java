@@ -18,6 +18,8 @@ abstract class PostgresTestSupport {
 
   static DataSource dataSource;
   static int appliedMigrations;
+  static int seededFoods;
+  static int soySauceAllergens;
 
   @BeforeAll
   static void migrate() {
@@ -27,6 +29,14 @@ abstract class PostgresTestSupport {
     source.setPassword(POSTGRES.getPassword());
     dataSource = source;
     appliedMigrations = Flyway.configure().dataSource(source).load().migrate().migrationsExecuted;
+    JdbcClient jdbc = JdbcClient.create(source);
+    seededFoods = jdbc.sql("SELECT count(*) FROM food_catalog").query(Integer.class).single();
+    soySauceAllergens =
+        jdbc.sql(
+                "SELECT count(*) FROM food_allergens fa JOIN food_catalog f ON f.id = fa.food_id"
+                    + " WHERE f.name_key = 'soy sauce'")
+            .query(Integer.class)
+            .single();
   }
 
   @BeforeEach

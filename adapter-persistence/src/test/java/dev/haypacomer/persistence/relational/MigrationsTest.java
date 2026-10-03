@@ -8,10 +8,12 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 class MigrationsTest extends PostgresTestSupport {
 
   @Test
-  void appliesAllMigrationsAndSeedsAllergens() {
+  void appliesAllMigrationsAndSeedsReferenceData() {
     JdbcClient jdbc = JdbcClient.create(dataSource);
 
-    assertEquals(3, appliedMigrations);
+    assertEquals(4, appliedMigrations);
     assertEquals(14, jdbc.sql("SELECT count(*) FROM allergens").query(Integer.class).single());
+    assertEquals(24, seededFoods);
+    assertEquals(2, soySauceAllergens);
   }
 }

@@ -85,16 +85,17 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 | Method | Path | Access | Purpose |
 |---|---|---|---|
 | GET | `/households/{h}/items` | guest | Inventory, filters by zone, status, owner, expiry |
-| POST | `/households/{h}/items` | member | Add item (grams, tray, owner, visibility, expiry) |
+| POST | `/households/{h}/items` | member (guest for own private items) | Stock weighed food from the catalog: gross grams, tare, tray, expiry, visibility; unknown food answers 422 |
 | GET | `/items/{id}` | guest | Item detail (respects ownership) |
 | PATCH | `/items/{id}` | member | Move, relabel, change visibility or expiry |
 | DELETE | `/items/{id}` | member | Remove item |
-| POST | `/items/{id}/consume` | member | Discount grams (manual or from scale reading) |
-| POST | `/items/{id}/discard` | member | Discard as waste |
+| POST | `/households/{h}/items/{id}/consume` | member | Discount grams; ownership checked (private needs a grant, ask-first answers 403) |
+| POST | `/households/{h}/items/{id}/discard` | member | Discard as waste |
+| PUT | `/households/{h}/items/{id}/visibility` | owner of the item | Shared, ask-first, or private |
 | GET | `/households/{h}/items/expiring?days=` | guest | Items expiring soon |
 | GET | `/items/{id}/movements` | guest | Movement history |
-| POST | `/items/{id}/grants` | member | Owner grants access to another member |
-| DELETE | `/items/{id}/grants/{u}` | member | Revoke grant |
+| POST | `/households/{h}/items/{id}/grants` | owner of the item | Grant access to another member |
+| DELETE | `/households/{h}/items/{id}/grants/{u}` | owner of the item | Revoke grant |
 | POST | `/households/{h}/inventory/undo` | member | Undo last command (memento) |
 | GET, POST | `/households/{h}/snapshots` | member | List, create snapshots |
 | POST | `/snapshots/{id}/restore` | owner | Restore snapshot |
