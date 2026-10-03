@@ -25,6 +25,7 @@
 
   <properties>
     <maven.compiler.release>25</maven.compiler.release>
+    <maven.compiler.parameters>true</maven.compiler.parameters>
     <spotless-maven-plugin.version>3.10.3</spotless-maven-plugin.version>
     <google-java-format.version>1.36.1</google-java-format.version>
     <jacoco-maven-plugin.version>0.8.15</jacoco-maven-plugin.version>
