@@ -10,7 +10,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 | F0.5 | Brand | 5 + close | done |
 | F0.9 | Data model and domain name | 2 | done |
 | F1 | Domain and persistence | 9 | done |
-| F1.5 | Authentication | 6 | in progress |
+| F1.5 | Authentication | 6 | done |
 | F2 | Application | 6 | pending |
 | F3 | Door and temperature sensors | 8 | pending |
 | F4 | HX711 scale | 5 | pending |
@@ -59,6 +59,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 25. household-scoped authorization and food ownership checks
 - [x] 26. invitations, email verification, and password reset
 - [x] 27. esp32 device api keys
+- [x] 28. authentication and authorization integration tests
 
 ## Notes
 
