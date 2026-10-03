@@ -6,11 +6,16 @@ import dev.haypacomer.application.device.ListDevices;
 import dev.haypacomer.application.device.RegisterDevice;
 import dev.haypacomer.application.device.RevokeDevice;
 import dev.haypacomer.application.port.DeviceRepository;
+import dev.haypacomer.application.port.FridgeMonitorRegistry;
 import dev.haypacomer.application.port.FridgeRepository;
 import dev.haypacomer.application.port.HouseholdRepository;
+import dev.haypacomer.application.sensor.CheckFridgeAlerts;
 import dev.haypacomer.application.sensor.HardwareFactories;
+import dev.haypacomer.application.sensor.ObserveSensorEvent;
+import dev.haypacomer.domain.sensor.FridgeThresholds;
 import dev.haypacomer.sensors.hardware.Esp32HardwareFactory;
 import dev.haypacomer.sensors.hardware.SimulatedHardwareFactory;
+import dev.haypacomer.sensors.monitor.InMemoryFridgeMonitorRegistry;
 import java.time.Clock;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
@@ -43,6 +48,29 @@ public class DeviceConfiguration {
   HardwareFactories hardwareFactories(Clock clock) {
     return new HardwareFactories(
         List.of(new Esp32HardwareFactory(), new SimulatedHardwareFactory(clock)));
+  }
+
+  @Bean
+  FridgeMonitorRegistry fridgeMonitorRegistry() {
+    return new InMemoryFridgeMonitorRegistry(FridgeThresholds.DEFAULT);
+  }
+
+  @Bean
+  ObserveSensorEvent observeSensorEvent(
+      FridgeMonitorRegistry registry,
+      DeviceRepository devices,
+      HardwareFactories hardware,
+      Clock clock) {
+    return new ObserveSensorEvent(registry, devices, hardware, clock);
+  }
+
+  @Bean
+  CheckFridgeAlerts checkFridgeAlerts(
+      FridgeMonitorRegistry registry,
+      DeviceRepository devices,
+      HardwareFactories hardware,
+      Clock clock) {
+    return new CheckFridgeAlerts(registry, devices, hardware, clock);
   }
 
   @Bean

@@ -74,6 +74,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 
 - [x] 35. esp32 adapter and simulator (adapter)
 - [x] 36. abstract factory for real and simulated hardware
+- [x] 37. measurement-interpretation bridge and door alert (bridge)
 
 ## Notes
 
