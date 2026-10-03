@@ -23,7 +23,7 @@
 |---|---|---|
 | DOOR | door | OPEN or CLOSED with timestamp |
 | TEMPERATURE | tempC | Internal temperature reading |
-| WEIGHT | grams, stable, mode, ingredient | Scale reading after tare |
+| WEIGHT | grams, stable, mode (`FRIDGE` default or `COOK`), ingredient | Scale reading after tare |
 
 ## Validation
 
@@ -33,9 +33,16 @@
 - Idempotency: `eventId` is unique; duplicates are ignored without side effects.
 - Ordering: events are processed in arrival order per device; stale readings older than the last accepted reading are dropped.
 
+## Decoding
+
+- `Esp32EventAdapter` (module `adapter-sensors`) turns the envelope into domain events through one factory per type (`DOOR`, `TEMPERATURE`, `WEIGHT`, case-insensitive).
+- The device and fridge always come from the authenticated device key; the `device` field is informational.
+- A payload may be one envelope or an array of up to 500 envelopes (buffered replay after reconnecting), decoded in order.
+- `Esp32Simulator` produces the same envelopes for demos: door left open, cold-chain break, and product removal (842 g to 650 g).
+
 ## REST intake
 
-- `POST /api/events` accepts one event and returns `202 Accepted` with the processing result id.
+- `POST /api/v1/device/events` with `X-Device-Key` accepts one event or a batch and returns `202 Accepted` with the processing result.
 - Validation failures return RFC 7807 `400`; duplicates return `200` with `duplicate: true`.
 - Devices retry with backoff on `5xx`; the backend is safe to retry thanks to idempotency.
 

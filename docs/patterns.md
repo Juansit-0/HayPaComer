@@ -5,11 +5,11 @@ HayPaComer covers 23/23 GoF patterns. Honesty rule: each pattern is used in a re
 | Category | Pattern | Role in HayPaComer | First delivery |
 |---|---|---|---|
 | Creational | Singleton | `FridgeSession` coordinates one physical fridge with a single active state | F6 |
-| Creational | Factory Method | Creates door, weight, and temperature events and food types | F3 |
+| Creational | Factory Method | `Esp32EventFactory` defines the creation template and `DoorEventFactory`, `TemperatureEventFactory`, and `WeightEventFactory` decide which domain event to build for each envelope type. Test: `Esp32EventAdapterTest` | F3 |
 | Creational | Abstract Factory | Real ESP32 hardware vs simulated hardware | F3 |
 | Creational | Builder | Builds a suggestion, a weekly plan, or a cooking session step by step | F6 |
 | Creational | Prototype | Clonable weekly-plan and recipe templates | F6 |
-| Structural | Adapter | `Esp32EventAdapter`, `Hx711ReadingAdapter`, Gemini and OpenAI-compatible adapters, OCR and QR adapters into the common Java model | F3 |
+| Structural | Adapter | `Esp32EventAdapter` adapts the ESP32 JSON envelope (single events or buffered batches) to the `SensorEventDecoder` port and domain `SensorEvent`s; `Esp32Simulator` speaks the same envelope for hardware-free demos. Later: `Hx711ReadingAdapter`, AI, OCR, and QR adapters. Test: `Esp32EventAdapterTest` | F3 |
 | Structural | Bridge | Measurement source (door, weight, temperature) x interpretation (stock, cold chain, usable quantity) | F3 |
 | Structural | Composite | `Fridge` -> `Zone` -> `Tray` -> `FoodItem` behind the sealed `FridgeNode` interface; totals and item counts are computed uniformly at every level. Test: `FridgeTest` | F1 |
 | Structural | Decorator | `ExpiredFood`, `AtRiskFood`, `LeftoverFood`, and `OwnedFood` wrap a `StockedFood` and stack statuses, rescue priority, edibility, and access; `FreshnessPolicy` applies expiry decorators. Test: `StockedFoodTest` | F1 |
