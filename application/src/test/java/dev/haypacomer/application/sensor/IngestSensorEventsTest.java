@@ -171,7 +171,7 @@ class IngestSensorEventsTest {
         hardware,
         new ValidateSensorEvent(log, clock),
         log,
-        new ObserveSensorEvent(registry, devices, hardware, clock),
+        new ObserveSensorEvent(registry, devices, hardware),
         new TrackColdChain(chains, FridgeThresholds.DEFAULT),
         clock);
   }

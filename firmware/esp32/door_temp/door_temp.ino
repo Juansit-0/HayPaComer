@@ -157,7 +157,7 @@ void flushQueue() {
     }
   } else {
     backoffMs = min(backoffMs * 2, MAX_BACKOFF_MS);
-    Serial.printf("Event upload failed with %d, retrying in %u ms\n", status, backoffMs);
+    Serial.printf("Event upload failed with %d, retrying in %lu ms\n", status, (unsigned long) backoffMs);
   }
 }
 
