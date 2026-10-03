@@ -26,6 +26,8 @@
 - Step budget, timeouts, and tool allowlist per request.
 - `AiAuditService` records latency, valid and rejected responses, and fallback usage.
 - Circuit Breaker falls back to the rule-based planner when the provider is down or degraded.
+- AI state (memory, conversations, traces, audit, pending confirmations, cache) lives in Redis; relational data in PostgreSQL is written only by use cases.
+- AI runs only in the backend; provider keys never reach the browser or the ESP32.
 
 ## Forbidden
 

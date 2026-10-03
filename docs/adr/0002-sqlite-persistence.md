@@ -1,6 +1,6 @@
 # ADR 0002: SQLite persistence over JDBC
 
-- Status: accepted
+- Status: superseded by 0014
 - Date: 2026-09
 
 ## Context

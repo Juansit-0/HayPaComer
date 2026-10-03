@@ -9,7 +9,7 @@ HayPaComer covers 23/23 GoF patterns. Honesty rule: each pattern is used in a re
 | Creational | Abstract Factory | Real ESP32 hardware vs simulated hardware | F3 |
 | Creational | Builder | Builds a suggestion, a weekly plan, or a cooking session step by step | F6 |
 | Creational | Prototype | Clonable weekly-plan and recipe templates | F6 |
-| Structural | Adapter | ESP32 JSON, OCR, and AI responses into the common Java model | F3 |
+| Structural | Adapter | `Esp32EventAdapter`, `Hx711ReadingAdapter`, Gemini and OpenAI-compatible adapters, OCR and QR adapters into the common Java model | F3 |
 | Structural | Bridge | Measurement source (door, weight, temperature) x interpretation (stock, cold chain, usable quantity) | F3 |
 | Structural | Composite | Fridge -> zone -> tray -> food as a navigable tree | F1 |
 | Structural | Decorator | Expired, leftover, at-risk, and ownership states | F1 |

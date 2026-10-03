@@ -1,4 +1,4 @@
-package com.haypacomer.domain;
+package dev.haypacomer.domain;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
@@ -14,7 +14,7 @@ class DomainBoundariesTest {
   void domainDoesNotDependOnFrameworks() {
     noClasses()
         .that()
-        .resideInAPackage("com.haypacomer.domain..")
+        .resideInAPackage("dev.haypacomer.domain..")
         .should()
         .dependOnClassesThat()
         .resideInAnyPackage("org.springframework..", "jakarta..", "javax..", "org.hibernate..")
