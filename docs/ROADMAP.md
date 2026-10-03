@@ -9,7 +9,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 | F0 | Foundation | 5 | done |
 | F0.5 | Brand | 5 + close | done |
 | F0.9 | Data model and domain name | 2 | done |
-| F1 | Domain and persistence | 9 | in progress |
+| F1 | Domain and persistence | 9 | done |
 | F1.5 | Authentication | 6 | pending |
 | F2 | Application | 6 | pending |
 | F3 | Door and temperature sensors | 8 | pending |
@@ -50,6 +50,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 19. expired, leftover, at-risk, and ownership decorators
 - [x] 20. users, households, memberships, and roles
 - [x] 21. docker compose with postgresql and redis
+- [x] 22. postgresql schema with flyway, repositories, and testcontainers
 
 ## Notes
 

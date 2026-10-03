@@ -17,7 +17,16 @@ class ApplicationBoundariesTest {
         .resideInAPackage("dev.haypacomer.application..")
         .should()
         .dependOnClassesThat()
-        .resideInAnyPackage("org.springframework..", "jakarta..", "javax..", "org.hibernate..")
+        .resideInAnyPackage(
+            "org.springframework..",
+            "jakarta..",
+            "javax..",
+            "org.hibernate..",
+            "java.sql..",
+            "org.flywaydb..",
+            "io.lettuce..",
+            "redis.clients..",
+            "io.jsonwebtoken..")
         .because("application must stay framework-free")
         .check(CLASSES);
   }
