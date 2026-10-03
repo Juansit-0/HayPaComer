@@ -49,6 +49,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 18. food profiles with allergies and diets
 - [x] 19. expired, leftover, at-risk, and ownership decorators
 - [x] 20. users, households, memberships, and roles
+- [x] 21. docker compose with postgresql and redis
 
 ## Notes
 

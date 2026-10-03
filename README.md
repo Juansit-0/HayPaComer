@@ -18,6 +18,18 @@ Phase 0 - foundation complete: local git, Maven structure with 8 modules, F0 doc
 - Domain: haypacomer.dev
 - Hardware: ESP32 + reed switch + DS18B20 + HX711 + load cell
 
+## Run locally
+
+Requirements: Java 25, Maven 3.9+, and Docker with Compose.
+
+```bash
+cp .env.example .env
+docker compose up -d
+mvn verify
+```
+
+`docker compose up -d` starts PostgreSQL 18 and Redis 8 (AOF on), bound to `127.0.0.1` only. Edit the passwords in `.env` first; `.env` is never committed.
+
 ## Documentation
 
 - [`PLAN.md`](PLAN.md) - master plan and roadmap

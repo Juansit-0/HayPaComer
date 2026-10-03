@@ -26,8 +26,9 @@ HayPaComer (name confirmed in Phase 0.5) is a smart home fridge: Java applicatio
 - Step 17 merged (#13): `Recipe`, `RecipeStep`, `RecipeRequirement`, `StepWeighing`, `RecipeSource`, `Member`, `MemberId`; recipes scale to servings and collect allergens.
 - Step 18 merged (#14): `Diet`, `FoodProfile`, `ProfileConflict`, `ConflictReason`, `DiningGroup`; checks foods and recipes against allergies, diets, and avoided foods per member.
 - Step 19 merged (#15): `StockedFood` with `PlainFood` and decorators `ExpiredFood`, `AtRiskFood`, `LeftoverFood`, `OwnedFood` (`Ownership`, `Visibility`), `FreshnessPolicy`, and `RESCUE_ORDER`.
-- Step 20 in `feat/domain-users-households`: `User`, `UserId`, `EmailAddress`, `PasswordHash` (identity); `Household` aggregate with `Membership`, `Role`, `Permission`, `AccessDeniedException` (exactly one owner, transfer ownership, membership maps a user to a `MemberId`).
-- **Next action:** step 21: `chore(infra): docker compose with postgresql and redis`. The user makes every commit, push, and PR; agents only edit files and hand over commands.
+- Step 20 merged (#16): `User`, `UserId`, `EmailAddress`, `PasswordHash` (identity); `Household` aggregate with `Membership`, `Role`, `Permission`, `AccessDeniedException` (exactly one owner, transfer ownership, membership maps a user to a `MemberId`).
+- Step 21 in `chore/infra-docker-compose`: `docker-compose.yml` (PostgreSQL 18, Redis 8 with AOF and password, ports bound to 127.0.0.1) and `.env.example`. Docker is not installed on the development Mac yet.
+- **Next action:** step 22: `feat(persistence): postgresql schema with flyway, repositories, and testcontainers`. The user makes every commit, push, and PR; agents only edit files and hand over commands.
 
 ## How to continue (agreed order)
 
@@ -49,5 +50,8 @@ HayPaComer (name confirmed in Phase 0.5) is a smart home fridge: Java applicatio
 ```bash
 npx skills ls -g
 npx skills update -g
+mvn -q spotless:apply
 mvn -q verify
+cp .env.example .env
+docker compose up -d
 ```
