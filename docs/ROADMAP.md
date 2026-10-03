@@ -43,6 +43,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 ## F1 detail
 
 - [x] 14. quantities, units, and food metadata (flyweight)
+- [x] 15. fridge-zone-tray-food composite
 
 ## Notes
 
