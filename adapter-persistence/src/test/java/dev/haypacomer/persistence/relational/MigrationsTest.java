@@ -11,7 +11,7 @@ class MigrationsTest extends PostgresTestSupport {
   void appliesAllMigrationsAndSeedsAllergens() {
     JdbcClient jdbc = JdbcClient.create(dataSource);
 
-    assertEquals(2, appliedMigrations);
+    assertEquals(3, appliedMigrations);
     assertEquals(14, jdbc.sql("SELECT count(*) FROM allergens").query(Integer.class).single());
   }
 }

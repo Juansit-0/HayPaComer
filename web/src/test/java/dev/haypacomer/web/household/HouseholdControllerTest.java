@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import dev.haypacomer.application.device.AuthenticateDevice;
 import dev.haypacomer.application.household.ChangeMemberRole;
 import dev.haypacomer.application.household.CreateHousehold;
 import dev.haypacomer.application.household.GetHousehold;
@@ -58,6 +59,7 @@ class HouseholdControllerTest {
   private static final Instant NOW = Instant.parse("2026-10-03T12:00:00Z");
 
   @Autowired private MockMvc mvc;
+  @MockitoBean private AuthenticateDevice authenticateDevice;
   @Autowired private JwtEncoder encoder;
   @Autowired private JwtProperties properties;
 
