@@ -10,7 +10,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 | F0.5 | Brand | 5 + close | done |
 | F0.9 | Data model and domain name | 2 | done |
 | F1 | Domain and persistence | 9 | done |
-| F1.5 | Authentication | 6 | pending |
+| F1.5 | Authentication | 6 | in progress |
 | F2 | Application | 6 | pending |
 | F3 | Door and temperature sensors | 8 | pending |
 | F4 | HX711 scale | 5 | pending |
@@ -52,8 +52,12 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 21. docker compose with postgresql and redis
 - [x] 22. postgresql schema with flyway, repositories, and testcontainers
 
+## F1.5 detail
+
+- [x] 23. register, login, refresh, and logout use cases with ports
+
 ## Notes
 
 - Before the public repository exists, steps are local commits on `main`.
 - After repository creation: `feat/*` branch -> PR -> green CI -> squash merge by the owner (no review approval required since 2026-10-02).
-- JaCoCo line coverage check (>= 80%) is active in `domain` since step 14 and is enabled in `application` with its first use case. Spotless (google-java-format) runs `check` on every build; run `mvn spotless:apply` before committing.
+- JaCoCo line coverage check (>= 80%) is active in `domain` since step 14 and in `application` since step 23. Spotless (google-java-format) runs `check` on every build; run `mvn spotless:apply` before committing.
