@@ -44,8 +44,9 @@
 
 ## REST intake
 
-- `POST /api/v1/device/events` with `X-Device-Key` accepts one event or a batch and returns `202 Accepted` with the processing result.
-- Validation failures return RFC 7807 `400`; duplicates return `200` with `duplicate: true`.
+- `POST /api/v1/device/events` with `X-Device-Key` accepts one event or a batch and answers with counts (`accepted`, `duplicates`, `dropped`, `rejected`), a verdict per event, and the findings raised (door left open, cold-chain breach, stock change).
+- Status: `202 Accepted` when anything new was processed, `200 OK` when every event was a duplicate, `400` when every event was rejected or the payload is malformed (RFC 7807).
+- Accepted events are stored once in `sensor_events`, feed the fridge monitor (alerts queued for the device at `GET /api/v1/device/commands`), and temperatures update the cold-chain state.
 - Devices retry with backoff on `5xx`; the backend is safe to retry thanks to idempotency.
 
 ## Degraded behavior

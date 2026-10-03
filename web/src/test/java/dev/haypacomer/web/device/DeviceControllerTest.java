@@ -20,6 +20,7 @@ import dev.haypacomer.application.device.RevokeDevice;
 import dev.haypacomer.application.port.HardwareFactory;
 import dev.haypacomer.application.sensor.AlertPattern;
 import dev.haypacomer.application.sensor.HardwareFactories;
+import dev.haypacomer.application.sensor.IngestSensorEvents;
 import dev.haypacomer.domain.device.Device;
 import dev.haypacomer.domain.device.DeviceKind;
 import dev.haypacomer.domain.fridge.FridgeId;
@@ -65,6 +66,7 @@ class DeviceControllerTest {
   @MockitoBean private RevokeDevice revokeDevice;
   @MockitoBean private AuthenticateDevice authenticateDevice;
   @MockitoBean private HardwareFactories hardware;
+  @MockitoBean private IngestSensorEvents ingestSensorEvents;
 
   private final UserId juan = UserId.newId();
   private final HouseholdId household = HouseholdId.newId();
