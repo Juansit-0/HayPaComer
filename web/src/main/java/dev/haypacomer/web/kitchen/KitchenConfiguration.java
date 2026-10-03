@@ -2,6 +2,9 @@ package dev.haypacomer.web.kitchen;
 
 import dev.haypacomer.application.HayPaComerFacade;
 import dev.haypacomer.application.audit.ListActivity;
+import dev.haypacomer.application.coldchain.ListColdChains;
+import dev.haypacomer.application.coldchain.ReviewColdChain;
+import dev.haypacomer.application.coldchain.TrackColdChain;
 import dev.haypacomer.application.fridge.ListFridges;
 import dev.haypacomer.application.fridge.SetUpFridge;
 import dev.haypacomer.application.household.GetHousehold;
@@ -15,6 +18,7 @@ import dev.haypacomer.application.inventory.TakeSnapshot;
 import dev.haypacomer.application.inventory.UndoLastChange;
 import dev.haypacomer.application.inventory.ViewInventory;
 import dev.haypacomer.application.port.AuditLog;
+import dev.haypacomer.application.port.ColdChainRepository;
 import dev.haypacomer.application.port.FoodCatalogRepository;
 import dev.haypacomer.application.port.FoodOwnershipRepository;
 import dev.haypacomer.application.port.FridgeRepository;
@@ -23,6 +27,7 @@ import dev.haypacomer.application.port.InventoryMovementLog;
 import dev.haypacomer.application.port.SnapshotStore;
 import dev.haypacomer.application.port.UnitOfWork;
 import dev.haypacomer.domain.inventory.FreshnessPolicy;
+import dev.haypacomer.domain.sensor.FridgeThresholds;
 import java.time.Clock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -50,8 +55,29 @@ public class KitchenConfiguration {
       HouseholdRepository households,
       FridgeRepository fridges,
       FoodOwnershipRepository ownerships,
+      ColdChainRepository coldChains,
       FreshnessPolicy freshness) {
-    return new ViewInventory(households, fridges, ownerships, freshness);
+    return new ViewInventory(households, fridges, ownerships, coldChains, freshness);
+  }
+
+  @Bean
+  TrackColdChain trackColdChain(ColdChainRepository chains) {
+    return new TrackColdChain(chains, FridgeThresholds.DEFAULT);
+  }
+
+  @Bean
+  ReviewColdChain reviewColdChain(
+      HouseholdRepository households,
+      FridgeRepository fridges,
+      ColdChainRepository chains,
+      Clock clock) {
+    return new ReviewColdChain(households, fridges, chains, clock);
+  }
+
+  @Bean
+  ListColdChains listColdChains(
+      HouseholdRepository households, FridgeRepository fridges, ColdChainRepository chains) {
+    return new ListColdChains(households, fridges, chains);
   }
 
   @Bean

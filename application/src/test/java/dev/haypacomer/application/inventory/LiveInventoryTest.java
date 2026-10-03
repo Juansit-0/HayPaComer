@@ -11,6 +11,7 @@ import dev.haypacomer.application.fridge.SetUpFridge;
 import dev.haypacomer.application.inventory.ChangeFoodOwnership.Grant;
 import dev.haypacomer.application.inventory.ChangeFoodOwnership.Revoke;
 import dev.haypacomer.application.inventory.ChangeFoodOwnership.SetVisibility;
+import dev.haypacomer.application.support.InMemoryColdChainRepository;
 import dev.haypacomer.application.support.InMemoryFridgeRepository;
 import dev.haypacomer.application.support.InMemoryHouseholdRepository;
 import dev.haypacomer.application.support.InMemoryInventoryStores;
@@ -114,7 +115,12 @@ class LiveInventoryTest {
     changeOwnership =
         new ChangeFoodOwnership(households, fridges, stores.ownerships, stores.movements);
     viewInventory =
-        new ViewInventory(households, fridges, stores.ownerships, FreshnessPolicy.DEFAULT);
+        new ViewInventory(
+            households,
+            fridges,
+            stores.ownerships,
+            new InMemoryColdChainRepository(),
+            FreshnessPolicy.DEFAULT);
   }
 
   private FoodItem stock(UserId actor, String food, long gross, long tare, Visibility visibility) {

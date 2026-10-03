@@ -76,6 +76,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 36. abstract factory for real and simulated hardware
 - [x] 37. measurement-interpretation bridge and door alert (bridge)
 - [x] 38. event validation chain (chain of responsibility)
+- [x] 39. cold chain and under-review state
 
 ## Notes
 
