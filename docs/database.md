@@ -422,7 +422,7 @@ erDiagram
 
 ## Key constraints and indexes
 
-- Migrations live in `adapter-persistence/src/main/resources/db/migration` (Flyway). `V1` creates identity, households, members, profiles, and audit; `V2` creates the food catalog, fridge tree, and inventory; `V3` creates devices; `V4` seeds 24 common foods with allergens; `V5` creates `market_items` (one household list, partial unique index for one pending row per food). Later features add their own migrations.
+- Migrations live in `adapter-persistence/src/main/resources/db/migration` (Flyway). `V1` creates identity, households, members, profiles, and audit; `V2` creates the food catalog, fridge tree, and inventory; `V3` creates devices; `V4` seeds 24 common foods with allergens; `V5` creates `market_items` (one household list, partial unique index for one pending row per food); `V6` turns `inventory_snapshots` into the undo history (`kind`, `command_id`, `actor_user_id`, `used_at`, `seq`), with mementos stored as JSON. Later features add their own migrations.
 - Food ownership and grants reference `household_members.member_id`, the same `MemberId` the domain uses for profiles and ownership.
 - `food_catalog.name_key` (lowercase, trimmed) is unique and is how the domain identifies a food.
 

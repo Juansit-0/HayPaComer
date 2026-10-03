@@ -21,7 +21,7 @@ HayPaComer covers 23/23 GoF patterns. Honesty rule: each pattern is used in a re
 | Behavioral | Interpreter | Quantities and units | F5 |
 | Behavioral | Iterator | `FridgeTreeIterator` walks any `FridgeNode` depth-first or breadth-first; `FridgeNode` is `Iterable` and exposes `foodItems()` and `trays()` streams used by `Fridge` lookups. Test: `FridgeTreeIteratorTest` | F1 |
 | Behavioral | Mediator | Guided cooking session between session, scale, and timers | F5 |
-| Behavioral | Memento | Undo and snapshots of inventory state | F2 |
+| Behavioral | Memento | `Fridge` (originator) produces an immutable `FridgeMemento` and is rebuilt from it; `InventoryCaretaker` stores household mementos with ownership before every inventory command (multi-level undo) and for manual snapshots the owner can restore. Tests: `FridgeMementoTest`, `UndoAndSnapshotsTest` | F2 |
 | Behavioral | Observer | SSE panel, notifications, and analytics subscribers | F6 |
 | Behavioral | State | Cooking session and cold-chain states with resume | F5 |
 | Behavioral | Strategy | Quantity evaluation (enough, reduce, substitute, missing), channels, weekly plan | F5 |

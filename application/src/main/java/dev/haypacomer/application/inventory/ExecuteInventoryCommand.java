@@ -7,6 +7,7 @@ import dev.haypacomer.application.port.FoodOwnershipRepository;
 import dev.haypacomer.application.port.FridgeRepository;
 import dev.haypacomer.application.port.HouseholdRepository;
 import dev.haypacomer.application.port.InventoryMovementLog;
+import dev.haypacomer.application.port.SnapshotStore;
 import dev.haypacomer.application.port.UnitOfWork;
 import dev.haypacomer.domain.fridge.FoodItem;
 import dev.haypacomer.domain.household.Household;
@@ -19,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 public final class ExecuteInventoryCommand {
 
@@ -27,6 +29,8 @@ public final class ExecuteInventoryCommand {
   private final FoodCatalogRepository catalog;
   private final AuditLog audit;
   private final UnitOfWork unitOfWork;
+  private final InventoryCaretaker caretaker;
+  private final SnapshotStore snapshots;
   private final Clock clock;
 
   public ExecuteInventoryCommand(
@@ -38,12 +42,15 @@ public final class ExecuteInventoryCommand {
       FoodAccessGuard guard,
       AuditLog audit,
       UnitOfWork unitOfWork,
+      SnapshotStore snapshots,
       Clock clock) {
     this.inventory = new HouseholdInventory(households, fridges, ownerships, movements);
     this.catalog = Objects.requireNonNull(catalog, "catalog");
     this.guard = Objects.requireNonNull(guard, "guard");
     this.audit = Objects.requireNonNull(audit, "audit");
     this.unitOfWork = Objects.requireNonNull(unitOfWork, "unitOfWork");
+    this.caretaker = new InventoryCaretaker(inventory, catalog);
+    this.snapshots = Objects.requireNonNull(snapshots, "snapshots");
     this.clock = Objects.requireNonNull(clock, "clock");
   }
 
@@ -56,6 +63,7 @@ public final class ExecuteInventoryCommand {
             return replay(previous.get());
           }
           Instant now = clock.instant();
+          InventoryMemento before = caretaker.capture(command.household());
           CommandOutcome outcome =
               command.execute(
                   new InventoryWorkspace(actor, household, inventory, guard, catalog, now));
@@ -71,6 +79,17 @@ public final class ExecuteInventoryCommand {
                   outcome.item().value(),
                   detail,
                   now));
+          snapshots.save(
+              new InventorySnapshot(
+                  UUID.randomUUID(),
+                  command.household(),
+                  SnapshotKind.UNDO,
+                  command.id(),
+                  actor,
+                  command.action(),
+                  before,
+                  now,
+                  null));
           return outcome;
         });
   }

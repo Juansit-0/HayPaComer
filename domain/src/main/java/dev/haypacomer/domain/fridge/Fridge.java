@@ -71,6 +71,38 @@ public final class Fridge implements FridgeNode {
         .remove(itemId);
   }
 
+  public FridgeMemento snapshot() {
+    return new FridgeMemento(
+        id,
+        name,
+        zones.stream()
+            .map(
+                zone ->
+                    new FridgeMemento.ZoneState(
+                        zone.id(),
+                        zone.name(),
+                        zone.kind(),
+                        zone.children().stream()
+                            .map(
+                                tray ->
+                                    new FridgeMemento.TrayState(
+                                        tray.id(),
+                                        tray.name(),
+                                        tray.position(),
+                                        tray.children().stream()
+                                            .map(
+                                                item ->
+                                                    new FridgeMemento.ItemState(
+                                                        item.id(),
+                                                        item.food().name(),
+                                                        item.quantity(),
+                                                        item.tare(),
+                                                        item.expiresOn().orElse(null)))
+                                            .toList()))
+                            .toList()))
+            .toList());
+  }
+
   @Override
   public String name() {
     return name;

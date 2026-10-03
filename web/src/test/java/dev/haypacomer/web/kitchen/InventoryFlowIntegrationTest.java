@@ -202,5 +202,29 @@ class InventoryFlowIntegrationTest {
     mvc.perform(get(base + "/kitchen").header("Authorization", juan))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items").value(1));
+
+    String snapshot =
+        send(HttpMethod.POST, base + "/snapshots", ana, "{\"reason\":\"before dinner\"}", 201);
+    send(HttpMethod.POST, base + "/items/" + yogurtId + "/discard", juan, "", 200);
+    mvc.perform(get(base + "/kitchen").header("Authorization", juan))
+        .andExpect(jsonPath("$.items").value(0));
+    send(HttpMethod.POST, base + "/inventory/undo", ana, "", 403);
+    mvc.perform(request(HttpMethod.POST, base + "/inventory/undo").header("Authorization", juan))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.reason").value("DISCARD_FOOD"));
+    mvc.perform(get(base + "/kitchen").header("Authorization", juan))
+        .andExpect(jsonPath("$.items").value(1));
+
+    send(HttpMethod.POST, base + "/items/" + yogurtId + "/discard", juan, "", 200);
+    String snapshotPath = base + "/snapshots/" + JsonPath.read(snapshot, "$.id") + "/restore";
+    send(HttpMethod.POST, snapshotPath, ana, "", 403);
+    mvc.perform(request(HttpMethod.POST, snapshotPath).header("Authorization", juan))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.items").value(1));
+    mvc.perform(get(base + "/inventory").header("Authorization", juan))
+        .andExpect(jsonPath("$[0].statuses[0]").value("ASK_FIRST"));
+    send(HttpMethod.POST, base + "/inventory/undo", juan, "", 409);
+    mvc.perform(get(base + "/snapshots").header("Authorization", ana))
+        .andExpect(jsonPath("$[0].reason").value("before dinner"));
   }
 }

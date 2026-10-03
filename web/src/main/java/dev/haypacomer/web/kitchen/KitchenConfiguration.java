@@ -8,7 +8,11 @@ import dev.haypacomer.application.household.GetHousehold;
 import dev.haypacomer.application.inventory.ChangeFoodOwnership;
 import dev.haypacomer.application.inventory.ExecuteInventoryCommand;
 import dev.haypacomer.application.inventory.FoodAccessGuard;
+import dev.haypacomer.application.inventory.ListSnapshots;
+import dev.haypacomer.application.inventory.RestoreSnapshot;
 import dev.haypacomer.application.inventory.SearchFoods;
+import dev.haypacomer.application.inventory.TakeSnapshot;
+import dev.haypacomer.application.inventory.UndoLastChange;
 import dev.haypacomer.application.inventory.ViewInventory;
 import dev.haypacomer.application.port.AuditLog;
 import dev.haypacomer.application.port.FoodCatalogRepository;
@@ -16,6 +20,7 @@ import dev.haypacomer.application.port.FoodOwnershipRepository;
 import dev.haypacomer.application.port.FridgeRepository;
 import dev.haypacomer.application.port.HouseholdRepository;
 import dev.haypacomer.application.port.InventoryMovementLog;
+import dev.haypacomer.application.port.SnapshotStore;
 import dev.haypacomer.application.port.UnitOfWork;
 import dev.haypacomer.domain.inventory.FreshnessPolicy;
 import java.time.Clock;
@@ -59,9 +64,69 @@ public class KitchenConfiguration {
       FoodAccessGuard guard,
       AuditLog audit,
       UnitOfWork unitOfWork,
+      SnapshotStore snapshots,
       Clock clock) {
     return new ExecuteInventoryCommand(
-        households, fridges, ownerships, movements, catalog, guard, audit, unitOfWork, clock);
+        households,
+        fridges,
+        ownerships,
+        movements,
+        catalog,
+        guard,
+        audit,
+        unitOfWork,
+        snapshots,
+        clock);
+  }
+
+  @Bean
+  UndoLastChange undoLastChange(
+      HouseholdRepository households,
+      FridgeRepository fridges,
+      FoodOwnershipRepository ownerships,
+      InventoryMovementLog movements,
+      FoodCatalogRepository catalog,
+      SnapshotStore snapshots,
+      AuditLog audit,
+      UnitOfWork unitOfWork,
+      Clock clock) {
+    return new UndoLastChange(
+        households, fridges, ownerships, movements, catalog, snapshots, audit, unitOfWork, clock);
+  }
+
+  @Bean
+  TakeSnapshot takeSnapshot(
+      HouseholdRepository households,
+      FridgeRepository fridges,
+      FoodOwnershipRepository ownerships,
+      InventoryMovementLog movements,
+      FoodCatalogRepository catalog,
+      SnapshotStore snapshots,
+      AuditLog audit,
+      UnitOfWork unitOfWork,
+      Clock clock) {
+    return new TakeSnapshot(
+        households, fridges, ownerships, movements, catalog, snapshots, audit, unitOfWork, clock);
+  }
+
+  @Bean
+  RestoreSnapshot restoreSnapshot(
+      HouseholdRepository households,
+      FridgeRepository fridges,
+      FoodOwnershipRepository ownerships,
+      InventoryMovementLog movements,
+      FoodCatalogRepository catalog,
+      SnapshotStore snapshots,
+      AuditLog audit,
+      UnitOfWork unitOfWork,
+      Clock clock) {
+    return new RestoreSnapshot(
+        households, fridges, ownerships, movements, catalog, snapshots, audit, unitOfWork, clock);
+  }
+
+  @Bean
+  ListSnapshots listSnapshots(HouseholdRepository households, SnapshotStore snapshots) {
+    return new ListSnapshots(households, snapshots);
   }
 
   @Bean
