@@ -41,7 +41,7 @@ mvn -pl web -am spring-boot:run
 
 - [`PLAN.md`](PLAN.md) - master plan and roadmap
 - [`brand/brand-book.md`](brand/brand-book.md) - brand guide, strategy, voice, and tokens
-- [`docs/`](docs) - architecture, data model, REST API, patterns, responsible AI, agent, event protocol, ADRs
+- [`docs/`](docs) - architecture, data model, REST API, patterns, responsible AI, agent, event protocol, firmware, ADRs
 - [`docs/proposal/`](docs/proposal) - original proposal (LaTeX + PDF)
 
 ## Demo promise
