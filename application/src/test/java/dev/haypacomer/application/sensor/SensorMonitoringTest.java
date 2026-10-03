@@ -156,7 +156,7 @@ class SensorMonitoringTest {
         };
     HardwareFactories hardware = new HardwareFactories(List.of(family));
     Registry registry = new Registry();
-    observe = new ObserveSensorEvent(registry, devices, hardware, clock);
+    observe = new ObserveSensorEvent(registry, devices, hardware);
     check = new CheckFridgeAlerts(registry, devices, hardware, clock);
   }
 

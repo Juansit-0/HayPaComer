@@ -12,7 +12,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 | F1 | Domain and persistence | 9 | done |
 | F1.5 | Authentication | 6 | done |
 | F2 | Application | 6 | done |
-| F3 | Door and temperature sensors | 8 | in progress |
+| F3 | Door and temperature sensors | 8 | done |
 | F4 | HX711 scale | 5 | pending |
 | F5 | Quantities, substitutions, and guided cooking | 8 | pending |
 | F6 | AI, web, and agent | 21 | pending |
@@ -79,6 +79,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 39. cold chain and under-review state
 - [x] 40. rest event intake with device key, validation, and idempotency
 - [x] 41. esp32 reed + ds18b20 with json events
+- [x] 42. noise, duplicates, and thresholds
 
 ## Notes
 

@@ -1,11 +1,13 @@
 package dev.haypacomer.web.device;
 
+import static org.hamcrest.Matchers.hasItems;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.jayway.jsonpath.JsonPath;
+import dev.haypacomer.application.sensor.CheckFridgeAlerts;
 import dev.haypacomer.sensors.esp32.Esp32Envelope;
 import dev.haypacomer.sensors.esp32.Esp32Simulator;
 import java.time.Duration;
@@ -35,6 +37,7 @@ class SensorIntakeIntegrationTest {
   static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:18-alpine");
 
   @Autowired private MockMvc mvc;
+  @Autowired private CheckFridgeAlerts checkFridgeAlerts;
 
   private final Esp32Simulator simulator = new Esp32Simulator("fridge-01");
 
@@ -107,8 +110,7 @@ class SensorIntakeIntegrationTest {
         .andExpect(status().isAccepted())
         .andExpect(jsonPath("$.accepted").value(5))
         .andExpect(jsonPath("$.rejected").value(1))
-        .andExpect(jsonPath("$.events[5].reason").value("tempC outside [-30, 60]"))
-        .andExpect(jsonPath("$.findings[0]").value("DOOR_LEFT_OPEN"));
+        .andExpect(jsonPath("$.events[5].reason").value("tempC outside [-30, 60]"));
     send(key, simulator.toJson(batch.subList(0, 5)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.duplicates").value(5));
@@ -121,9 +123,9 @@ class SensorIntakeIntegrationTest {
 
     mvc.perform(get(base + "/cold-chain").header("Authorization", juan))
         .andExpect(jsonPath("$[0].phase").value("UNDER_REVIEW"));
+    checkFridgeAlerts.check();
     mvc.perform(get("/api/v1/device/commands").header("X-Device-Key", key))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0]").value("DOOR_OPEN_BEEP"))
-        .andExpect(jsonPath("$[1]").value("COLD_CHAIN_ALARM"));
+        .andExpect(jsonPath("$", hasItems("DOOR_OPEN_BEEP", "COLD_CHAIN_ALARM")));
   }
 }

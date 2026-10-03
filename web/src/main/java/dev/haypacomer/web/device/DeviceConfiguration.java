@@ -61,11 +61,8 @@ public class DeviceConfiguration {
 
   @Bean
   ObserveSensorEvent observeSensorEvent(
-      FridgeMonitorRegistry registry,
-      DeviceRepository devices,
-      HardwareFactories hardware,
-      Clock clock) {
-    return new ObserveSensorEvent(registry, devices, hardware, clock);
+      FridgeMonitorRegistry registry, DeviceRepository devices, HardwareFactories hardware) {
+    return new ObserveSensorEvent(registry, devices, hardware);
   }
 
   @Bean

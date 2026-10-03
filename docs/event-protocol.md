@@ -46,6 +46,7 @@
 
 - `POST /api/v1/device/events` with `X-Device-Key` accepts one event or a batch and answers with counts (`accepted`, `duplicates`, `dropped`, `rejected`), a verdict per event, and the findings raised (door left open, cold-chain breach, stock change).
 - Status: `202 Accepted` when anything new was processed, `200 OK` when every event was a duplicate, `400` when every event was rejected or the payload is malformed (RFC 7807).
+- Each accepted event is evaluated at its own timestamp, so a replayed buffer cannot raise false alarms; conditions still ongoing (a door left open) are raised by the periodic check every 5 s.
 - Accepted events are stored once in `sensor_events`, feed the fridge monitor (alerts queued for the device at `GET /api/v1/device/commands`), and temperatures update the cold-chain state.
 - Devices retry with backoff on `5xx`; the backend is safe to retry thanks to idempotency.
 

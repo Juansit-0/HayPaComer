@@ -6,23 +6,15 @@ import dev.haypacomer.domain.device.Device;
 import dev.haypacomer.domain.sensor.Finding;
 import dev.haypacomer.domain.sensor.FridgeMonitor;
 import dev.haypacomer.domain.sensor.SensorEvent;
-import java.time.Clock;
-import java.time.Instant;
 import java.util.List;
-import java.util.Objects;
 
 public final class ObserveSensorEvent {
 
   private final AlertDispatcher dispatcher;
-  private final Clock clock;
 
   public ObserveSensorEvent(
-      FridgeMonitorRegistry registry,
-      DeviceRepository devices,
-      HardwareFactories hardware,
-      Clock clock) {
+      FridgeMonitorRegistry registry, DeviceRepository devices, HardwareFactories hardware) {
     this.dispatcher = new AlertDispatcher(registry, devices, hardware);
-    this.clock = Objects.requireNonNull(clock, "clock");
   }
 
   public List<Finding> observe(Device device, SensorEvent event) {
@@ -34,8 +26,6 @@ public final class ObserveSensorEvent {
       monitor.record(event);
     }
     dispatcher.registry().rememberDevice(device.fridge(), device.id());
-    Instant now = clock.instant();
-    Instant evaluatedAt = event.occurredAt().isAfter(now) ? event.occurredAt() : now;
-    return dispatcher.evaluate(device.fridge(), evaluatedAt);
+    return dispatcher.evaluate(device.fridge(), event.occurredAt());
   }
 }
