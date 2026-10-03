@@ -4,11 +4,11 @@ import dev.haypacomer.application.inventory.ChangeFoodOwnership;
 import dev.haypacomer.application.inventory.ChangeFoodOwnership.Grant;
 import dev.haypacomer.application.inventory.ChangeFoodOwnership.Revoke;
 import dev.haypacomer.application.inventory.ChangeFoodOwnership.SetVisibility;
-import dev.haypacomer.application.inventory.ConsumeFood;
-import dev.haypacomer.application.inventory.DiscardFood;
-import dev.haypacomer.application.inventory.StockCommand;
-import dev.haypacomer.application.inventory.StockFood;
-import dev.haypacomer.domain.fridge.FoodItem;
+import dev.haypacomer.application.inventory.CommandOutcome;
+import dev.haypacomer.application.inventory.ConsumeFoodCommand;
+import dev.haypacomer.application.inventory.DiscardFoodCommand;
+import dev.haypacomer.application.inventory.ExecuteInventoryCommand;
+import dev.haypacomer.application.inventory.StockFoodCommand;
 import dev.haypacomer.domain.fridge.FoodItemId;
 import dev.haypacomer.domain.fridge.FridgeId;
 import dev.haypacomer.domain.fridge.TrayId;
@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,64 +43,72 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/households/{householdId}/items")
 public class InventoryController {
 
-  private final StockFood stockFood;
-  private final ConsumeFood consumeFood;
-  private final DiscardFood discardFood;
+  static final String IDEMPOTENCY_KEY = "Idempotency-Key";
+
+  private final ExecuteInventoryCommand commands;
   private final ChangeFoodOwnership changeOwnership;
 
   public InventoryController(
-      StockFood stockFood,
-      ConsumeFood consumeFood,
-      DiscardFood discardFood,
-      ChangeFoodOwnership changeOwnership) {
-    this.stockFood = stockFood;
-    this.consumeFood = consumeFood;
-    this.discardFood = discardFood;
+      ExecuteInventoryCommand commands, ChangeFoodOwnership changeOwnership) {
+    this.commands = commands;
     this.changeOwnership = changeOwnership;
   }
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  ItemResponse stock(
+  OutcomeResponse stock(
       @AuthenticationPrincipal Jwt jwt,
       @PathVariable UUID householdId,
+      @RequestHeader(name = IDEMPOTENCY_KEY, required = false) UUID idempotencyKey,
       @Valid @RequestBody StockRequest request) {
-    FoodItem item =
-        stockFood.stock(
+    return OutcomeResponse.from(
+        commands.execute(
             CurrentUser.of(jwt),
-            new HouseholdId(householdId),
-            new StockCommand(
+            new StockFoodCommand(
+                commandId(idempotencyKey),
+                new HouseholdId(householdId),
                 new FridgeId(request.fridgeId()),
                 new TrayId(request.trayId()),
                 request.food(),
                 Grams.of(request.grams()),
                 request.tareGrams() == null ? Grams.ZERO : Grams.of(request.tareGrams()),
                 request.expiresOn(),
-                request.visibility()));
-    return ItemResponse.from(item);
+                request.visibility())));
   }
 
   @PostMapping("/{itemId}/consume")
-  RemainingResponse consume(
+  OutcomeResponse consume(
       @AuthenticationPrincipal Jwt jwt,
       @PathVariable UUID householdId,
       @PathVariable UUID itemId,
+      @RequestHeader(name = IDEMPOTENCY_KEY, required = false) UUID idempotencyKey,
       @Valid @RequestBody ConsumeRequest request) {
-    Grams remaining =
-        consumeFood.consume(
+    return OutcomeResponse.from(
+        commands.execute(
             CurrentUser.of(jwt),
-            new HouseholdId(householdId),
-            new FoodItemId(itemId),
-            Grams.of(request.grams()),
-            MovementSource.MANUAL);
-    return new RemainingResponse(itemId, remaining.value());
+            new ConsumeFoodCommand(
+                commandId(idempotencyKey),
+                new HouseholdId(householdId),
+                new FoodItemId(itemId),
+                Grams.of(request.grams()),
+                MovementSource.MANUAL)));
   }
 
   @PostMapping("/{itemId}/discard")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  void discard(
-      @AuthenticationPrincipal Jwt jwt, @PathVariable UUID householdId, @PathVariable UUID itemId) {
-    discardFood.discard(CurrentUser.of(jwt), new HouseholdId(householdId), new FoodItemId(itemId));
+  OutcomeResponse discard(
+      @AuthenticationPrincipal Jwt jwt,
+      @PathVariable UUID householdId,
+      @PathVariable UUID itemId,
+      @RequestHeader(name = IDEMPOTENCY_KEY, required = false) UUID idempotencyKey) {
+    return OutcomeResponse.from(
+        commands.execute(
+            CurrentUser.of(jwt),
+            new DiscardFoodCommand(
+                commandId(idempotencyKey), new HouseholdId(householdId), new FoodItemId(itemId))));
+  }
+
+  private static UUID commandId(UUID idempotencyKey) {
+    return idempotencyKey == null ? UUID.randomUUID() : idempotencyKey;
   }
 
   @PutMapping("/{itemId}/visibility")
@@ -159,20 +168,16 @@ public class InventoryController {
 
   record GrantRequest(@NotNull UUID userId) {}
 
-  record ItemResponse(
-      UUID id, String name, BigDecimal grams, BigDecimal tareGrams, LocalDate expiresOn) {
+  record OutcomeResponse(UUID commandId, UUID itemId, BigDecimal remainingGrams, boolean replayed) {
 
-    static ItemResponse from(FoodItem item) {
-      return new ItemResponse(
-          item.id().value(),
-          item.name(),
-          item.quantity().value(),
-          item.tare().value(),
-          item.expiresOn().orElse(null));
+    static OutcomeResponse from(CommandOutcome outcome) {
+      return new OutcomeResponse(
+          outcome.commandId(),
+          outcome.item().value(),
+          outcome.remaining().value(),
+          outcome.replayed());
     }
   }
-
-  record RemainingResponse(UUID id, BigDecimal remainingGrams) {}
 
   record OwnershipResponse(UUID ownerMemberId, Visibility visibility, int grants) {
 

@@ -113,7 +113,7 @@ class InventoryFlowIntegrationTest {
                 + LocalDate.now().plusDays(6)
                 + "\"}",
             201);
-    String milkId = JsonPath.read(milk, "$.id");
+    String milkId = JsonPath.read(milk, "$.itemId");
     mvc.perform(
             request(HttpMethod.POST, base + "/items/" + milkId + "/consume")
                 .header("Authorization", ana)
@@ -134,7 +134,7 @@ class InventoryFlowIntegrationTest {
                 + "\",\"food\":\"Yogurt\","
                 + "\"grams\":125,\"visibility\":\"PRIVATE\"}",
             201);
-    String yogurtId = JsonPath.read(yogurt, "$.id");
+    String yogurtId = JsonPath.read(yogurt, "$.itemId");
     send(HttpMethod.POST, base + "/items/" + yogurtId + "/consume", ana, "{\"grams\":50}", 403);
     mvc.perform(get(base + "/inventory").header("Authorization", ana))
         .andExpect(status().isOk())
@@ -164,7 +164,30 @@ class InventoryFlowIntegrationTest {
     send(HttpMethod.DELETE, base + "/items/" + yogurtId + "/grants/" + idOf(ana), juan, "", 200);
     send(HttpMethod.POST, base + "/items/" + yogurtId + "/consume", ana, "{\"grams\":10}", 403);
 
-    send(HttpMethod.POST, base + "/items/" + milkId + "/discard", ana, "", 204);
+    mvc.perform(
+            request(HttpMethod.POST, base + "/items/" + milkId + "/consume")
+                .header("Authorization", ana)
+                .header("Idempotency-Key", "11111111-1111-1111-1111-111111111111")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"grams\":50}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.remainingGrams").value(600.0))
+        .andExpect(jsonPath("$.replayed").value(false));
+    mvc.perform(
+            request(HttpMethod.POST, base + "/items/" + milkId + "/consume")
+                .header("Authorization", ana)
+                .header("Idempotency-Key", "11111111-1111-1111-1111-111111111111")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"grams\":50}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.remainingGrams").value(600.0))
+        .andExpect(jsonPath("$.replayed").value(true));
+    send(HttpMethod.POST, base + "/items/" + milkId + "/discard", ana, "", 200);
+    mvc.perform(get(base + "/activity?limit=3").header("Authorization", juan))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].action").value("DISCARD_FOOD"))
+        .andExpect(jsonPath("$[1].action").value("CONSUME_FOOD"))
+        .andExpect(jsonPath("$[1].detail.grams").value("50.00"));
     send(HttpMethod.POST, base + "/items/" + milkId + "/consume", ana, "{\"grams\":1}", 404);
     send(
         HttpMethod.POST,

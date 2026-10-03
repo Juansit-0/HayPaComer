@@ -7,7 +7,7 @@ All business logic, AI, and the agent run in the backend. The web UI and the ESP
 - Authentication: `Authorization: Bearer <access JWT>` for people; `X-Device-Key: <key>` for ESP32 devices, accepted only under `/api/v1/device/**` (a separate security chain; device keys never reach user endpoints and JWTs never reach device endpoints).
 - Roles are per household: `OWNER`, `MEMBER`, `GUEST`. Food ownership (private, shared, ask first, grants) is checked on every inventory read and write.
 - Pagination: `?page=&size=&sort=`; collections return `{ items, page, size, total }`.
-- Writes that may be retried accept `Idempotency-Key`.
+- Inventory writes (stock, consume, discard) accept an `Idempotency-Key` UUID header; it becomes the command id, so a retry returns the first outcome with `replayed: true` instead of discounting twice.
 - Email links (verification, reset, invitations) carry the token in the URL fragment (`#token=`), so it never reaches server logs; clients post it in the request body.
 - OpenAPI at `/v3/api-docs` and Swagger UI at `/swagger-ui` is the contract; this file is the catalog.
 
@@ -93,7 +93,7 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 | POST | `/households/{h}/items/{id}/discard` | member | Discard as waste |
 | PUT | `/households/{h}/items/{id}/visibility` | owner of the item | Shared, ask-first, or private |
 | GET | `/households/{h}/items/expiring?days=` | guest | Items expiring soon |
-| GET | `/items/{id}/movements` | guest | Movement history |
+| GET | `/households/{h}/activity?limit=` | guest | Audited inventory commands, newest first |
 | POST | `/households/{h}/items/{id}/grants` | owner of the item | Grant access to another member |
 | DELETE | `/households/{h}/items/{id}/grants/{u}` | owner of the item | Revoke grant |
 | POST | `/households/{h}/inventory/undo` | member | Undo last command (memento) |

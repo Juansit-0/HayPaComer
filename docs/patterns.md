@@ -17,7 +17,7 @@ HayPaComer covers 23/23 GoF patterns. Honesty rule: each pattern is used in a re
 | Structural | Flyweight | `FoodMetadataCatalog` shares one `FoodMetadata` per food (category, units, conversion factors, allergens); quantity and dates stay per item. Test: `FoodMetadataCatalogTest` | F1 |
 | Structural | Proxy | Offline hardware cache and private food protection | F7 |
 | Behavioral | Chain of Responsibility | Event validation chain (range, timestamp, mode, stability, duplicates) | F3 |
-| Behavioral | Command | Auditable inventory commands | F2 |
+| Behavioral | Command | `StockFoodCommand`, `ConsumeFoodCommand`, and `DiscardFoodCommand` implement the sealed `InventoryCommand`; the invoker `ExecuteInventoryCommand` runs each one in a `UnitOfWork`, writes an `AuditEntry`, and replays a repeated command id (Idempotency-Key) without applying it twice. Test: `LiveInventoryTest` | F2 |
 | Behavioral | Interpreter | Quantities and units | F5 |
 | Behavioral | Iterator | `FridgeTreeIterator` walks any `FridgeNode` depth-first or breadth-first; `FridgeNode` is `Iterable` and exposes `foodItems()` and `trays()` streams used by `Fridge` lookups. Test: `FridgeTreeIteratorTest` | F1 |
 | Behavioral | Mediator | Guided cooking session between session, scale, and timers | F5 |
