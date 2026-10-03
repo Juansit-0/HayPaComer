@@ -31,7 +31,9 @@
 - Ranges: tempC in [-30, 60]; grams in [0, 20000]; timestamps within accepted skew.
 - Weight is accepted only when `stable` is true (about one second of stable reading after tare).
 - Idempotency: `eventId` is unique; duplicates are ignored without side effects.
-- Ordering: events are processed in arrival order per device; stale readings older than the last accepted reading are dropped.
+- Ordering: events are processed in arrival order per device; stale readings older than the last accepted reading of the same type are dropped.
+- Clock skew: events more than 2 minutes in the future or older than 7 days are rejected.
+- The checks run as a chain of responsibility in this order: range, clock skew, stability, duplicate, stale. Verdicts: `ACCEPTED`, `REJECTED` (400), `DUPLICATE` (idempotent, no side effects), `DROPPED` (ignored, not an error).
 
 ## Decoding
 
