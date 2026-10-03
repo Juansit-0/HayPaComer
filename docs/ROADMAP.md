@@ -55,6 +55,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 ## F1.5 detail
 
 - [x] 23. register, login, refresh, and logout use cases with ports
+- [x] 24. spring security with jwt and rotating refresh tokens
 
 ## Notes
 

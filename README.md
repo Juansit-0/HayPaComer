@@ -28,7 +28,14 @@ docker compose up -d
 mvn verify
 ```
 
-`docker compose up -d` starts PostgreSQL 18 and Redis 8 (AOF on), bound to `127.0.0.1` only. Edit the passwords in `.env` first; `.env` is never committed.
+`docker compose up -d` starts PostgreSQL 18 and Redis 8 (AOF on), bound to `127.0.0.1` only. Edit the passwords and `JWT_SECRET` (at least 32 bytes) in `.env` first; `.env` is never committed.
+
+Run the API with the variables from `.env` exported:
+
+```bash
+set -a && source .env && set +a
+mvn -pl web -am spring-boot:run
+```
 
 ## Documentation
 

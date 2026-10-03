@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: haypacomer
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:${POSTGRES_PORT:5432}/${POSTGRES_DB:haypacomer}}
+    username: ${POSTGRES_USER:haypacomer}
+    password: ${POSTGRES_PASSWORD:}
+  flyway:
+    locations: classpath:db/migration
+  mvc:
+    problemdetails:
+      enabled: true
+
+haypacomer:
+  security:
+    jwt:
+      secret: ${JWT_SECRET:}
+      issuer: https://api.haypacomer.dev
+      access-token-time-to-live: 15m

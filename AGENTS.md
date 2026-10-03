@@ -29,8 +29,10 @@ HayPaComer (name confirmed in Phase 0.5) is a smart home fridge: Java applicatio
 - Step 20 merged (#16): `User`, `UserId`, `EmailAddress`, `PasswordHash` (identity); `Household` aggregate with `Membership`, `Role`, `Permission`, `AccessDeniedException` (exactly one owner, transfer ownership, membership maps a user to a `MemberId`).
 - Step 21 merged (#17): `docker-compose.yml` (PostgreSQL 18, Redis 8 with AOF and password, ports bound to 127.0.0.1) and `.env.example`. Docker is not installed on the development Mac yet.
 - Step 22 merged (#18): Spring Boot 4.1.1 BOM imported in the parent; ports `UserRepository`, `HouseholdRepository`, `FoodCatalogRepository`, `FridgeRepository` in `application`; Flyway `V1`/`V2`; `Postgres*Repository` with `JdbcClient`; Testcontainers tests skip locally without Docker and run in CI.
-- Step 23 in `feat/application-auth-use-cases`: `RegisterUser`, `LogIn` (lockout after 5 failures in 15 min, same error for unknown email), `RefreshSession` (rotation with reuse detection that revokes the family), `LogOut`; ports `PasswordHasher`, `AccessTokenIssuer`, `RefreshTokenStore`, `LoginAttemptLog`; domain `RefreshToken`; JaCoCo active in `application`.
-- **Next action:** step 24: `feat(web): spring security with jwt and rotating refresh tokens`. The user makes every commit, push, and PR; agents only edit files and hand over commands.
+- Step 23 merged (#19): `RegisterUser`, `LogIn` (lockout after 5 failures in 15 min, same error for unknown email), `RefreshSession` (rotation with reuse detection that revokes the family), `LogOut`; ports `PasswordHasher`, `AccessTokenIssuer`, `RefreshTokenStore`, `LoginAttemptLog`; domain `RefreshToken`; JaCoCo active in `application`.
+- Step 24 in `feat/web-security-jwt`: first Spring Boot app (`HayPaComerApplication`); stateless Spring Security with HS256 JWT (`JwtProperties`, `JwtAccessTokenIssuer`, `BCryptPasswordHasher` cost 12); `AuthController` (`/api/v1/auth/register|login|refresh|logout`), `MeController` (`/api/v1/me`), RFC 7807 `ApiExceptionHandler`; `PostgresRefreshTokenStore` and `PostgresLoginAttemptLog`; `GetUserProfile` use case. Requires `JWT_SECRET` (32+ bytes).
+- **Next action:** step 25: `feat(web): household-scoped authorization and food ownership checks`.
+- Workflow: Claude commits, pushes, opens the PR, waits for green CI, and squash merges as the user, with no Claude attribution.
 
 ## How to continue (agreed order)
 
