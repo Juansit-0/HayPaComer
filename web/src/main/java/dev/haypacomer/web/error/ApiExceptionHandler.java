@@ -15,6 +15,7 @@ import dev.haypacomer.application.inventory.FoodNotInCatalogException;
 import dev.haypacomer.application.inventory.NothingToUndoException;
 import dev.haypacomer.application.inventory.PermissionRequiredException;
 import dev.haypacomer.application.inventory.SnapshotNotFoundException;
+import dev.haypacomer.application.sensor.MalformedSensorPayloadException;
 import dev.haypacomer.domain.household.AccessDeniedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -57,6 +58,11 @@ public class ApiExceptionHandler {
   @ExceptionHandler(InvitationEmailMismatchException.class)
   ProblemDetail invitationMismatch(InvitationEmailMismatchException exception) {
     return problem(HttpStatus.FORBIDDEN, "Invitation not for this account", exception.getMessage());
+  }
+
+  @ExceptionHandler(MalformedSensorPayloadException.class)
+  ProblemDetail malformedPayload(MalformedSensorPayloadException exception) {
+    return problem(HttpStatus.BAD_REQUEST, "Malformed sensor payload", exception.getMessage());
   }
 
   @ExceptionHandler(FridgeNotFoundException.class)
