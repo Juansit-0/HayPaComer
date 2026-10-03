@@ -9,7 +9,7 @@ The public repository cannot exist yet (ADR 0008), but work must be versioned fr
 
 ## Decision
 
-During foundation and branding, commit locally on `main` with Conventional Commits in English. After repository creation, every step goes through a `feat/*` branch, a PR, green CI, review approval, and a squash merge, protected by branch protection.
+During foundation and branding, commit locally on `main` with Conventional Commits in English. After repository creation, every step goes through a `feat/*` branch, a PR, green CI, and a squash merge, protected by branch protection (review approval was required until 2026-10-02 and then removed).
 
 ## Consequences
 

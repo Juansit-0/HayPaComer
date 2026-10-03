@@ -44,9 +44,10 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 
 - [x] 14. quantities, units, and food metadata (flyweight)
 - [x] 15. fridge-zone-tray-food composite
+- [x] 16. iterator to traverse the tree
 
 ## Notes
 
 - Before the public repository exists, steps are local commits on `main`.
-- After repository creation: `feat/*` branch -> PR -> green CI -> review approval -> squash merge.
+- After repository creation: `feat/*` branch -> PR -> green CI -> squash merge by the owner (no review approval required since 2026-10-02).
 - JaCoCo line coverage check (>= 80%) is active in `domain` since step 14 and is enabled in `application` with its first use case. Spotless (google-java-format) runs `check` on every build; run `mvn spotless:apply` before committing.
