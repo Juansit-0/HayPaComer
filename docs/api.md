@@ -4,7 +4,7 @@ All business logic, AI, and the agent run in the backend. The web UI and the ESP
 
 - Base path: `/api/v1`. Production host: `https://api.haypacomer.dev` (web UI at `https://haypacomer.dev`).
 - Format: JSON; errors as RFC 7807 `application/problem+json`.
-- Authentication: `Authorization: Bearer <access JWT>` for people; `X-Device-Key: <key>` for ESP32 devices.
+- Authentication: `Authorization: Bearer <access JWT>` for people; `X-Device-Key: <key>` for ESP32 devices, accepted only under `/api/v1/device/**` (a separate security chain; device keys never reach user endpoints and JWTs never reach device endpoints).
 - Roles are per household: `OWNER`, `MEMBER`, `GUEST`. Food ownership (private, shared, ask first, grants) is checked on every inventory read and write.
 - Pagination: `?page=&size=&sort=`; collections return `{ items, page, size, total }`.
 - Writes that may be retried accept `Idempotency-Key`.
@@ -103,8 +103,9 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 |---|---|---|---|
 | POST | `/households/{h}/devices` | owner | Register device; returns API key once |
 | GET | `/households/{h}/devices` | guest | Devices with last seen |
-| DELETE | `/devices/{d}` | owner | Revoke device key |
-| POST | `/events` | device | Ingest door, temperature, or weight event (idempotent by event id) |
+| DELETE | `/households/{h}/devices/{d}` | owner | Revoke device key |
+| GET | `/device/whoami` | device | Device identity for the ESP32 handshake |
+| POST | `/device/events` | device | Ingest door, temperature, or weight event (idempotent by event id) |
 | GET | `/fridges/{f}/doors` | guest | Door openings |
 | GET | `/fridges/{f}/temperatures?from=&to=` | guest | Temperature series |
 | GET | `/fridges/{f}/cold-incidents` | guest | Cold-chain incidents |

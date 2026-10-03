@@ -58,6 +58,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 24. spring security with jwt and rotating refresh tokens
 - [x] 25. household-scoped authorization and food ownership checks
 - [x] 26. invitations, email verification, and password reset
+- [x] 27. esp32 device api keys
 
 ## Notes
 

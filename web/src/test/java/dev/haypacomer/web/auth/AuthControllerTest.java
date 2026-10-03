@@ -27,6 +27,7 @@ import dev.haypacomer.application.auth.RequestPasswordReset;
 import dev.haypacomer.application.auth.ResetPassword;
 import dev.haypacomer.application.auth.TooManyLoginAttemptsException;
 import dev.haypacomer.application.auth.VerifyEmail;
+import dev.haypacomer.application.device.AuthenticateDevice;
 import dev.haypacomer.domain.identity.EmailAddress;
 import dev.haypacomer.domain.identity.PasswordHash;
 import dev.haypacomer.domain.identity.User;
@@ -60,6 +61,7 @@ class AuthControllerTest {
   private static final Instant NOW = Instant.parse("2026-10-03T12:00:00Z");
 
   @Autowired private MockMvc mvc;
+  @MockitoBean private AuthenticateDevice authenticateDevice;
   @Autowired private JwtEncoder encoder;
   @Autowired private JwtProperties properties;
 
