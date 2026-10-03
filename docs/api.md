@@ -61,13 +61,15 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 
 | Method | Path | Access | Purpose |
 |---|---|---|---|
-| POST, GET | `/households/{h}/fridges` | owner, guest | Create, list fridges |
+| POST | `/households/{h}/fridges` | owner | Set up a fridge (`STANDARD` layout by default, or `EMPTY`) |
 | GET, PATCH, DELETE | `/fridges/{f}` | guest, owner, owner | Fridge detail, thresholds, delete |
 | POST, GET | `/fridges/{f}/zones` | owner, guest | Create, list zones |
 | PATCH, DELETE | `/zones/{z}` | owner | Update, delete zone |
 | POST, GET | `/zones/{z}/trays` | owner, guest | Create, list trays |
 | PATCH, DELETE | `/trays/{t}` | owner | Update, delete tray |
-| GET | `/fridges/{f}/twin` | guest | Digital twin: tree with items, expiry, and status |
+| GET | `/households/{h}/fridges` | guest | Digital twin: every fridge as a tree with grams and item counts |
+| GET | `/households/{h}/inventory?rescueFirst=` | guest | Items across fridges in rescue order with freshness statuses |
+| GET | `/households/{h}/kitchen` | guest | Kitchen snapshot: items, total grams, at risk, expired |
 
 ## Catalog
 

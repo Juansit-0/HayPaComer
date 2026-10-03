@@ -13,7 +13,7 @@ HayPaComer covers 23/23 GoF patterns. Honesty rule: each pattern is used in a re
 | Structural | Bridge | Measurement source (door, weight, temperature) x interpretation (stock, cold chain, usable quantity) | F3 |
 | Structural | Composite | `Fridge` -> `Zone` -> `Tray` -> `FoodItem` behind the sealed `FridgeNode` interface; totals and item counts are computed uniformly at every level. Test: `FridgeTest` | F1 |
 | Structural | Decorator | `ExpiredFood`, `AtRiskFood`, `LeftoverFood`, and `OwnedFood` wrap a `StockedFood` and stack statuses, rescue priority, edibility, and access; `FreshnessPolicy` applies expiry decorators. Test: `StockedFoodTest` | F1 |
-| Structural | Facade | `HayPaComerFacade` exposes the system without subsystem details | F2 |
+| Structural | Facade | `HayPaComerFacade` hides household access, the fridge composite and iterator, freshness decorators, and rescue ordering behind `setUpFridge`, `fridges`, `inventory`, `rescueFirst`, and `snapshot`; used by `KitchenController` and later by agent tools. Test: `HayPaComerFacadeTest` | F2 |
 | Structural | Flyweight | `FoodMetadataCatalog` shares one `FoodMetadata` per food (category, units, conversion factors, allergens); quantity and dates stay per item. Test: `FoodMetadataCatalogTest` | F1 |
 | Structural | Proxy | Offline hardware cache and private food protection | F7 |
 | Behavioral | Chain of Responsibility | Event validation chain (range, timestamp, mode, stability, duplicates) | F3 |
