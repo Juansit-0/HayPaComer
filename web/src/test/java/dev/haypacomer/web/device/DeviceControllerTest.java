@@ -2,6 +2,7 @@ package dev.haypacomer.web.device;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -16,11 +17,15 @@ import dev.haypacomer.application.device.ListDevices;
 import dev.haypacomer.application.device.RegisterDevice;
 import dev.haypacomer.application.device.RegisteredDevice;
 import dev.haypacomer.application.device.RevokeDevice;
+import dev.haypacomer.application.port.HardwareFactory;
+import dev.haypacomer.application.sensor.AlertPattern;
+import dev.haypacomer.application.sensor.HardwareFactories;
 import dev.haypacomer.domain.device.Device;
 import dev.haypacomer.domain.device.DeviceKind;
 import dev.haypacomer.domain.fridge.FridgeId;
 import dev.haypacomer.domain.household.HouseholdId;
 import dev.haypacomer.domain.identity.UserId;
+import dev.haypacomer.sensors.hardware.QueuedAlertSignal;
 import dev.haypacomer.web.error.ApiExceptionHandler;
 import dev.haypacomer.web.security.JwtAccessTokenIssuer;
 import dev.haypacomer.web.security.JwtProperties;
@@ -59,6 +64,7 @@ class DeviceControllerTest {
   @MockitoBean private ListDevices listDevices;
   @MockitoBean private RevokeDevice revokeDevice;
   @MockitoBean private AuthenticateDevice authenticateDevice;
+  @MockitoBean private HardwareFactories hardware;
 
   private final UserId juan = UserId.newId();
   private final HouseholdId household = HouseholdId.newId();
@@ -122,6 +128,23 @@ class DeviceControllerTest {
         .andExpect(jsonPath("$.title").value("Invalid device key"));
     mvc.perform(get("/api/v1/device/whoami").header("Authorization", bearer()))
         .andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  void devicesPullTheirPendingAlertCommands() throws Exception {
+    when(authenticateDevice.authenticate("hpc_dev_good")).thenReturn(device);
+    QueuedAlertSignal queue = new QueuedAlertSignal();
+    queue.signal(device.id(), AlertPattern.DOOR_OPEN_BEEP);
+    HardwareFactory family = mock(HardwareFactory.class);
+    when(family.alerts()).thenReturn(queue);
+    when(hardware.forDevice(device)).thenReturn(family);
+
+    mvc.perform(get("/api/v1/device/commands").header("X-Device-Key", "hpc_dev_good"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0]").value("DOOR_OPEN_BEEP"));
+    mvc.perform(get("/api/v1/device/commands").header("X-Device-Key", "hpc_dev_good"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(0));
   }
 
   @Test

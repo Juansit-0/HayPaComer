@@ -108,6 +108,7 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 | GET | `/households/{h}/devices` | guest | Devices with last seen |
 | DELETE | `/households/{h}/devices/{d}` | owner | Revoke device key |
 | GET | `/device/whoami` | device | Device identity for the ESP32 handshake |
+| GET | `/device/commands` | device | Pending alert commands (buzzer, LED) for the device; draining |
 | POST | `/device/events` | device | Ingest door, temperature, or weight event (idempotent by event id) |
 | GET | `/fridges/{f}/doors` | guest | Door openings |
 | GET | `/fridges/{f}/temperatures?from=&to=` | guest | Temperature series |

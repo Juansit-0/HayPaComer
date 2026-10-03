@@ -73,6 +73,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 ## F3 detail
 
 - [x] 35. esp32 adapter and simulator (adapter)
+- [x] 36. abstract factory for real and simulated hardware
 
 ## Notes
 

@@ -6,7 +6,7 @@ HayPaComer covers 23/23 GoF patterns. Honesty rule: each pattern is used in a re
 |---|---|---|---|
 | Creational | Singleton | `FridgeSession` coordinates one physical fridge with a single active state | F6 |
 | Creational | Factory Method | `Esp32EventFactory` defines the creation template and `DoorEventFactory`, `TemperatureEventFactory`, and `WeightEventFactory` decide which domain event to build for each envelope type. Test: `Esp32EventAdapterTest` | F3 |
-| Creational | Abstract Factory | Real ESP32 hardware vs simulated hardware | F3 |
+| Creational | Abstract Factory | `HardwareFactory` builds a family of products (`SensorEventDecoder`, `AlertSignal`): `Esp32HardwareFactory` (strict decoding, alerts queued for the ESP32 to pull) and `SimulatedHardwareFactory` (fills event id and time, alerts recorded for the demo); `HardwareFactories` picks the family by device kind. Tests: `HardwareFamiliesTest`, `HardwareFactoriesTest` | F3 |
 | Creational | Builder | Builds a suggestion, a weekly plan, or a cooking session step by step | F6 |
 | Creational | Prototype | Clonable weekly-plan and recipe templates | F6 |
 | Structural | Adapter | `Esp32EventAdapter` adapts the ESP32 JSON envelope (single events or buffered batches) to the `SensorEventDecoder` port and domain `SensorEvent`s; `Esp32Simulator` speaks the same envelope for hardware-free demos. Later: `Hx711ReadingAdapter`, AI, OCR, and QR adapters. Test: `Esp32EventAdapterTest` | F3 |
