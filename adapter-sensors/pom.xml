@@ -13,4 +13,24 @@
   <artifactId>adapter-sensors</artifactId>
   <name>HayPaComer - adapter-sensors</name>
   <description>ESP32 sensor adapter (door, temperature, weight) and event simulator</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>dev.haypacomer</groupId>
+      <artifactId>application</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>dev.haypacomer</groupId>
+      <artifactId>domain</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>tools.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 </project>

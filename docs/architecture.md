@@ -58,12 +58,12 @@ Ports and adapters (hexagonal): `application` defines ports; `adapter-*` modules
 | `AgentMemoryStore`, `ConversationStore`, `AgentTraceStore`, `PendingConfirmationStore`, `AiResponseCache` | `RedisAgentMemoryStore`, ... (adapter-persistence) |
 | `RecommendationEngine` | `RuleBasedRecommendationEngine`, `GeminiRecommendationAdapter`, `OpenAiCompatibleRecommendationAdapter` (adapter-ai) |
 | `NotificationChannel` | `TelegramChannel`, `WebChannel`, `LogChannel` (adapter-notifications) |
-| `SensorEventSource` | `Esp32EventAdapter`, `SimulatedEventSource` (adapter-sensors) |
+| `SensorEventDecoder` | `Esp32EventAdapter` with `Esp32Simulator` for hardware-free demos (adapter-sensors) |
 | `PasswordHasher`, `TokenIssuer` | `BCryptPasswordHasher`, `JwtTokenIssuer` (web) |
 
 GoF Adapter (class level), each with its own test and row in `patterns.md`:
 
-- `Esp32EventAdapter`: ESP32 JSON payload -> domain `SensorEvent`.
+- `Esp32EventAdapter`: ESP32 JSON envelope or batch -> domain `SensorEvent`s, using one Factory Method creator per event type.
 - `Hx711ReadingAdapter`: raw HX711 counts plus calibration -> `Grams`.
 - `GeminiRecommendationAdapter`, `OpenAiCompatibleRecommendationAdapter`: provider APIs -> `RecommendationEngine`.
 - `OcrLabelReaderAdapter`, `QrLabelAdapter`: external libraries -> `LabelReader`.
