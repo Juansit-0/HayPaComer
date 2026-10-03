@@ -48,6 +48,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 17. recipes, steps, requirements, and members
 - [x] 18. food profiles with allergies and diets
 - [x] 19. expired, leftover, at-risk, and ownership decorators
+- [x] 20. users, households, memberships, and roles
 
 ## Notes
 
