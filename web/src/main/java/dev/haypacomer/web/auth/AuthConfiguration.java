@@ -7,12 +7,19 @@ import dev.haypacomer.application.auth.LogOut;
 import dev.haypacomer.application.auth.OpaqueTokens;
 import dev.haypacomer.application.auth.RefreshSession;
 import dev.haypacomer.application.auth.RegisterUser;
+import dev.haypacomer.application.auth.RequestEmailVerification;
+import dev.haypacomer.application.auth.RequestPasswordReset;
+import dev.haypacomer.application.auth.ResetPassword;
 import dev.haypacomer.application.auth.SessionIssuer;
+import dev.haypacomer.application.auth.VerifyEmail;
+import dev.haypacomer.application.mail.MailLinks;
 import dev.haypacomer.application.port.AccessTokenIssuer;
+import dev.haypacomer.application.port.EmailSender;
 import dev.haypacomer.application.port.LoginAttemptLog;
 import dev.haypacomer.application.port.PasswordHasher;
 import dev.haypacomer.application.port.RefreshTokenStore;
 import dev.haypacomer.application.port.UserRepository;
+import dev.haypacomer.application.port.UserTokenStore;
 import dev.haypacomer.web.security.BCryptPasswordHasher;
 import dev.haypacomer.web.security.JwtAccessTokenIssuer;
 import dev.haypacomer.web.security.JwtProperties;
@@ -93,5 +100,45 @@ public class AuthConfiguration {
   @Bean
   GetUserProfile getUserProfile(UserRepository users) {
     return new GetUserProfile(users);
+  }
+
+  @Bean
+  RequestEmailVerification requestEmailVerification(
+      UserRepository users,
+      UserTokenStore tokens,
+      OpaqueTokens opaqueTokens,
+      EmailSender email,
+      MailLinks links,
+      Clock clock) {
+    return new RequestEmailVerification(users, tokens, opaqueTokens, email, links, clock);
+  }
+
+  @Bean
+  VerifyEmail verifyEmail(
+      UserRepository users, UserTokenStore tokens, OpaqueTokens opaqueTokens, Clock clock) {
+    return new VerifyEmail(users, tokens, opaqueTokens, clock);
+  }
+
+  @Bean
+  RequestPasswordReset requestPasswordReset(
+      UserRepository users,
+      UserTokenStore tokens,
+      OpaqueTokens opaqueTokens,
+      EmailSender email,
+      MailLinks links,
+      Clock clock) {
+    return new RequestPasswordReset(users, tokens, opaqueTokens, email, links, clock);
+  }
+
+  @Bean
+  ResetPassword resetPassword(
+      UserRepository users,
+      UserTokenStore tokens,
+      OpaqueTokens opaqueTokens,
+      PasswordHasher hasher,
+      RefreshTokenStore refreshTokens,
+      Clock clock,
+      AuthSettings settings) {
+    return new ResetPassword(users, tokens, opaqueTokens, hasher, refreshTokens, clock, settings);
   }
 }

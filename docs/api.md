@@ -8,6 +8,7 @@ All business logic, AI, and the agent run in the backend. The web UI and the ESP
 - Roles are per household: `OWNER`, `MEMBER`, `GUEST`. Food ownership (private, shared, ask first, grants) is checked on every inventory read and write.
 - Pagination: `?page=&size=&sort=`; collections return `{ items, page, size, total }`.
 - Writes that may be retried accept `Idempotency-Key`.
+- Email links (verification, reset, invitations) carry the token in the URL fragment (`#token=`), so it never reaches server logs; clients post it in the request body.
 - OpenAPI at `/v3/api-docs` and Swagger UI at `/swagger-ui` is the contract; this file is the catalog.
 
 Access column: `public` (no token), `user` (any authenticated person), `member` (MEMBER or OWNER of the household), `guest` (any role in the household), `owner`, `device`.
@@ -29,6 +30,7 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 | Method | Path | Access | Purpose |
 |---|---|---|---|
 | GET | `/me` | user | Profile and household memberships |
+| POST | `/me/email-verification` | user | Resend the verification email |
 | PATCH | `/me` | user | Update display name |
 | DELETE | `/me` | user | Delete account |
 | PUT | `/me/password` | user | Change password (revokes other sessions) |
@@ -50,9 +52,10 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 | POST | `/households/{h}/invitations` | owner | Invite by email with role |
 | GET | `/households/{h}/invitations` | owner | Pending invitations |
 | DELETE | `/households/{h}/invitations/{id}` | owner | Cancel invitation |
-| POST | `/invitations/{token}/accept` | user | Join household |
+| POST | `/invitations/accept` | user | Join household; token in the body, invitation email must match the account |
 | GET | `/households/{h}/members/{u}/profile` | guest | Diet, goals, allergies |
 | PUT | `/households/{h}/members/{u}/profile` | member | Update own profile (OWNER may update any) |
+| PUT | `/households/{h}/owner` | owner | Transfer ownership to another member |
 
 ## Fridges, zones, and trays
 

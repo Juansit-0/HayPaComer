@@ -74,6 +74,15 @@ public class PostgresRefreshTokenStore implements RefreshTokenStore {
         .update();
   }
 
+  @Override
+  public void revokeAll(UserId user, Instant at) {
+    jdbc.sql(
+            "UPDATE refresh_tokens SET revoked_at = :at WHERE user_id = :user AND revoked_at IS NULL")
+        .param("at", Timestamps.toDatabase(at))
+        .param("user", user.value())
+        .update();
+  }
+
   private RefreshToken map(ResultSet row, int rowNumber) throws SQLException {
     OffsetDateTime revokedAt = row.getObject("revoked_at", OffsetDateTime.class);
     return new RefreshToken(

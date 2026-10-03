@@ -13,4 +13,16 @@
   <artifactId>adapter-notifications</artifactId>
   <name>HayPaComer - adapter-notifications</name>
   <description>Notification channels: Telegram, web, and log</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>dev.haypacomer</groupId>
+      <artifactId>application</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 </project>

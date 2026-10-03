@@ -17,3 +17,6 @@ haypacomer:
       secret: ${JWT_SECRET:}
       issuer: https://api.haypacomer.dev
       access-token-time-to-live: 15m
+  mail:
+    base-url: ${PUBLIC_BASE_URL:https://haypacomer.dev}
+    log-links: ${MAIL_LOG_LINKS:false}

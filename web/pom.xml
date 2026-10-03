@@ -29,6 +29,11 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>dev.haypacomer</groupId>
+      <artifactId>adapter-notifications</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-webmvc</artifactId>
     </dependency>

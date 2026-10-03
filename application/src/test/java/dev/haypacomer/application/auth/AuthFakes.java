@@ -1,15 +1,22 @@
 package dev.haypacomer.application.auth;
 
+import dev.haypacomer.application.mail.EmailMessage;
+import dev.haypacomer.application.mail.MailLinks;
 import dev.haypacomer.application.port.AccessTokenIssuer;
+import dev.haypacomer.application.port.EmailSender;
 import dev.haypacomer.application.port.LoginAttemptLog;
 import dev.haypacomer.application.port.PasswordHasher;
 import dev.haypacomer.application.port.RefreshTokenStore;
 import dev.haypacomer.application.port.UserRepository;
+import dev.haypacomer.application.port.UserTokenStore;
 import dev.haypacomer.domain.identity.EmailAddress;
 import dev.haypacomer.domain.identity.PasswordHash;
 import dev.haypacomer.domain.identity.RefreshToken;
 import dev.haypacomer.domain.identity.User;
 import dev.haypacomer.domain.identity.UserId;
+import dev.haypacomer.domain.identity.UserToken;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -32,6 +39,9 @@ final class AuthFakes {
   final OpaqueTokens opaqueTokens = new OpaqueTokens();
   final AccessTokenIssuer accessTokens =
       (user, now) -> new AccessToken("access-" + user.value(), now.plus(Duration.ofMinutes(15)));
+  final TokenStore userTokens = new TokenStore();
+  final Outbox outbox = new Outbox();
+  final MailLinks links = new MailLinks("https://haypacomer.dev/");
   final SessionIssuer sessions =
       new SessionIssuer(accessTokens, refreshTokens, opaqueTokens, AuthSettings.DEFAULT);
 
@@ -49,6 +59,55 @@ final class AuthFakes {
 
   LogOut logOut() {
     return new LogOut(refreshTokens, opaqueTokens, clock);
+  }
+
+  RequestEmailVerification requestEmailVerification() {
+    return new RequestEmailVerification(users, userTokens, opaqueTokens, outbox, links, clock);
+  }
+
+  VerifyEmail verifyEmail() {
+    return new VerifyEmail(users, userTokens, opaqueTokens, clock);
+  }
+
+  RequestPasswordReset requestPasswordReset() {
+    return new RequestPasswordReset(users, userTokens, opaqueTokens, outbox, links, clock);
+  }
+
+  ResetPassword resetPassword() {
+    return new ResetPassword(
+        users, userTokens, opaqueTokens, hasher, refreshTokens, clock, AuthSettings.DEFAULT);
+  }
+
+  static final class TokenStore implements UserTokenStore {
+
+    final Map<UUID, UserToken> byId = new HashMap<>();
+
+    @Override
+    public void save(UserToken token) {
+      byId.put(token.id(), token);
+    }
+
+    @Override
+    public Optional<UserToken> findByHash(String tokenHash) {
+      return byId.values().stream()
+          .filter(token -> token.tokenHash().equals(tokenHash))
+          .findFirst();
+    }
+  }
+
+  static final class Outbox implements EmailSender {
+
+    final List<EmailMessage> sent = new ArrayList<>();
+
+    @Override
+    public void send(EmailMessage message) {
+      sent.add(message);
+    }
+
+    String lastToken() {
+      String link = sent.getLast().link();
+      return URLDecoder.decode(link.substring(link.indexOf("#token=") + 7), StandardCharsets.UTF_8);
+    }
   }
 
   static final class MutableClock extends Clock {
@@ -156,6 +215,11 @@ final class AuthFakes {
     @Override
     public void revokeFamily(UUID family, Instant at) {
       byId.replaceAll((id, token) -> token.family().equals(family) ? token.revoke(at) : token);
+    }
+
+    @Override
+    public void revokeAll(UserId user, Instant at) {
+      byId.replaceAll((id, token) -> token.user().equals(user) ? token.revoke(at) : token);
     }
 
     List<RefreshToken> family(UUID family) {

@@ -16,12 +16,17 @@ import dev.haypacomer.application.auth.EmailAlreadyRegisteredException;
 import dev.haypacomer.application.auth.GetUserProfile;
 import dev.haypacomer.application.auth.InvalidCredentialsException;
 import dev.haypacomer.application.auth.InvalidPasswordException;
+import dev.haypacomer.application.auth.InvalidTokenException;
 import dev.haypacomer.application.auth.LogIn;
 import dev.haypacomer.application.auth.LogOut;
 import dev.haypacomer.application.auth.RefreshSession;
 import dev.haypacomer.application.auth.RefreshTokenReuseException;
 import dev.haypacomer.application.auth.RegisterUser;
+import dev.haypacomer.application.auth.RequestEmailVerification;
+import dev.haypacomer.application.auth.RequestPasswordReset;
+import dev.haypacomer.application.auth.ResetPassword;
 import dev.haypacomer.application.auth.TooManyLoginAttemptsException;
+import dev.haypacomer.application.auth.VerifyEmail;
 import dev.haypacomer.domain.identity.EmailAddress;
 import dev.haypacomer.domain.identity.PasswordHash;
 import dev.haypacomer.domain.identity.User;
@@ -63,6 +68,10 @@ class AuthControllerTest {
   @MockitoBean private RefreshSession refreshSession;
   @MockitoBean private LogOut logOut;
   @MockitoBean private GetUserProfile getUserProfile;
+  @MockitoBean private RequestEmailVerification requestEmailVerification;
+  @MockitoBean private VerifyEmail verifyEmail;
+  @MockitoBean private RequestPasswordReset requestPasswordReset;
+  @MockitoBean private ResetPassword resetPassword;
 
   private final User juan =
       User.register(
@@ -92,6 +101,51 @@ class AuthControllerTest {
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.email").value("juan@haypacomer.dev"))
         .andExpect(jsonPath("$.passwordHash").doesNotExist());
+    verify(requestEmailVerification).request(juan.id());
+  }
+
+  @Test
+  void verifiesEmailAndHandlesBadLinks() throws Exception {
+    when(verifyEmail.verify("good")).thenReturn(juan.verifyEmail());
+    when(verifyEmail.verify("bad")).thenThrow(new InvalidTokenException());
+
+    mvc.perform(
+            post("/api/v1/auth/verify-email")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"token\":\"good\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.emailVerified").value(true));
+    mvc.perform(
+            post("/api/v1/auth/verify-email")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"token\":\"bad\"}"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.title").value("Invalid or expired link"));
+  }
+
+  @Test
+  void forgotAndResetPassword() throws Exception {
+    mvc.perform(
+            post("/api/v1/auth/forgot-password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"email\":\"ghost@haypacomer.dev\"}"))
+        .andExpect(status().isAccepted());
+    verify(requestPasswordReset).request("ghost@haypacomer.dev");
+
+    mvc.perform(
+            post("/api/v1/auth/reset-password")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"token\":\"t\",\"password\":\"new-password-123\"}"))
+        .andExpect(status().isNoContent());
+    verify(resetPassword).reset("t", "new-password-123");
+  }
+
+  @Test
+  void resendsVerificationForTheCaller() throws Exception {
+    mvc.perform(post("/api/v1/me/email-verification").header("Authorization", bearer()))
+        .andExpect(status().isAccepted());
+
+    verify(requestEmailVerification).request(juan.id());
   }
 
   @Test

@@ -9,8 +9,6 @@ import java.util.Objects;
 
 public final class RegisterUser {
 
-  private static final int MAX_PASSWORD_LENGTH = 128;
-
   private final UserRepository users;
   private final PasswordHasher hasher;
   private final Clock clock;
@@ -26,7 +24,7 @@ public final class RegisterUser {
 
   public User register(RegisterCommand command) {
     EmailAddress email = new EmailAddress(command.email());
-    requireAcceptable(command.password());
+    PasswordPolicy.requireAcceptable(command.password(), settings);
     if (users.findByEmail(email).isPresent()) {
       throw new EmailAlreadyRegisteredException();
     }
@@ -35,19 +33,5 @@ public final class RegisterUser {
             email, hasher.hash(command.password()), command.displayName(), clock.instant());
     users.save(user);
     return user;
-  }
-
-  private void requireAcceptable(String password) {
-    if (password == null || password.isBlank()) {
-      throw new InvalidPasswordException("Password is required");
-    }
-    if (password.length() < settings.minPasswordLength()) {
-      throw new InvalidPasswordException(
-          "Password needs at least " + settings.minPasswordLength() + " characters");
-    }
-    if (password.length() > MAX_PASSWORD_LENGTH) {
-      throw new InvalidPasswordException(
-          "Password allows at most " + MAX_PASSWORD_LENGTH + " characters");
-    }
   }
 }
