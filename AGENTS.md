@@ -23,7 +23,9 @@ HayPaComer (name confirmed in Phase 0.5) is a smart home fridge: Java applicatio
 - Open: five Dependabot PRs (#1 to #5: JUnit 6.1.3, enforcer 3.6.3, ArchUnit 1.5.0, actions/checkout v7, actions/setup-java v6). Review carefully; the JUnit 6 bump is a major version.
 - Hardware for the demo: bill of materials with MercadoLibre Colombia links in `docs/hardware.md`.
 - 2026-09-30: plan extended with data model and ER diagram (`docs/database.md`), REST catalog (`docs/api.md`), JWT authentication, PostgreSQL + Flyway for relational data, Redis for all AI state, domain haypacomer.dev (ADRs 0014-0017).
-- **Next action:** step 13: `chore: rename packages and groupId to dev.haypacomer`, then Phase 1 step 14: `feat(domain): quantities, units, and food metadata (flyweight)`, each in its own branch, PR, green CI, and approval by Jenifrutica.
+- Step 14 done in `feat/domain-quantities-flyweight` (stacked on #8): `Grams`, `Quantity`, `Unit`, `ConversionFactors`, `FoodMetadata`, `FoodMetadataCatalog` (flyweight); Spotless and JaCoCo active.
+- Step 15 done in `feat/domain-fridge-composite` (stacked on step 14): sealed `FridgeNode` with `Fridge`, `Zone`, `Tray`, `FoodItem` (composite).
+- **Next action:** step 16: `feat(domain): iterator to traverse the tree`. The user makes every commit, push, and PR; agents only edit files and hand over commands.
 
 ## How to continue (agreed order)
 
