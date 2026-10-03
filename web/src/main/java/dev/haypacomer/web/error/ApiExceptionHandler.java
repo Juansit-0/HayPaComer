@@ -3,9 +3,11 @@ package dev.haypacomer.web.error;
 import dev.haypacomer.application.auth.EmailAlreadyRegisteredException;
 import dev.haypacomer.application.auth.InvalidCredentialsException;
 import dev.haypacomer.application.auth.InvalidPasswordException;
+import dev.haypacomer.application.auth.InvalidTokenException;
 import dev.haypacomer.application.auth.TooManyLoginAttemptsException;
 import dev.haypacomer.application.auth.UserNotFoundException;
 import dev.haypacomer.application.household.HouseholdNotFoundException;
+import dev.haypacomer.application.household.InvitationEmailMismatchException;
 import dev.haypacomer.application.inventory.PermissionRequiredException;
 import dev.haypacomer.domain.household.AccessDeniedException;
 import org.springframework.http.HttpStatus;
@@ -39,6 +41,16 @@ public class ApiExceptionHandler {
   @ExceptionHandler(UserNotFoundException.class)
   ProblemDetail userNotFound(UserNotFoundException exception) {
     return problem(HttpStatus.NOT_FOUND, "Not found", exception.getMessage());
+  }
+
+  @ExceptionHandler(InvalidTokenException.class)
+  ProblemDetail invalidToken(InvalidTokenException exception) {
+    return problem(HttpStatus.BAD_REQUEST, "Invalid or expired link", exception.getMessage());
+  }
+
+  @ExceptionHandler(InvitationEmailMismatchException.class)
+  ProblemDetail invitationMismatch(InvitationEmailMismatchException exception) {
+    return problem(HttpStatus.FORBIDDEN, "Invitation not for this account", exception.getMessage());
   }
 
   @ExceptionHandler(HouseholdNotFoundException.class)

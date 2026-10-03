@@ -39,6 +39,24 @@ final class AuthDtos {
     }
   }
 
+  record TokenRequest(@NotBlank String token) {
+
+    @Override
+    public String toString() {
+      return "TokenRequest[protected]";
+    }
+  }
+
+  record ForgotPasswordRequest(@NotBlank String email) {}
+
+  record ResetPasswordRequest(@NotBlank String token, @NotBlank @Size(max = 128) String password) {
+
+    @Override
+    public String toString() {
+      return "ResetPasswordRequest[protected]";
+    }
+  }
+
   record UserResponse(UUID id, String email, String displayName, boolean emailVerified) {
 
     static UserResponse from(User user) {
