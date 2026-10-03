@@ -31,7 +31,7 @@ erDiagram
 
   USERS {
     uuid id PK
-    citext email UK
+    text email UK "stored lowercase"
     text password_hash "BCrypt cost 12"
     text display_name
     bool email_verified
@@ -78,6 +78,7 @@ erDiagram
   HOUSEHOLD_MEMBERS {
     uuid household_id PK,FK
     uuid user_id PK,FK
+    uuid member_id UK "household-scoped person"
     text role "OWNER, MEMBER, GUEST"
     timestamptz joined_at
   }
@@ -183,7 +184,7 @@ erDiagram
     uuid household_id FK
     uuid tray_id FK
     uuid food_id FK
-    uuid owner_user_id FK "null means shared"
+    uuid owner_member_id FK "null means shared"
     text visibility "PRIVATE, SHARED, ASK_FIRST"
     numeric quantity_g
     numeric tare_g
@@ -195,7 +196,7 @@ erDiagram
   }
   FOOD_ACCESS_GRANTS {
     uuid food_item_id PK,FK
-    uuid grantee_user_id PK,FK
+    uuid grantee_member_id PK,FK
     uuid granted_by FK
     timestamptz expires_at
   }
@@ -420,6 +421,10 @@ erDiagram
 ```
 
 ## Key constraints and indexes
+
+- Migrations live in `adapter-persistence/src/main/resources/db/migration` (Flyway). `V1` creates identity, households, members, profiles, and audit; `V2` creates the food catalog, fridge tree, and inventory. Later features add their own migrations.
+- Food ownership and grants reference `household_members.member_id`, the same `MemberId` the domain uses for profiles and ownership.
+- `food_catalog.name_key` (lowercase, trimmed) is unique and is how the domain identifies a food.
 
 - `household_members`: exactly one `OWNER` per household enforced by a partial unique index `(household_id) WHERE role = 'OWNER'`.
 - `market_items`: partial unique index `(list_id, food_id) WHERE NOT checked` keeps the list free of duplicates.

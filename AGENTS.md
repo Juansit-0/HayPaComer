@@ -27,8 +27,9 @@ HayPaComer (name confirmed in Phase 0.5) is a smart home fridge: Java applicatio
 - Step 18 merged (#14): `Diet`, `FoodProfile`, `ProfileConflict`, `ConflictReason`, `DiningGroup`; checks foods and recipes against allergies, diets, and avoided foods per member.
 - Step 19 merged (#15): `StockedFood` with `PlainFood` and decorators `ExpiredFood`, `AtRiskFood`, `LeftoverFood`, `OwnedFood` (`Ownership`, `Visibility`), `FreshnessPolicy`, and `RESCUE_ORDER`.
 - Step 20 merged (#16): `User`, `UserId`, `EmailAddress`, `PasswordHash` (identity); `Household` aggregate with `Membership`, `Role`, `Permission`, `AccessDeniedException` (exactly one owner, transfer ownership, membership maps a user to a `MemberId`).
-- Step 21 in `chore/infra-docker-compose`: `docker-compose.yml` (PostgreSQL 18, Redis 8 with AOF and password, ports bound to 127.0.0.1) and `.env.example`. Docker is not installed on the development Mac yet.
-- **Next action:** step 22: `feat(persistence): postgresql schema with flyway, repositories, and testcontainers`. The user makes every commit, push, and PR; agents only edit files and hand over commands.
+- Step 21 merged (#17): `docker-compose.yml` (PostgreSQL 18, Redis 8 with AOF and password, ports bound to 127.0.0.1) and `.env.example`. Docker is not installed on the development Mac yet.
+- Step 22 in `feat/persistence-postgresql-flyway`: Spring Boot 4.1.1 BOM imported in the parent; ports `UserRepository`, `HouseholdRepository`, `FoodCatalogRepository`, `FridgeRepository` in `application`; Flyway `V1`/`V2`; `Postgres*Repository` with `JdbcClient`; Testcontainers tests skip locally without Docker and run in CI.
+- **Next action:** Phase F1.5 step 23: `feat(application): register, login, refresh, and logout use cases with ports`. The user makes every commit, push, and PR; agents only edit files and hand over commands.
 
 ## How to continue (agreed order)
 
