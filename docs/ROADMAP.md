@@ -78,6 +78,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 38. event validation chain (chain of responsibility)
 - [x] 39. cold chain and under-review state
 - [x] 40. rest event intake with device key, validation, and idempotency
+- [x] 41. esp32 reed + ds18b20 with json events
 
 ## Notes
 
