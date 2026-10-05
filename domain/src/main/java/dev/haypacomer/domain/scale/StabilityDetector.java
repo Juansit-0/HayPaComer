@@ -31,7 +31,7 @@ public final class StabilityDetector {
       return false;
     }
     points.addLast(new Point(grams.value(), at));
-    while (points.size() > 1
+    while (points.size() > 2
         && Duration.between(points.peekFirst().at(), at).compareTo(window.multipliedBy(3)) > 0) {
       points.removeFirst();
     }
