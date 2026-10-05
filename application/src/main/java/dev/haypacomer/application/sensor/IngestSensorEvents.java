@@ -9,6 +9,7 @@ import dev.haypacomer.domain.device.Device;
 import dev.haypacomer.domain.sensor.Finding;
 import dev.haypacomer.domain.sensor.SensorEvent;
 import dev.haypacomer.domain.sensor.TemperatureReading;
+import dev.haypacomer.domain.sensor.WeightReading;
 import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +22,7 @@ public final class IngestSensorEvents {
   private final SensorEventLog log;
   private final ObserveSensorEvent observe;
   private final TrackColdChain coldChain;
+  private final WeightReadingHandler fridgeScale;
   private final Clock clock;
 
   public IngestSensorEvents(
@@ -29,12 +31,14 @@ public final class IngestSensorEvents {
       SensorEventLog log,
       ObserveSensorEvent observe,
       TrackColdChain coldChain,
+      WeightReadingHandler fridgeScale,
       Clock clock) {
     this.hardware = Objects.requireNonNull(hardware, "hardware");
     this.validation = Objects.requireNonNull(validation, "validation");
     this.log = Objects.requireNonNull(log, "log");
     this.observe = Objects.requireNonNull(observe, "observe");
     this.coldChain = Objects.requireNonNull(coldChain, "coldChain");
+    this.fridgeScale = Objects.requireNonNull(fridgeScale, "fridgeScale");
     this.clock = Objects.requireNonNull(clock, "clock");
   }
 
@@ -53,6 +57,9 @@ public final class IngestSensorEvents {
       log.accept(event, clock.instant());
       if (event instanceof TemperatureReading reading) {
         coldChain.record(device, reading);
+      }
+      if (event instanceof WeightReading reading) {
+        fridgeScale.apply(device, reading);
       }
       findings.addAll(observe.observe(device, event));
     }

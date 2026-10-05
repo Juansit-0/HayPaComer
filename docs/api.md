@@ -123,6 +123,8 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 | POST | `/households/{h}/devices/{d}/scale/calibrate` | owner | Calibrate with a known weight on the tared scale |
 | PUT | `/devices/{d}/scale/mode` | member | Switch FRIDGE or COOKING mode |
 | GET | `/households/{h}/devices/{d}/scale/reading` | guest | Latest sample: raw counts and grams once calibrated |
+| PUT | `/households/{h}/devices/{d}/scale/item` | member who can use the item | Assign the food item resting on the scale (fridge mode) |
+| DELETE | `/households/{h}/devices/{d}/scale/item` | member | Clear the assignment |
 
 ## Recipes, cook now, and substitutions
 

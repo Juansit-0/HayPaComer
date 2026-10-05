@@ -1,10 +1,14 @@
 package dev.haypacomer.web.device;
 
+import dev.haypacomer.application.scale.AssignScaleItem;
 import dev.haypacomer.application.scale.CalibrateScale;
 import dev.haypacomer.application.scale.ReadScale;
+import dev.haypacomer.application.scale.ScaleAssignment;
 import dev.haypacomer.application.scale.ScaleReading;
 import dev.haypacomer.application.scale.TareScale;
+import dev.haypacomer.application.scale.UnassignScaleItem;
 import dev.haypacomer.domain.device.DeviceId;
+import dev.haypacomer.domain.fridge.FoodItemId;
 import dev.haypacomer.domain.household.HouseholdId;
 import dev.haypacomer.domain.quantity.Grams;
 import dev.haypacomer.domain.scale.ScaleCalibration;
@@ -15,13 +19,17 @@ import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -31,11 +39,45 @@ public class ScaleController {
   private final TareScale tareScale;
   private final CalibrateScale calibrateScale;
   private final ReadScale readScale;
+  private final AssignScaleItem assignScaleItem;
+  private final UnassignScaleItem unassignScaleItem;
 
-  public ScaleController(TareScale tareScale, CalibrateScale calibrateScale, ReadScale readScale) {
+  public ScaleController(
+      TareScale tareScale,
+      CalibrateScale calibrateScale,
+      ReadScale readScale,
+      AssignScaleItem assignScaleItem,
+      UnassignScaleItem unassignScaleItem) {
     this.tareScale = tareScale;
     this.calibrateScale = calibrateScale;
     this.readScale = readScale;
+    this.assignScaleItem = assignScaleItem;
+    this.unassignScaleItem = unassignScaleItem;
+  }
+
+  @PutMapping("/item")
+  AssignmentResponse assign(
+      @AuthenticationPrincipal Jwt jwt,
+      @PathVariable UUID householdId,
+      @PathVariable UUID deviceId,
+      @Valid @RequestBody AssignRequest request) {
+    ScaleAssignment assignment =
+        assignScaleItem.assign(
+            CurrentUser.of(jwt),
+            new HouseholdId(householdId),
+            new DeviceId(deviceId),
+            new FoodItemId(request.itemId()));
+    return new AssignmentResponse(assignment.item().value(), assignment.assignedAt());
+  }
+
+  @DeleteMapping("/item")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  void unassign(
+      @AuthenticationPrincipal Jwt jwt,
+      @PathVariable UUID householdId,
+      @PathVariable UUID deviceId) {
+    unassignScaleItem.unassign(
+        CurrentUser.of(jwt), new HouseholdId(householdId), new DeviceId(deviceId));
   }
 
   @PostMapping("/tare")
@@ -69,6 +111,10 @@ public class ScaleController {
     return ReadingResponse.from(
         readScale.read(CurrentUser.of(jwt), new HouseholdId(householdId), new DeviceId(deviceId)));
   }
+
+  record AssignRequest(@NotNull UUID itemId) {}
+
+  record AssignmentResponse(UUID itemId, Instant assignedAt) {}
 
   record CalibrateRequest(
       @NotNull @DecimalMin(value = "0", inclusive = false) BigDecimal knownGrams) {}

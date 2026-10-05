@@ -173,6 +173,7 @@ class IngestSensorEventsTest {
         log,
         new ObserveSensorEvent(registry, devices, hardware),
         new TrackColdChain(chains, FridgeThresholds.DEFAULT),
+        (scale, reading) -> Optional.empty(),
         clock);
   }
 
