@@ -4,6 +4,7 @@ import dev.haypacomer.application.port.AlertSignal;
 import dev.haypacomer.application.port.HardwareFactory;
 import dev.haypacomer.application.port.ScaleCalibrationRepository;
 import dev.haypacomer.application.port.ScaleSampleStore;
+import dev.haypacomer.application.port.ScaleSessionStore;
 import dev.haypacomer.application.port.SensorEventDecoder;
 import dev.haypacomer.domain.device.DeviceKind;
 import dev.haypacomer.sensors.esp32.Esp32EventAdapter;
@@ -16,10 +17,13 @@ public final class SimulatedHardwareFactory implements HardwareFactory {
   private final AlertSignal alerts = new RecordingAlertSignal();
 
   public SimulatedHardwareFactory(
-      Clock clock, ScaleCalibrationRepository calibrations, ScaleSampleStore samples) {
+      Clock clock,
+      ScaleCalibrationRepository calibrations,
+      ScaleSampleStore samples,
+      ScaleSessionStore sessions) {
     this.decoder =
         new SimulatedEventDecoder(
-            new Esp32EventAdapter(new Hx711ReadingAdapter(calibrations, samples)), clock);
+            new Esp32EventAdapter(new Hx711ReadingAdapter(calibrations, samples, sessions)), clock);
   }
 
   @Override

@@ -24,7 +24,7 @@
 | DOOR | door | OPEN or CLOSED with timestamp |
 | TEMPERATURE | tempC | Internal temperature reading |
 | WEIGHT | grams, stable, mode (`FRIDGE` default or `COOK`), ingredient | Scale reading already in grams |
-| RAW_WEIGHT | raw (HX711 counts), optional stable, mode, ingredient | Raw scale sample; the backend applies tare and calibration and, if `stable` is missing, decides it (within 2 g for 1 s). Samples before calibration are kept for tare and calibration but not emitted |
+| RAW_WEIGHT | raw (HX711 counts), optional stable, optional mode (defaults to the mode set in the app), ingredient | Raw scale sample; the backend applies tare and calibration and, if `stable` is missing, decides it (within 2 g for 1 s). Samples before calibration are kept for tare and calibration but not emitted |
 
 ## Validation
 

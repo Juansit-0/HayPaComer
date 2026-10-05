@@ -14,6 +14,8 @@ import dev.haypacomer.domain.household.HouseholdId;
 import dev.haypacomer.domain.quantity.Grams;
 import dev.haypacomer.domain.scale.RawSample;
 import dev.haypacomer.domain.scale.ScaleCalibration;
+import dev.haypacomer.domain.scale.WeighingStatus;
+import dev.haypacomer.domain.scale.WeighingTarget;
 import dev.haypacomer.domain.sensor.ScaleMode;
 import dev.haypacomer.domain.sensor.SensorEvent;
 import dev.haypacomer.domain.sensor.WeightReading;
@@ -33,8 +35,9 @@ class Hx711ReadingAdapterTest {
           HouseholdId.newId(), FridgeId.newId(), "Scale", DeviceKind.ESP32_SCALE, "ab", T0);
   private final InMemoryCalibrations calibrations = new InMemoryCalibrations();
   private final InMemoryScaleSampleStore samples = new InMemoryScaleSampleStore();
+  private final InMemoryScaleSessionStore sessions = new InMemoryScaleSessionStore();
   private final Esp32EventAdapter adapter =
-      new Esp32EventAdapter(new Hx711ReadingAdapter(calibrations, samples));
+      new Esp32EventAdapter(new Hx711ReadingAdapter(calibrations, samples, sessions));
   private final Esp32Simulator simulator = new Esp32Simulator("scale-01");
 
   private List<SensorEvent> send(long counts, long millis) {
@@ -82,6 +85,28 @@ class Hx711ReadingAdapterTest {
     assertTrue(reading.stable());
     assertEquals(ScaleMode.COOKING, reading.mode());
     assertEquals("onion", reading.ingredientHint().orElseThrow());
+  }
+
+  @Test
+  void usesTheBackendModeWhenTheDeviceDoesNotSendOne() {
+    calibrations.save(
+        scale.id(),
+        ScaleCalibration.taredAt(new RawSample(0, T0))
+            .calibrate(new RawSample(1_000, T0), Grams.of(1)));
+    String noMode =
+        "{\"eventId\":\"7f9c2b1e-9d3a-4c5f-8e2b-1a6d4f0c9b77\",\"type\":\"RAW_WEIGHT\",\"raw\":80000,"
+            + "\"at\":\"2026-10-05T12:00:00Z\"}";
+
+    assertEquals(
+        ScaleMode.FRIDGE, ((WeightReading) adapter.decode(scale, noMode).getFirst()).mode());
+    sessions.cook(scale.id(), WeighingTarget.of("Chicken breast", Grams.of(200)));
+    assertEquals(
+        ScaleMode.COOKING, ((WeightReading) adapter.decode(scale, noMode).getFirst()).mode());
+    assertEquals(
+        WeighingStatus.SHORT,
+        sessions.target(scale.id()).orElseThrow().evaluate(Grams.of(80)).status());
+    sessions.fridge(scale.id());
+    assertTrue(sessions.target(scale.id()).isEmpty());
   }
 
   @Test

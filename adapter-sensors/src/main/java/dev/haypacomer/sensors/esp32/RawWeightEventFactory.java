@@ -21,14 +21,14 @@ public final class RawWeightEventFactory extends Esp32EventFactory {
     if (envelope.eventId() == null || envelope.at() == null) {
       throw new MalformedSensorPayloadException("eventId and at are required");
     }
-    String mode =
-        envelope.mode() == null ? "FRIDGE" : envelope.mode().strip().toUpperCase(Locale.ROOT);
     ScaleMode scaleMode =
-        switch (mode) {
-          case "FRIDGE" -> ScaleMode.FRIDGE;
-          case "COOK", "COOKING" -> ScaleMode.COOKING;
-          default -> throw new MalformedSensorPayloadException("mode must be FRIDGE or COOK");
-        };
+        envelope.mode() == null
+            ? null
+            : switch (envelope.mode().strip().toUpperCase(Locale.ROOT)) {
+              case "FRIDGE" -> ScaleMode.FRIDGE;
+              case "COOK", "COOKING" -> ScaleMode.COOKING;
+              default -> throw new MalformedSensorPayloadException("mode must be FRIDGE or COOK");
+            };
     return hx711
         .adapt(
             device,

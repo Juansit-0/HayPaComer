@@ -121,7 +121,8 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 |---|---|---|---|
 | POST | `/households/{h}/devices/{d}/scale/tare` | member | Tare with the latest raw sample (409 if the scale has not reported in 10 s) |
 | POST | `/households/{h}/devices/{d}/scale/calibrate` | owner | Calibrate with a known weight on the tared scale |
-| PUT | `/devices/{d}/scale/mode` | member | Switch FRIDGE or COOKING mode |
+| PUT | `/households/{h}/devices/{d}/scale/mode` | member | Switch to `FRIDGE`, or to `COOKING` with a food and target grams |
+| GET | `/households/{h}/devices/{d}/scale/progress` | guest | Cooking progress: measured, target, remaining, percent, SHORT / ON_TARGET (within 3%) / OVER |
 | GET | `/households/{h}/devices/{d}/scale/reading` | guest | Latest sample: raw counts and grams once calibrated |
 | PUT | `/households/{h}/devices/{d}/scale/item` | member who can use the item | Assign the food item resting on the scale (fridge mode) |
 | DELETE | `/households/{h}/devices/{d}/scale/item` | member | Clear the assignment |

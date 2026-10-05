@@ -2,6 +2,7 @@ package dev.haypacomer.sensors.esp32;
 
 import dev.haypacomer.application.port.ScaleCalibrationRepository;
 import dev.haypacomer.application.port.ScaleSampleStore;
+import dev.haypacomer.application.port.ScaleSessionStore;
 import dev.haypacomer.domain.device.Device;
 import dev.haypacomer.domain.quantity.Grams;
 import dev.haypacomer.domain.scale.RawSample;
@@ -16,10 +17,15 @@ public final class Hx711ReadingAdapter {
 
   private final ScaleCalibrationRepository calibrations;
   private final ScaleSampleStore samples;
+  private final ScaleSessionStore sessions;
 
-  public Hx711ReadingAdapter(ScaleCalibrationRepository calibrations, ScaleSampleStore samples) {
+  public Hx711ReadingAdapter(
+      ScaleCalibrationRepository calibrations,
+      ScaleSampleStore samples,
+      ScaleSessionStore sessions) {
     this.calibrations = Objects.requireNonNull(calibrations, "calibrations");
     this.samples = Objects.requireNonNull(samples, "samples");
+    this.sessions = Objects.requireNonNull(sessions, "sessions");
   }
 
   public Optional<WeightReading> adapt(
@@ -43,7 +49,7 @@ public final class Hx711ReadingAdapter {
                     at,
                     grams,
                     stable(device, grams, at, reportedStable),
-                    mode,
+                    mode == null ? sessions.mode(device.id()) : mode,
                     ingredient));
   }
 
