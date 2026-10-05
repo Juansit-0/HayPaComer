@@ -37,6 +37,7 @@ import dev.haypacomer.sensors.hardware.SimulatedHardwareFactory;
 import dev.haypacomer.sensors.monitor.InMemoryFridgeMonitorRegistry;
 import dev.haypacomer.sensors.scale.InMemoryCalibrations;
 import dev.haypacomer.sensors.scale.InMemoryScaleSampleStore;
+import dev.haypacomer.sensors.scale.InMemoryScaleSessionStore;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -98,9 +99,14 @@ class SensorPipelineRobustnessTest {
         new HardwareFactories(
             List.of(
                 new Esp32HardwareFactory(
-                    new InMemoryCalibrations(), new InMemoryScaleSampleStore()),
+                    new InMemoryCalibrations(),
+                    new InMemoryScaleSampleStore(),
+                    new InMemoryScaleSessionStore()),
                 new SimulatedHardwareFactory(
-                    clock, new InMemoryCalibrations(), new InMemoryScaleSampleStore())));
+                    clock,
+                    new InMemoryCalibrations(),
+                    new InMemoryScaleSampleStore(),
+                    new InMemoryScaleSessionStore())));
     SensorEventLog log =
         new SensorEventLog() {
           @Override

@@ -16,11 +16,14 @@ import dev.haypacomer.application.port.HouseholdRepository;
 import dev.haypacomer.application.port.ScaleAssignmentRepository;
 import dev.haypacomer.application.port.ScaleCalibrationRepository;
 import dev.haypacomer.application.port.ScaleSampleStore;
+import dev.haypacomer.application.port.ScaleSessionStore;
 import dev.haypacomer.application.port.SensorEventLog;
 import dev.haypacomer.application.scale.ApplyFridgeScaleReading;
 import dev.haypacomer.application.scale.AssignScaleItem;
 import dev.haypacomer.application.scale.CalibrateScale;
 import dev.haypacomer.application.scale.ReadScale;
+import dev.haypacomer.application.scale.ReadWeighingProgress;
+import dev.haypacomer.application.scale.SetScaleMode;
 import dev.haypacomer.application.scale.TareScale;
 import dev.haypacomer.application.scale.UnassignScaleItem;
 import dev.haypacomer.application.sensor.CheckFridgeAlerts;
@@ -34,6 +37,7 @@ import dev.haypacomer.sensors.hardware.Esp32HardwareFactory;
 import dev.haypacomer.sensors.hardware.SimulatedHardwareFactory;
 import dev.haypacomer.sensors.monitor.InMemoryFridgeMonitorRegistry;
 import dev.haypacomer.sensors.scale.InMemoryScaleSampleStore;
+import dev.haypacomer.sensors.scale.InMemoryScaleSessionStore;
 import java.time.Clock;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
@@ -68,12 +72,41 @@ public class DeviceConfiguration {
   }
 
   @Bean
+  ScaleSessionStore scaleSessionStore() {
+    return new InMemoryScaleSessionStore();
+  }
+
+  @Bean
+  SetScaleMode setScaleMode(
+      HouseholdRepository households,
+      DeviceRepository devices,
+      ScaleSampleStore samples,
+      ScaleSessionStore sessions,
+      Clock clock) {
+    return new SetScaleMode(households, devices, samples, sessions, clock);
+  }
+
+  @Bean
+  ReadWeighingProgress readWeighingProgress(
+      HouseholdRepository households,
+      DeviceRepository devices,
+      ScaleSampleStore samples,
+      ScaleCalibrationRepository calibrations,
+      ScaleSessionStore sessions,
+      Clock clock) {
+    return new ReadWeighingProgress(households, devices, samples, calibrations, sessions, clock);
+  }
+
+  @Bean
   HardwareFactories hardwareFactories(
-      Clock clock, ScaleCalibrationRepository calibrations, ScaleSampleStore samples) {
+      Clock clock,
+      ScaleCalibrationRepository calibrations,
+      ScaleSampleStore samples,
+      ScaleSessionStore sessions) {
     return new HardwareFactories(
         List.of(
-            new Esp32HardwareFactory(calibrations, samples),
-            new SimulatedHardwareFactory(clock, calibrations, samples)));
+            new Esp32HardwareFactory(calibrations, samples, sessions),
+            new SimulatedHardwareFactory(clock, calibrations, samples, sessions)));
   }
 
   @Bean
