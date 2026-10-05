@@ -16,10 +16,10 @@ public record IngestionReport(List<EventResult> events, List<Finding> findings) 
   }
 
   public boolean allRejected() {
-    return count(Verdict.REJECTED) == events.size();
+    return !events.isEmpty() && count(Verdict.REJECTED) == events.size();
   }
 
   public boolean allDuplicates() {
-    return count(Verdict.DUPLICATE) == events.size();
+    return !events.isEmpty() && count(Verdict.DUPLICATE) == events.size();
   }
 }
