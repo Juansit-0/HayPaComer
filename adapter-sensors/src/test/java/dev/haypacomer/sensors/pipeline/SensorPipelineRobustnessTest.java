@@ -164,6 +164,7 @@ class SensorPipelineRobustnessTest {
             log,
             new ObserveSensorEvent(registry, devices, hardware),
             new TrackColdChain(coldChains, FridgeThresholds.DEFAULT),
+            (scale, reading) -> Optional.empty(),
             clock);
     check = new CheckFridgeAlerts(registry, devices, hardware, clock);
   }

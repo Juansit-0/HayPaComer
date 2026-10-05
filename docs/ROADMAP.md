@@ -84,6 +84,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 ## F4 detail
 
 - [x] 43. tare, stable reading, and calibration (hx711 adapter)
+- [x] 44. fridge mode with measured stock discount
 
 ## Notes
 

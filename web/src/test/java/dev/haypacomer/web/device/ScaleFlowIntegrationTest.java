@@ -1,7 +1,9 @@
 package dev.haypacomer.web.device;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -111,5 +113,46 @@ class ScaleFlowIntegrationTest {
         .andExpect(jsonPath("$.grams").value(842.0))
         .andExpect(jsonPath("$.calibrated").value(true));
     json(base + "/devices/" + UUID.randomUUID() + "/scale/tare", juan, "", 404);
+
+    String rack =
+        JsonPath.read(
+            json(base + "/fridges", juan, "{\"name\":\"Garage\"}", 201),
+            "$.children[1].children[0].id");
+    String garage =
+        JsonPath.read(
+            mvc.perform(get(base + "/fridges").header("Authorization", juan))
+                .andReturn()
+                .getResponse()
+                .getContentAsString(),
+            "$[0].id");
+    String milk =
+        JsonPath.read(
+            json(
+                base + "/items",
+                juan,
+                "{\"fridgeId\":\""
+                    + garage
+                    + "\",\"trayId\":\""
+                    + rack
+                    + "\",\"food\":\"Milk\",\"grams\":892,\"tareGrams\":50}",
+                201),
+            "$.itemId");
+    mvc.perform(
+            put(scale + "/item")
+                .header("Authorization", juan)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"itemId\":\"" + milk + "\"}"))
+        .andExpect(status().isOk());
+    sample(key, 84_000 + 428L * 700, now);
+    sample(key, 84_000 + 428L * 700, now.plusSeconds(2));
+
+    mvc.perform(get(base + "/inventory").header("Authorization", juan))
+        .andExpect(jsonPath("$[0].name").value("Milk"))
+        .andExpect(jsonPath("$[0].grams").value(650.0));
+    mvc.perform(get(base + "/activity").header("Authorization", juan))
+        .andExpect(jsonPath("$[0].action").value("CONSUME_FOOD"))
+        .andExpect(jsonPath("$[0].detail.source").value("SCALE"));
+    mvc.perform(delete(scale + "/item").header("Authorization", juan))
+        .andExpect(status().isNoContent());
   }
 }
