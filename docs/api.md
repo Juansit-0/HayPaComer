@@ -119,10 +119,10 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 
 | Method | Path | Access | Purpose |
 |---|---|---|---|
-| POST | `/devices/{d}/scale/tare` | member, device | Tare |
-| POST | `/devices/{d}/scale/calibrate` | owner | Calibrate with known weight |
+| POST | `/households/{h}/devices/{d}/scale/tare` | member | Tare with the latest raw sample (409 if the scale has not reported in 10 s) |
+| POST | `/households/{h}/devices/{d}/scale/calibrate` | owner | Calibrate with a known weight on the tared scale |
 | PUT | `/devices/{d}/scale/mode` | member | Switch FRIDGE or COOKING mode |
-| GET | `/devices/{d}/scale/reading` | guest | Latest stable reading |
+| GET | `/households/{h}/devices/{d}/scale/reading` | guest | Latest sample: raw counts and grams once calibrated |
 
 ## Recipes, cook now, and substitutions
 

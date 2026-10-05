@@ -181,6 +181,14 @@ class IngestSensorEventsTest {
   }
 
   @Test
+  void anEmptyReportIsNeitherRejectedNorDuplicate() {
+    IngestionReport empty = new IngestionReport(List.of(), List.of());
+
+    assertFalse(empty.allRejected());
+    assertFalse(empty.allDuplicates());
+  }
+
+  @Test
   void acceptsValidatesAndFeedsMonitorsAndTheColdChain() {
     TemperatureReading warm =
         new TemperatureReading(

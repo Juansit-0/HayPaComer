@@ -29,6 +29,21 @@ public final class Esp32Simulator {
     return envelope("WEIGHT", mode, null, null, new BigDecimal(grams), stable, null, at);
   }
 
+  public Esp32Envelope rawWeight(long counts, String mode, Instant at) {
+    return new Esp32Envelope(
+        UUID.randomUUID(),
+        deviceName,
+        "RAW_WEIGHT",
+        mode,
+        null,
+        null,
+        null,
+        null,
+        null,
+        counts,
+        at);
+  }
+
   public List<Esp32Envelope> doorLeftOpen(Instant openedAt, Duration openFor) {
     return List.of(door(true, openedAt), door(false, openedAt.plus(openFor)));
   }
@@ -68,6 +83,16 @@ public final class Esp32Simulator {
       String ingredient,
       Instant at) {
     return new Esp32Envelope(
-        UUID.randomUUID(), deviceName, type, mode, door, tempC, grams, stable, ingredient, at);
+        UUID.randomUUID(),
+        deviceName,
+        type,
+        mode,
+        door,
+        tempC,
+        grams,
+        stable,
+        ingredient,
+        null,
+        at);
   }
 }
