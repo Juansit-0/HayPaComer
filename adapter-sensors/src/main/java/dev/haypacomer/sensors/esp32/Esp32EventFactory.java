@@ -4,17 +4,18 @@ import dev.haypacomer.application.sensor.MalformedSensorPayloadException;
 import dev.haypacomer.domain.device.Device;
 import dev.haypacomer.domain.sensor.SensorEvent;
 import dev.haypacomer.domain.sensor.SensorEventId;
+import java.util.Optional;
 
 public abstract class Esp32EventFactory {
 
-  public final SensorEvent create(Esp32Envelope envelope, Device device) {
+  public Optional<SensorEvent> create(Esp32Envelope envelope, Device device) {
     if (envelope.eventId() == null) {
       throw new MalformedSensorPayloadException("eventId is required");
     }
     if (envelope.at() == null) {
       throw new MalformedSensorPayloadException("at is required");
     }
-    return build(envelope, device, new SensorEventId(envelope.eventId()));
+    return Optional.of(build(envelope, device, new SensorEventId(envelope.eventId())));
   }
 
   protected abstract SensorEvent build(Esp32Envelope envelope, Device device, SensorEventId id);

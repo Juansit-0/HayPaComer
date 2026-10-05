@@ -15,6 +15,7 @@ import dev.haypacomer.application.inventory.FoodNotInCatalogException;
 import dev.haypacomer.application.inventory.NothingToUndoException;
 import dev.haypacomer.application.inventory.PermissionRequiredException;
 import dev.haypacomer.application.inventory.SnapshotNotFoundException;
+import dev.haypacomer.application.scale.NoRecentSampleException;
 import dev.haypacomer.application.sensor.MalformedSensorPayloadException;
 import dev.haypacomer.domain.household.AccessDeniedException;
 import org.springframework.http.HttpStatus;
@@ -58,6 +59,11 @@ public class ApiExceptionHandler {
   @ExceptionHandler(InvitationEmailMismatchException.class)
   ProblemDetail invitationMismatch(InvitationEmailMismatchException exception) {
     return problem(HttpStatus.FORBIDDEN, "Invitation not for this account", exception.getMessage());
+  }
+
+  @ExceptionHandler(NoRecentSampleException.class)
+  ProblemDetail noRecentSample(NoRecentSampleException exception) {
+    return problem(HttpStatus.CONFLICT, "Scale offline", exception.getMessage());
   }
 
   @ExceptionHandler(MalformedSensorPayloadException.class)

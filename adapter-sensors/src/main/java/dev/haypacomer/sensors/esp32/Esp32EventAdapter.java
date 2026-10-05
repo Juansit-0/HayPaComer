@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JsonNode;
@@ -20,11 +21,24 @@ public final class Esp32EventAdapter implements SensorEventDecoder {
   private final JsonMapper json =
       JsonMapper.builder().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).build();
 
-  private final Map<String, Esp32EventFactory> factories =
-      Map.of(
-          "DOOR", new DoorEventFactory(),
-          "TEMPERATURE", new TemperatureEventFactory(),
-          "WEIGHT", new WeightEventFactory());
+  private final Map<String, Esp32EventFactory> factories;
+
+  public Esp32EventAdapter() {
+    this.factories =
+        Map.of(
+            "DOOR", new DoorEventFactory(),
+            "TEMPERATURE", new TemperatureEventFactory(),
+            "WEIGHT", new WeightEventFactory());
+  }
+
+  public Esp32EventAdapter(Hx711ReadingAdapter hx711) {
+    this.factories =
+        Map.of(
+            "DOOR", new DoorEventFactory(),
+            "TEMPERATURE", new TemperatureEventFactory(),
+            "WEIGHT", new WeightEventFactory(),
+            "RAW_WEIGHT", new RawWeightEventFactory(hx711));
+  }
 
   @Override
   public List<SensorEvent> decode(Device device, String payload) {
@@ -40,7 +54,7 @@ public final class Esp32EventAdapter implements SensorEventDecoder {
     if (nodes.isEmpty() || nodes.size() > MAX_BATCH) {
       throw new MalformedSensorPayloadException("A batch needs 1 to " + MAX_BATCH + " events");
     }
-    return nodes.stream().map(node -> toEvent(device, node)).toList();
+    return nodes.stream().flatMap(node -> toEvent(device, node).stream()).toList();
   }
 
   private JsonNode parse(String payload) {
@@ -54,7 +68,7 @@ public final class Esp32EventAdapter implements SensorEventDecoder {
     }
   }
 
-  private SensorEvent toEvent(Device device, JsonNode node) {
+  private Optional<SensorEvent> toEvent(Device device, JsonNode node) {
     Esp32Envelope envelope;
     try {
       envelope = json.treeToValue(node, Esp32Envelope.class);

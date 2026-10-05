@@ -35,6 +35,8 @@ import dev.haypacomer.sensors.esp32.Esp32Simulator;
 import dev.haypacomer.sensors.hardware.Esp32HardwareFactory;
 import dev.haypacomer.sensors.hardware.SimulatedHardwareFactory;
 import dev.haypacomer.sensors.monitor.InMemoryFridgeMonitorRegistry;
+import dev.haypacomer.sensors.scale.InMemoryCalibrations;
+import dev.haypacomer.sensors.scale.InMemoryScaleSampleStore;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -94,7 +96,11 @@ class SensorPipelineRobustnessTest {
             HouseholdId.newId(), FridgeId.newId(), "Door", DeviceKind.ESP32_DOOR_TEMP, "ab", T0);
     hardware =
         new HardwareFactories(
-            List.of(new Esp32HardwareFactory(), new SimulatedHardwareFactory(clock)));
+            List.of(
+                new Esp32HardwareFactory(
+                    new InMemoryCalibrations(), new InMemoryScaleSampleStore()),
+                new SimulatedHardwareFactory(
+                    clock, new InMemoryCalibrations(), new InMemoryScaleSampleStore())));
     SensorEventLog log =
         new SensorEventLog() {
           @Override

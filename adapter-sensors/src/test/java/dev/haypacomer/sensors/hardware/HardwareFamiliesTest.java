@@ -18,6 +18,8 @@ import dev.haypacomer.domain.fridge.FridgeId;
 import dev.haypacomer.domain.household.HouseholdId;
 import dev.haypacomer.domain.sensor.DoorEvent;
 import dev.haypacomer.domain.sensor.SensorEvent;
+import dev.haypacomer.sensors.scale.InMemoryCalibrations;
+import dev.haypacomer.sensors.scale.InMemoryScaleSampleStore;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -31,8 +33,11 @@ class HardwareFamiliesTest {
   private final HardwareFactories factories =
       new HardwareFactories(
           List.of(
-              new Esp32HardwareFactory(),
-              new SimulatedHardwareFactory(Clock.fixed(NOW, ZoneOffset.UTC))));
+              new Esp32HardwareFactory(new InMemoryCalibrations(), new InMemoryScaleSampleStore()),
+              new SimulatedHardwareFactory(
+                  Clock.fixed(NOW, ZoneOffset.UTC),
+                  new InMemoryCalibrations(),
+                  new InMemoryScaleSampleStore())));
 
   private static Device device(DeviceKind kind) {
     return Device.register(HouseholdId.newId(), FridgeId.newId(), "Device", kind, "ab", NOW);

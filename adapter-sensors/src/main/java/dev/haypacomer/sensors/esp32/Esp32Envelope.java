@@ -14,4 +14,5 @@ public record Esp32Envelope(
     BigDecimal grams,
     Boolean stable,
     String ingredient,
+    Long raw,
     Instant at) {}

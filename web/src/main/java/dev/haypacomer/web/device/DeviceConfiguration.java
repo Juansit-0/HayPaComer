@@ -10,7 +10,12 @@ import dev.haypacomer.application.port.DeviceRepository;
 import dev.haypacomer.application.port.FridgeMonitorRegistry;
 import dev.haypacomer.application.port.FridgeRepository;
 import dev.haypacomer.application.port.HouseholdRepository;
+import dev.haypacomer.application.port.ScaleCalibrationRepository;
+import dev.haypacomer.application.port.ScaleSampleStore;
 import dev.haypacomer.application.port.SensorEventLog;
+import dev.haypacomer.application.scale.CalibrateScale;
+import dev.haypacomer.application.scale.ReadScale;
+import dev.haypacomer.application.scale.TareScale;
 import dev.haypacomer.application.sensor.CheckFridgeAlerts;
 import dev.haypacomer.application.sensor.HardwareFactories;
 import dev.haypacomer.application.sensor.IngestSensorEvents;
@@ -20,6 +25,7 @@ import dev.haypacomer.domain.sensor.FridgeThresholds;
 import dev.haypacomer.sensors.hardware.Esp32HardwareFactory;
 import dev.haypacomer.sensors.hardware.SimulatedHardwareFactory;
 import dev.haypacomer.sensors.monitor.InMemoryFridgeMonitorRegistry;
+import dev.haypacomer.sensors.scale.InMemoryScaleSampleStore;
 import java.time.Clock;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
@@ -49,9 +55,47 @@ public class DeviceConfiguration {
   }
 
   @Bean
-  HardwareFactories hardwareFactories(Clock clock) {
+  ScaleSampleStore scaleSampleStore() {
+    return new InMemoryScaleSampleStore();
+  }
+
+  @Bean
+  HardwareFactories hardwareFactories(
+      Clock clock, ScaleCalibrationRepository calibrations, ScaleSampleStore samples) {
     return new HardwareFactories(
-        List.of(new Esp32HardwareFactory(), new SimulatedHardwareFactory(clock)));
+        List.of(
+            new Esp32HardwareFactory(calibrations, samples),
+            new SimulatedHardwareFactory(clock, calibrations, samples)));
+  }
+
+  @Bean
+  TareScale tareScale(
+      HouseholdRepository households,
+      DeviceRepository devices,
+      ScaleSampleStore samples,
+      ScaleCalibrationRepository calibrations,
+      Clock clock) {
+    return new TareScale(households, devices, samples, calibrations, clock);
+  }
+
+  @Bean
+  CalibrateScale calibrateScale(
+      HouseholdRepository households,
+      DeviceRepository devices,
+      ScaleSampleStore samples,
+      ScaleCalibrationRepository calibrations,
+      Clock clock) {
+    return new CalibrateScale(households, devices, samples, calibrations, clock);
+  }
+
+  @Bean
+  ReadScale readScale(
+      HouseholdRepository households,
+      DeviceRepository devices,
+      ScaleSampleStore samples,
+      ScaleCalibrationRepository calibrations,
+      Clock clock) {
+    return new ReadScale(households, devices, samples, calibrations, clock);
   }
 
   @Bean
