@@ -45,5 +45,7 @@ jobs:
             - name: OneWire
             - name: DallasTemperature
             - name: ArduinoJson
+            - name: HX711
           sketch-paths: |
             - firmware/esp32/door_temp
+            - firmware/esp32/scale
