@@ -77,6 +77,7 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 |---|---|---|---|
 | GET | `/foods?q=` | user | Search food metadata (flyweight catalog) |
 | GET | `/foods/{id}` | user | Food detail with allergens |
+| POST | `/foods/interpret` | user | `{food, quantity}` text such as "2 tazas", "1,5 kg", "3 huevos + 1/2 kg" into grams with the food conversion factors; 422 when unreadable or the food lacks a density or piece weight |
 | GET | `/allergens` | user | Allergen list |
 | GET | `/substitution-rules?from=` | user | Allowed substitutions |
 
@@ -135,7 +136,7 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 | GET, PATCH, DELETE | `/recipes/{id}` | guest, member, member | Recipe detail, update, delete |
 | POST | `/recipes/{id}/clone` | member | Clone template (prototype) |
 | POST | `/recipes/{id}/scale` | guest | Rescale portions |
-| POST | `/households/{h}/recipes/evaluate` | guest | Inline recipe plus target servings and strategy (STRICT, FLEXIBLE, RESCUE with allowed substitutes) evaluated against the usable inventory: ENOUGH, REDUCE, SUBSTITUTE, or MISSING per requirement |
+| POST | `/households/{h}/recipes/evaluate` | guest | Inline recipe plus target servings and strategy (STRICT, FLEXIBLE, RESCUE with allowed substitutes; each requirement takes `grams` or a `quantity` text) evaluated against the usable inventory: ENOUGH, REDUCE, SUBSTITUTE, or MISSING per requirement |
 | POST | `/households/{h}/suggestions` | guest | Cook now: minutes, people, equipment -> up to three options with evidence |
 | POST | `/households/{h}/rescue` | guest | Rescue mode suggestions |
 | POST | `/suggestions/{id}/accept` | member | Accept suggestion (household learning) |

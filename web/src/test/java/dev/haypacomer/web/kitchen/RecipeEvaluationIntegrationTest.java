@@ -42,7 +42,7 @@ class RecipeEvaluationIntegrationTest {
 
   private String recipe(String strategy, String substitutes) {
     return "{\"name\":\"Rice with chicken\",\"servings\":2,\"minutes\":35,\"targetServings\":2,"
-        + "\"requirements\":[{\"food\":\"Chicken breast\",\"grams\":200},{\"food\":\"Rice\",\"grams\":150}],"
+        + "\"requirements\":[{\"food\":\"Chicken breast\",\"grams\":200},{\"food\":\"Rice\",\"quantity\":\"0,15 kg\"}],"
         + "\"strategy\":\""
         + strategy
         + "\""
@@ -110,5 +110,40 @@ class RecipeEvaluationIntegrationTest {
         .andExpect(jsonPath("$.requirements[0].substitute").value("Tuna"));
     call(evaluate, juan, recipe("STRICT", "").replace("Rice\"", "Unicorn\""))
         .andExpect(status().isUnprocessableContent());
+  }
+
+  @Test
+  void interpretsQuantitiesWithTheCatalogFactors() throws Exception {
+    call(
+            "/api/v1/auth/register",
+            null,
+            "{\"email\":\"ana@haypacomer.dev\",\"password\":\"fresh-milk-842\",\"displayName\":\"A\"}")
+        .andExpect(status().isCreated());
+    String ana =
+        "Bearer "
+            + JsonPath.read(
+                body(
+                    call(
+                        "/api/v1/auth/login",
+                        null,
+                        "{\"email\":\"ana@haypacomer.dev\",\"password\":\"fresh-milk-842\"}")),
+                "$.accessToken");
+    String interpret = "/api/v1/foods/interpret";
+
+    call(interpret, ana, "{\"food\":\"Milk\",\"quantity\":\"2 tazas de leche\"}")
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.food").value("Milk"))
+        .andExpect(jsonPath("$.expression").value("2 cup"))
+        .andExpect(jsonPath("$.grams").value(494.4));
+    call(interpret, ana, "{\"food\":\"egg\",\"quantity\":\"3 huevos + 1/2 kg\"}")
+        .andExpect(jsonPath("$.grams").value(650.0));
+    call(interpret, ana, "{\"food\":\"Rice\",\"quantity\":\"1 cup\"}")
+        .andExpect(status().isUnprocessableContent())
+        .andExpect(jsonPath("$.title").value("Quantity cannot be weighed"));
+    call(interpret, ana, "{\"food\":\"Rice\",\"quantity\":\"a handful\"}")
+        .andExpect(status().isUnprocessableContent())
+        .andExpect(jsonPath("$.title").value("Unreadable quantity"));
+    call(interpret, null, "{\"food\":\"Rice\",\"quantity\":\"1 g\"}")
+        .andExpect(status().isUnauthorized());
   }
 }

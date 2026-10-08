@@ -4,6 +4,7 @@ import dev.haypacomer.application.cooking.EvaluateRecipe;
 import dev.haypacomer.application.cooking.StrategyKind;
 import dev.haypacomer.application.inventory.FoodNotInCatalogException;
 import dev.haypacomer.application.port.FoodCatalogRepository;
+import dev.haypacomer.application.quantity.InterpretQuantity;
 import dev.haypacomer.domain.cooking.RecipeEvaluation;
 import dev.haypacomer.domain.cooking.RequirementEvaluation;
 import dev.haypacomer.domain.cooking.RequirementVerdict;
@@ -36,10 +37,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class RecipeController {
 
   private final EvaluateRecipe evaluateRecipe;
+  private final InterpretQuantity interpretQuantity;
   private final FoodCatalogRepository catalog;
 
-  public RecipeController(EvaluateRecipe evaluateRecipe, FoodCatalogRepository catalog) {
+  public RecipeController(
+      EvaluateRecipe evaluateRecipe,
+      InterpretQuantity interpretQuantity,
+      FoodCatalogRepository catalog) {
     this.evaluateRecipe = evaluateRecipe;
+    this.interpretQuantity = interpretQuantity;
     this.catalog = catalog;
   }
 
@@ -60,7 +66,7 @@ public class RecipeController {
                     requirement ->
                         new RecipeRequirement(
                             food(requirement.food()),
-                            Grams.of(requirement.grams()),
+                            grams(requirement),
                             Boolean.TRUE.equals(requirement.optional())))
                 .toList(),
             List.of());
@@ -81,13 +87,25 @@ public class RecipeController {
                     .toList()));
   }
 
+  private Grams grams(RequirementRequest requirement) {
+    if (requirement.grams() != null) {
+      return Grams.of(requirement.grams());
+    }
+    if (requirement.quantity() == null) {
+      throw new IllegalArgumentException(
+          "Requirement for " + requirement.food() + " needs grams or a quantity");
+    }
+    return interpretQuantity.interpret(requirement.food(), requirement.quantity()).grams();
+  }
+
   private FoodMetadata food(String name) {
     return catalog.findByName(name).orElseThrow(() -> new FoodNotInCatalogException(name));
   }
 
   record RequirementRequest(
       @NotBlank String food,
-      @NotNull @DecimalMin(value = "0", inclusive = false) BigDecimal grams,
+      @DecimalMin(value = "0", inclusive = false) BigDecimal grams,
+      String quantity,
       Boolean optional) {}
 
   record EvaluateRequest(
