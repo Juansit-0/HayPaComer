@@ -11,6 +11,32 @@ spring:
     problemdetails:
       enabled: true
 
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /docs
+  paths-to-match: /api/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: HayPaComer
+    description: Smart fridge with live inventory, cook-now, and cold chain
+
 haypacomer:
   security:
     jwt:

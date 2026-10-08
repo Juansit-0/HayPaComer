@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -32,13 +31,13 @@ public class DeviceKeyAuthenticationFilter extends OncePerRequestFilter {
               new DeviceAuthentication(authenticateDevice.authenticate(request.getHeader(HEADER))));
     } catch (InvalidDeviceKeyException exception) {
       SecurityContextHolder.clearContext();
-      response.setStatus(HttpStatus.UNAUTHORIZED.value());
-      response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
-      response
-          .getWriter()
-          .write(
-              "{\"type\":\"about:blank\",\"title\":\"Invalid device key\",\"status\":401,"
-                  + "\"detail\":\"Send a valid X-Device-Key header\"}");
+      response.setHeader("WWW-Authenticate", HEADER);
+      ProblemSecurityResponses.write(
+          request,
+          response,
+          HttpStatus.UNAUTHORIZED,
+          "Invalid device key",
+          "Send a valid X-Device-Key header");
       return;
     }
     chain.doFilter(request, response);

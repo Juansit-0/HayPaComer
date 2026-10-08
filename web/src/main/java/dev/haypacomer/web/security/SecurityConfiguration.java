@@ -35,6 +35,11 @@ public class SecurityConfiguration {
             new DeviceKeyAuthenticationFilter(authenticateDevice),
             AnonymousAuthenticationFilter.class)
         .authorizeHttpRequests(requests -> requests.anyRequest().hasRole("DEVICE"))
+        .exceptionHandling(
+            errors ->
+                errors
+                    .authenticationEntryPoint(ProblemSecurityResponses.unauthorized("X-Device-Key"))
+                    .accessDeniedHandler(ProblemSecurityResponses.forbidden()))
         .build();
   }
 
@@ -51,9 +56,30 @@ public class SecurityConfiguration {
                     .permitAll()
                     .requestMatchers("/error")
                     .permitAll()
+                    .requestMatchers(
+                        HttpMethod.GET,
+                        "/v3/api-docs",
+                        "/v3/api-docs/**",
+                        "/docs",
+                        "/docs/**",
+                        "/swagger-ui/**",
+                        "/actuator/health",
+                        "/actuator/health/**",
+                        "/actuator/info")
+                    .permitAll()
                     .anyRequest()
                     .authenticated())
-        .oauth2ResourceServer(server -> server.jwt(Customizer.withDefaults()))
+        .exceptionHandling(
+            errors ->
+                errors
+                    .authenticationEntryPoint(ProblemSecurityResponses.unauthorized("Bearer"))
+                    .accessDeniedHandler(ProblemSecurityResponses.forbidden()))
+        .oauth2ResourceServer(
+            server ->
+                server
+                    .jwt(Customizer.withDefaults())
+                    .authenticationEntryPoint(ProblemSecurityResponses.unauthorized("Bearer"))
+                    .accessDeniedHandler(ProblemSecurityResponses.forbidden()))
         .build();
   }
 
