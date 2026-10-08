@@ -72,13 +72,20 @@ class PostgresCookingSessionRepositoryTest extends PostgresTestSupport {
     assertEquals(session.id(), sessions.active(household.id()).orElseThrow().id());
 
     session.next(NOW.plusSeconds(10));
+    session.weigh(1, Grams.of(101), NOW.plusSeconds(30));
+    sessions.save(session);
+    assertEquals(
+        Grams.of(101),
+        sessions.find(household.id(), session.id()).orElseThrow().measured().orElseThrow());
     session.next(NOW.plusSeconds(70));
     session.pause(NOW.plusSeconds(80));
     sessions.save(session);
 
     CookingSession loaded = sessions.find(household.id(), session.id()).orElseThrow();
     assertEquals(new Paused(2, NOW.plusSeconds(80)), loaded.state());
-    assertEquals(List.of(new StepCompletion(1, NOW.plusSeconds(70))), loaded.completions());
+    assertEquals(
+        List.of(new StepCompletion(1, NOW.plusSeconds(70), Grams.of(101))), loaded.completions());
+    assertTrue(loaded.measured().isEmpty());
     assertEquals(session.recipe(), loaded.recipe());
     assertEquals(
         Grams.of(100), loaded.recipe().steps().getFirst().weighingTarget().orElseThrow().target());

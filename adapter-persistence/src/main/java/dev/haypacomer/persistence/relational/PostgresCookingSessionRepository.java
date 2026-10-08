@@ -5,6 +5,7 @@ import dev.haypacomer.domain.device.DeviceId;
 import dev.haypacomer.domain.food.FoodMetadata;
 import dev.haypacomer.domain.household.HouseholdId;
 import dev.haypacomer.domain.identity.UserId;
+import dev.haypacomer.domain.quantity.Grams;
 import dev.haypacomer.domain.session.Abandoned;
 import dev.haypacomer.domain.session.Cooking;
 import dev.haypacomer.domain.session.CookingSession;
@@ -15,6 +16,7 @@ import dev.haypacomer.domain.session.Preparing;
 import dev.haypacomer.domain.session.SessionPhase;
 import dev.haypacomer.domain.session.SessionState;
 import dev.haypacomer.domain.session.StepCompletion;
+import java.math.BigDecimal;
 import java.sql.Types;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -34,7 +36,7 @@ public class PostgresCookingSessionRepository implements CookingSessionRepositor
 
   private static final String SELECT =
       "SELECT id, household_id, started_by, recipe::text AS recipe, state, current_step,"
-          + " started_at, state_since, updated_at, scale_device_id FROM cooking_sessions";
+          + " started_at, state_since, updated_at, scale_device_id, measured_g FROM cooking_sessions";
 
   private final JdbcClient jdbc;
   private final TransactionTemplate transaction;
@@ -80,7 +82,8 @@ public class PostgresCookingSessionRepository implements CookingSessionRepositor
                         .map(OffsetDateTime::toInstant)
                         .orElse(null),
                     Timestamps.read(row, "updated_at"),
-                    row.getObject("scale_device_id", UUID.class)))
+                    row.getObject("scale_device_id", UUID.class),
+                    row.getBigDecimal("measured_g")))
         .optional()
         .map(this::toSession);
   }
@@ -92,11 +95,18 @@ public class PostgresCookingSessionRepository implements CookingSessionRepositor
         .values()
         .forEach(food -> foods.put(food.key(), food));
     List<StepCompletion> completions =
-        jdbc.sql("SELECT position, at FROM session_step_logs WHERE session_id = :id ORDER BY id")
+        jdbc.sql(
+                "SELECT position, at, measured_g FROM session_step_logs WHERE session_id = :id"
+                    + " ORDER BY id")
             .param("id", row.id())
             .query(
                 (log, rowNumber) ->
-                    new StepCompletion(log.getInt("position"), Timestamps.read(log, "at")))
+                    new StepCompletion(
+                        log.getInt("position"),
+                        Timestamps.read(log, "at"),
+                        Optional.ofNullable(log.getBigDecimal("measured_g"))
+                            .map(Grams::of)
+                            .orElse(null)))
             .list();
     return CookingSession.restore(
         new CookingSessionId(row.id()),
@@ -107,7 +117,8 @@ public class PostgresCookingSessionRepository implements CookingSessionRepositor
         state(row.phase(), row.currentStep(), row.stateSince()),
         row.updatedAt(),
         completions,
-        row.scale() == null ? null : new DeviceId(row.scale()));
+        row.scale() == null ? null : new DeviceId(row.scale()),
+        row.measured() == null ? null : Grams.of(row.measured()));
   }
 
   private static SessionState state(SessionPhase phase, int step, Instant since) {
@@ -136,15 +147,16 @@ public class PostgresCookingSessionRepository implements CookingSessionRepositor
             """
             INSERT INTO cooking_sessions (id, household_id, started_by, recipe, state,
                                           current_step, servings, started_at, state_since,
-                                          updated_at, scale_device_id)
+                                          updated_at, scale_device_id, measured_g)
             VALUES (:id, :household, :startedBy, :recipe::jsonb, :state, :step, :servings,
-                    :startedAt, :since, :updatedAt, :scale)
+                    :startedAt, :since, :updatedAt, :scale, :measured)
             ON CONFLICT (id) DO UPDATE SET
                 state = EXCLUDED.state,
                 current_step = EXCLUDED.current_step,
                 state_since = EXCLUDED.state_since,
                 updated_at = EXCLUDED.updated_at,
-                scale_device_id = EXCLUDED.scale_device_id
+                scale_device_id = EXCLUDED.scale_device_id,
+                measured_g = EXCLUDED.measured_g
             """)
         .param("id", session.id().value())
         .param("household", session.household().value())
@@ -160,16 +172,19 @@ public class PostgresCookingSessionRepository implements CookingSessionRepositor
             Types.TIMESTAMP_WITH_TIMEZONE)
         .param("updatedAt", Timestamps.toDatabase(session.updatedAt()))
         .param("scale", session.scale().map(DeviceId::value).orElse(null), Types.OTHER)
+        .param("measured", session.measured().map(Grams::value).orElse(null), Types.NUMERIC)
         .update();
     for (StepCompletion completion : session.completions()) {
       jdbc.sql(
               """
-              INSERT INTO session_step_logs (session_id, position, at)
-              VALUES (:session, :position, :at)
+              INSERT INTO session_step_logs (session_id, position, measured_g, at)
+              VALUES (:session, :position, :measured, :at)
               ON CONFLICT (session_id, position) DO NOTHING
               """)
           .param("session", session.id().value())
           .param("position", completion.position())
+          .param(
+              "measured", completion.measuredGrams().map(Grams::value).orElse(null), Types.NUMERIC)
           .param("at", Timestamps.toDatabase(completion.at()))
           .update();
     }
@@ -185,5 +200,6 @@ public class PostgresCookingSessionRepository implements CookingSessionRepositor
       Instant startedAt,
       Instant stateSince,
       Instant updatedAt,
-      UUID scale) {}
+      UUID scale,
+      BigDecimal measured) {}
 }

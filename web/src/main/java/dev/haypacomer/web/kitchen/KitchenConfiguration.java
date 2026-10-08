@@ -36,6 +36,7 @@ import dev.haypacomer.application.port.UnitOfWork;
 import dev.haypacomer.application.profile.ListFoodProfiles;
 import dev.haypacomer.application.profile.UpdateFoodProfile;
 import dev.haypacomer.application.quantity.InterpretQuantity;
+import dev.haypacomer.application.scale.ReadWeighingProgress;
 import dev.haypacomer.application.sensor.HardwareFactories;
 import dev.haypacomer.application.session.AdvanceCookingSession;
 import dev.haypacomer.application.session.CheckCookingTimers;
@@ -44,6 +45,8 @@ import dev.haypacomer.application.session.KitchenMediator;
 import dev.haypacomer.application.session.ResumeCookingSession;
 import dev.haypacomer.application.session.StartCookingSession;
 import dev.haypacomer.application.session.ViewCookingSession;
+import dev.haypacomer.application.session.ViewStepTimer;
+import dev.haypacomer.application.session.WeighStep;
 import dev.haypacomer.domain.inventory.FreshnessPolicy;
 import dev.haypacomer.domain.sensor.FridgeThresholds;
 import dev.haypacomer.sensors.cooking.InMemoryStepTimerStore;
@@ -242,6 +245,25 @@ public class KitchenConfiguration {
       DeviceRepository devices,
       HardwareFactories hardware) {
     return new GuidedCookingMediator(scales, timers, devices, hardware);
+  }
+
+  @Bean
+  WeighStep weighStep(
+      HouseholdRepository households,
+      CookingSessionRepository sessions,
+      ReadWeighingProgress scaleProgress,
+      KitchenMediator mediator,
+      Clock clock) {
+    return new WeighStep(households, sessions, scaleProgress, mediator, clock);
+  }
+
+  @Bean
+  ViewStepTimer viewStepTimer(
+      HouseholdRepository households,
+      CookingSessionRepository sessions,
+      StepTimerStore timers,
+      Clock clock) {
+    return new ViewStepTimer(households, sessions, timers, clock);
   }
 
   @Bean

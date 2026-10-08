@@ -1,5 +1,6 @@
 package dev.haypacomer.application.session;
 
+import dev.haypacomer.domain.scale.WeighingProgress;
 import dev.haypacomer.domain.session.CookingSession;
 import java.time.Instant;
 import java.util.Objects;
@@ -12,6 +13,16 @@ public sealed interface KitchenEvent {
 
     public SessionChanged {
       Objects.requireNonNull(session, "session");
+      Objects.requireNonNull(at, "at");
+    }
+  }
+
+  record StepWeighed(CookingSession session, WeighingProgress progress, Instant at)
+      implements KitchenEvent {
+
+    public StepWeighed {
+      Objects.requireNonNull(session, "session");
+      Objects.requireNonNull(progress, "progress");
       Objects.requireNonNull(at, "at");
     }
   }

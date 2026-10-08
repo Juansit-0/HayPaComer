@@ -357,6 +357,7 @@ erDiagram
     timestamptz state_since "paused, finished, or abandoned at"
     timestamptz updated_at
     uuid scale_device_id FK
+    numeric measured_g
   }
   SESSION_STEP_LOGS {
     bigint id PK
@@ -425,7 +426,7 @@ erDiagram
 
 ## Key constraints and indexes
 
-- Migrations live in `adapter-persistence/src/main/resources/db/migration` (Flyway). `V1` creates identity, households, members, profiles, and audit; `V2` creates the food catalog, fridge tree, and inventory; `V3` creates devices; `V4` seeds 24 common foods with allergens; `V5` creates `market_items` (one household list, partial unique index for one pending row per food); `V6` turns `inventory_snapshots` into the undo history (`kind`, `command_id`, `actor_user_id`, `used_at`, `seq`), with mementos stored as JSON; `V7` creates `cold_chains` (current state per fridge) and `cold_incidents` (reviewed history); `V8` creates `sensor_events` (accepted events, primary key is the client event id); `V9` creates `scale_calibrations` (tare offset and counts per gram per scale); `V10` creates `scale_assignments` (the food item resting on each scale); `V11` creates `substitution_rules` (ratio of substitute grams per original gram, `max_g` of original replaced, `position` as preference order) and seeds 11 rules over the seeded foods; `V12` creates `cooking_sessions` (the scaled recipe as a JSON snapshot until recipes are persisted, partial unique index for one active session per household) and `session_step_logs` (one row per completed step); `V13` adds `cooking_sessions.scale_device_id`. Later features add their own migrations.
+- Migrations live in `adapter-persistence/src/main/resources/db/migration` (Flyway). `V1` creates identity, households, members, profiles, and audit; `V2` creates the food catalog, fridge tree, and inventory; `V3` creates devices; `V4` seeds 24 common foods with allergens; `V5` creates `market_items` (one household list, partial unique index for one pending row per food); `V6` turns `inventory_snapshots` into the undo history (`kind`, `command_id`, `actor_user_id`, `used_at`, `seq`), with mementos stored as JSON; `V7` creates `cold_chains` (current state per fridge) and `cold_incidents` (reviewed history); `V8` creates `sensor_events` (accepted events, primary key is the client event id); `V9` creates `scale_calibrations` (tare offset and counts per gram per scale); `V10` creates `scale_assignments` (the food item resting on each scale); `V11` creates `substitution_rules` (ratio of substitute grams per original gram, `max_g` of original replaced, `position` as preference order) and seeds 11 rules over the seeded foods; `V12` creates `cooking_sessions` (the scaled recipe as a JSON snapshot until recipes are persisted, partial unique index for one active session per household) and `session_step_logs` (one row per completed step); `V13` adds `cooking_sessions.scale_device_id`; `V14` adds `cooking_sessions.measured_g` (weighing of the current step, moved to `session_step_logs.measured_g` when the step completes). Later features add their own migrations.
 - Food ownership and grants reference `household_members.member_id`, the same `MemberId` the domain uses for profiles and ownership.
 - `food_catalog.name_key` (lowercase, trimmed) is unique and is how the domain identifies a food.
 
