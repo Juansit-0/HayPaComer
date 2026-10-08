@@ -22,11 +22,15 @@ import dev.haypacomer.application.port.AuditLog;
 import dev.haypacomer.application.port.ColdChainRepository;
 import dev.haypacomer.application.port.FoodCatalogRepository;
 import dev.haypacomer.application.port.FoodOwnershipRepository;
+import dev.haypacomer.application.port.FoodProfileRepository;
 import dev.haypacomer.application.port.FridgeRepository;
 import dev.haypacomer.application.port.HouseholdRepository;
 import dev.haypacomer.application.port.InventoryMovementLog;
 import dev.haypacomer.application.port.SnapshotStore;
+import dev.haypacomer.application.port.SubstitutionRuleRepository;
 import dev.haypacomer.application.port.UnitOfWork;
+import dev.haypacomer.application.profile.ListFoodProfiles;
+import dev.haypacomer.application.profile.UpdateFoodProfile;
 import dev.haypacomer.application.quantity.InterpretQuantity;
 import dev.haypacomer.domain.inventory.FreshnessPolicy;
 import dev.haypacomer.domain.sensor.FridgeThresholds;
@@ -64,8 +68,24 @@ public class KitchenConfiguration {
 
   @Bean
   EvaluateRecipe evaluateRecipe(
-      HouseholdRepository households, ViewInventory viewInventory, Clock clock) {
-    return new EvaluateRecipe(households, viewInventory, clock);
+      HouseholdRepository households,
+      ViewInventory viewInventory,
+      FoodProfileRepository profiles,
+      SubstitutionRuleRepository rules,
+      Clock clock) {
+    return new EvaluateRecipe(households, viewInventory, profiles, rules, clock);
+  }
+
+  @Bean
+  UpdateFoodProfile updateFoodProfile(
+      HouseholdRepository households, FoodProfileRepository profiles) {
+    return new UpdateFoodProfile(households, profiles);
+  }
+
+  @Bean
+  ListFoodProfiles listFoodProfiles(
+      HouseholdRepository households, FoodProfileRepository profiles) {
+    return new ListFoodProfiles(households, profiles);
   }
 
   @Bean

@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.haypacomer.domain.food.FoodCategory;
 import dev.haypacomer.domain.food.FoodMetadata;
+import dev.haypacomer.domain.member.DiningGroup;
 import dev.haypacomer.domain.quantity.ConversionFactors;
 import dev.haypacomer.domain.quantity.Grams;
 import dev.haypacomer.domain.quantity.Unit;
@@ -14,9 +15,11 @@ import dev.haypacomer.domain.recipe.Recipe;
 import dev.haypacomer.domain.recipe.RecipeId;
 import dev.haypacomer.domain.recipe.RecipeRequirement;
 import dev.haypacomer.domain.recipe.RecipeSource;
+import dev.haypacomer.domain.substitution.Substitution;
+import dev.haypacomer.domain.substitution.SubstitutionCatalog;
+import dev.haypacomer.domain.substitution.SubstitutionRule;
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
@@ -68,7 +71,8 @@ class EvaluationStrategyTest {
         List.of(
             new StrictStrategy(),
             FlexibleStrategy.standard(),
-            new RescueStrategy(f -> List.of(), new StrictStrategy()))) {
+            new RescueStrategy(
+                SubstitutionCatalog.EMPTY, DiningGroup.of(), new StrictStrategy()))) {
       RecipeEvaluation evaluation = strategy.evaluate(RICE_WITH_CHICKEN, plenty, 2);
       assertEquals(RequirementVerdict.ENOUGH, evaluation.verdict());
       assertEquals(2, evaluation.achievableServings());
@@ -112,15 +116,37 @@ class EvaluationStrategyTest {
   @Test
   void rescueUsesAnAllowedSubstituteThatIsInStock() {
     RescueStrategy rescue =
-        new RescueStrategy(Map.of(CHICKEN, List.of(TUNA))::get, FlexibleStrategy.standard());
+        new RescueStrategy(
+            new SubstitutionCatalog(List.of(SubstitutionRule.of(CHICKEN, TUNA, "1.1", 200))),
+            DiningGroup.of(),
+            FlexibleStrategy.standard());
 
-    RecipeEvaluation withTuna = rescue.evaluate(RICE_WITH_CHICKEN, stock(80, 300, 260), 2);
-    RecipeEvaluation notEnoughTuna = rescue.evaluate(RICE_WITH_CHICKEN, stock(80, 300, 130), 2);
+    RecipeEvaluation withTuna = rescue.evaluate(RICE_WITH_CHICKEN, stock(80, 300, 132), 2);
+    RecipeEvaluation notEnoughTuna = rescue.evaluate(RICE_WITH_CHICKEN, stock(80, 300, 131), 2);
 
     assertEquals(RequirementVerdict.SUBSTITUTE, withTuna.verdict());
-    assertEquals(TUNA, withTuna.requirements().getFirst().substituteFood().orElseThrow());
+    Substitution proposal = withTuna.requirements().getFirst().proposal().orElseThrow();
+    assertEquals(TUNA, proposal.substitute());
+    assertEquals(Grams.of(120), proposal.replaced());
+    assertEquals(Grams.of(132), proposal.substituteGrams());
     assertEquals(2, withTuna.achievableServings());
     assertEquals(RequirementVerdict.REDUCE, notEnoughTuna.verdict());
+  }
+
+  @Test
+  void rescueDoesNotSpendStockTheRecipeAlreadyNeeds() {
+    RescueStrategy rescue =
+        new RescueStrategy(
+            new SubstitutionCatalog(List.of(SubstitutionRule.of(CHICKEN, RICE, "1", 500))),
+            DiningGroup.of(),
+            new StrictStrategy());
+
+    assertEquals(
+        RequirementVerdict.MISSING,
+        rescue.evaluate(RICE_WITH_CHICKEN, stock(80, 200, 0), 2).verdict());
+    assertEquals(
+        RequirementVerdict.SUBSTITUTE,
+        rescue.evaluate(RICE_WITH_CHICKEN, stock(80, 270, 0), 2).verdict());
   }
 
   @Test

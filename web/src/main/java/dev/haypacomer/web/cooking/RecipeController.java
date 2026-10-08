@@ -10,6 +10,7 @@ import dev.haypacomer.domain.cooking.RequirementEvaluation;
 import dev.haypacomer.domain.cooking.RequirementVerdict;
 import dev.haypacomer.domain.food.FoodMetadata;
 import dev.haypacomer.domain.household.HouseholdId;
+import dev.haypacomer.domain.member.MemberId;
 import dev.haypacomer.domain.quantity.Grams;
 import dev.haypacomer.domain.recipe.Recipe;
 import dev.haypacomer.domain.recipe.RecipeId;
@@ -24,8 +25,9 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -70,8 +72,6 @@ public class RecipeController {
                             Boolean.TRUE.equals(requirement.optional())))
                 .toList(),
             List.of());
-    Map<String, List<String>> allowed =
-        request.substitutes() == null ? Map.of() : request.substitutes();
     return EvaluationResponse.from(
         evaluateRecipe.evaluate(
             CurrentUser.of(jwt),
@@ -79,12 +79,9 @@ public class RecipeController {
             recipe,
             request.targetServings(),
             request.strategy(),
-            original ->
-                allowed.entrySet().stream()
-                    .filter(entry -> FoodMetadata.keyOf(entry.getKey()).equals(original.key()))
-                    .flatMap(entry -> entry.getValue().stream())
-                    .map(this::food)
-                    .toList()));
+            request.diners() == null
+                ? Set.of()
+                : request.diners().stream().map(MemberId::new).collect(Collectors.toSet())));
   }
 
   private Grams grams(RequirementRequest requirement) {
@@ -115,7 +112,7 @@ public class RecipeController {
       @NotEmpty List<@Valid RequirementRequest> requirements,
       @Min(1) int targetServings,
       @NotNull StrategyKind strategy,
-      Map<String, List<String>> substitutes) {}
+      List<UUID> diners) {}
 
   record RequirementResponse(
       String food,
@@ -123,7 +120,8 @@ public class RecipeController {
       BigDecimal availableGrams,
       BigDecimal shortfallGrams,
       RequirementVerdict verdict,
-      String substitute) {
+      String substitute,
+      BigDecimal substituteGrams) {
 
     static RequirementResponse from(RequirementEvaluation evaluation) {
       return new RequirementResponse(
@@ -132,7 +130,8 @@ public class RecipeController {
           evaluation.available().value(),
           evaluation.shortfall().value(),
           evaluation.verdict(),
-          evaluation.substituteFood().map(FoodMetadata::name).orElse(null));
+          evaluation.proposal().map(proposal -> proposal.substitute().name()).orElse(null),
+          evaluation.proposal().map(proposal -> proposal.substituteGrams().value()).orElse(null));
     }
   }
 

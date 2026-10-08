@@ -53,8 +53,8 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 | GET | `/households/{h}/invitations` | owner | Pending invitations |
 | DELETE | `/households/{h}/invitations/{id}` | owner | Cancel invitation |
 | POST | `/invitations/accept` | user | Join household; token in the body, invitation email must match the account |
-| GET | `/households/{h}/members/{u}/profile` | guest | Diet, goals, allergies |
-| PUT | `/households/{h}/members/{u}/profile` | member | Update own profile (OWNER may update any) |
+| GET | `/households/{h}/profiles` | guest | Food profile of every member (diet, allergies, avoided foods); members without one are omnivores |
+| PUT | `/households/{h}/profile` | guest | Replace the caller's own food profile |
 | PUT | `/households/{h}/owner` | owner | Transfer ownership to another member |
 
 ## Fridges, zones, and trays
@@ -136,7 +136,7 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 | GET, PATCH, DELETE | `/recipes/{id}` | guest, member, member | Recipe detail, update, delete |
 | POST | `/recipes/{id}/clone` | member | Clone template (prototype) |
 | POST | `/recipes/{id}/scale` | guest | Rescale portions |
-| POST | `/households/{h}/recipes/evaluate` | guest | Inline recipe plus target servings and strategy (STRICT, FLEXIBLE, RESCUE with allowed substitutes; each requirement takes `grams` or a `quantity` text) evaluated against the usable inventory: ENOUGH, REDUCE, SUBSTITUTE, or MISSING per requirement |
+| POST | `/households/{h}/recipes/evaluate` | guest | Inline recipe plus target servings and strategy (STRICT, FLEXIBLE, RESCUE with the substitution rules that every diner can eat; optional `diners` member ids, default the whole household; each requirement takes `grams` or a `quantity` text) evaluated against the usable inventory: ENOUGH, REDUCE, SUBSTITUTE, or MISSING per requirement |
 | POST | `/households/{h}/suggestions` | guest | Cook now: minutes, people, equipment -> up to three options with evidence |
 | POST | `/households/{h}/rescue` | guest | Rescue mode suggestions |
 | POST | `/suggestions/{id}/accept` | member | Accept suggestion (household learning) |

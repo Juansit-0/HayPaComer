@@ -20,6 +20,7 @@ abstract class PostgresTestSupport {
   static int appliedMigrations;
   static int seededFoods;
   static int soySauceAllergens;
+  static int seededSubstitutionRules;
 
   @BeforeAll
   static void migrate() {
@@ -37,6 +38,8 @@ abstract class PostgresTestSupport {
                     + " WHERE f.name_key = 'soy sauce'")
             .query(Integer.class)
             .single();
+    seededSubstitutionRules =
+        jdbc.sql("SELECT count(*) FROM substitution_rules").query(Integer.class).single();
   }
 
   @BeforeEach
