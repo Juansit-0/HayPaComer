@@ -1,10 +1,13 @@
 package dev.haypacomer.web.kitchen;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.jayway.jsonpath.JsonPath;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -105,9 +108,25 @@ class RecipeEvaluationIntegrationTest {
     call(evaluate, juan, recipe("FLEXIBLE", ""))
         .andExpect(jsonPath("$.verdict").value("REDUCE"))
         .andExpect(jsonPath("$.achievableServings").value(1));
-    call(evaluate, juan, recipe("RESCUE", ",\"substitutes\":{\"chicken breast\":[\"Tuna\"]}"))
+    call(evaluate, juan, recipe("RESCUE", ""))
         .andExpect(jsonPath("$.verdict").value("SUBSTITUTE"))
-        .andExpect(jsonPath("$.requirements[0].substitute").value("Tuna"));
+        .andExpect(jsonPath("$.requirements[0].substitute").value("Tuna"))
+        .andExpect(jsonPath("$.requirements[0].substituteGrams").value(120.0));
+    mvc.perform(
+            put(base + "/profile")
+                .header("Authorization", juan)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"diet\":\"OMNIVORE\",\"allergies\":[\"FISH\"]}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.allergies[0]").value("FISH"));
+    mvc.perform(get(base + "/profiles").header("Authorization", juan))
+        .andExpect(jsonPath("$.length()").value(1))
+        .andExpect(jsonPath("$[0].allergies[0]").value("FISH"));
+    call(evaluate, juan, recipe("RESCUE", ""))
+        .andExpect(jsonPath("$.verdict").value("REDUCE"))
+        .andExpect(jsonPath("$.achievableServings").value(1));
+    call(evaluate, juan, recipe("RESCUE", ",\"diners\":[\"" + UUID.randomUUID() + "\"]"))
+        .andExpect(status().isBadRequest());
     call(evaluate, juan, recipe("STRICT", "").replace("Rice\"", "Unicorn\""))
         .andExpect(status().isUnprocessableContent());
   }
