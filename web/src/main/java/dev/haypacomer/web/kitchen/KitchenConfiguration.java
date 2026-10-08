@@ -21,24 +21,32 @@ import dev.haypacomer.application.inventory.ViewInventory;
 import dev.haypacomer.application.port.AuditLog;
 import dev.haypacomer.application.port.ColdChainRepository;
 import dev.haypacomer.application.port.CookingSessionRepository;
+import dev.haypacomer.application.port.DeviceRepository;
 import dev.haypacomer.application.port.FoodCatalogRepository;
 import dev.haypacomer.application.port.FoodOwnershipRepository;
 import dev.haypacomer.application.port.FoodProfileRepository;
 import dev.haypacomer.application.port.FridgeRepository;
 import dev.haypacomer.application.port.HouseholdRepository;
 import dev.haypacomer.application.port.InventoryMovementLog;
+import dev.haypacomer.application.port.ScaleSessionStore;
 import dev.haypacomer.application.port.SnapshotStore;
+import dev.haypacomer.application.port.StepTimerStore;
 import dev.haypacomer.application.port.SubstitutionRuleRepository;
 import dev.haypacomer.application.port.UnitOfWork;
 import dev.haypacomer.application.profile.ListFoodProfiles;
 import dev.haypacomer.application.profile.UpdateFoodProfile;
 import dev.haypacomer.application.quantity.InterpretQuantity;
+import dev.haypacomer.application.sensor.HardwareFactories;
 import dev.haypacomer.application.session.AdvanceCookingSession;
+import dev.haypacomer.application.session.CheckCookingTimers;
+import dev.haypacomer.application.session.GuidedCookingMediator;
+import dev.haypacomer.application.session.KitchenMediator;
 import dev.haypacomer.application.session.ResumeCookingSession;
 import dev.haypacomer.application.session.StartCookingSession;
 import dev.haypacomer.application.session.ViewCookingSession;
 import dev.haypacomer.domain.inventory.FreshnessPolicy;
 import dev.haypacomer.domain.sensor.FridgeThresholds;
+import dev.haypacomer.sensors.cooking.InMemoryStepTimerStore;
 import java.time.Clock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -223,15 +231,41 @@ public class KitchenConfiguration {
   }
 
   @Bean
+  StepTimerStore stepTimerStore() {
+    return new InMemoryStepTimerStore();
+  }
+
+  @Bean
+  KitchenMediator kitchenMediator(
+      ScaleSessionStore scales,
+      StepTimerStore timers,
+      DeviceRepository devices,
+      HardwareFactories hardware) {
+    return new GuidedCookingMediator(scales, timers, devices, hardware);
+  }
+
+  @Bean
+  CheckCookingTimers checkCookingTimers(KitchenMediator mediator, Clock clock) {
+    return new CheckCookingTimers(mediator, clock);
+  }
+
+  @Bean
   StartCookingSession startCookingSession(
-      HouseholdRepository households, CookingSessionRepository sessions, Clock clock) {
-    return new StartCookingSession(households, sessions, clock);
+      HouseholdRepository households,
+      CookingSessionRepository sessions,
+      DeviceRepository devices,
+      KitchenMediator mediator,
+      Clock clock) {
+    return new StartCookingSession(households, sessions, devices, mediator, clock);
   }
 
   @Bean
   AdvanceCookingSession advanceCookingSession(
-      HouseholdRepository households, CookingSessionRepository sessions, Clock clock) {
-    return new AdvanceCookingSession(households, sessions, clock);
+      HouseholdRepository households,
+      CookingSessionRepository sessions,
+      KitchenMediator mediator,
+      Clock clock) {
+    return new AdvanceCookingSession(households, sessions, mediator, clock);
   }
 
   @Bean

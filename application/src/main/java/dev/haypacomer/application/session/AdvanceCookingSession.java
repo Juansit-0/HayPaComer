@@ -16,12 +16,17 @@ public final class AdvanceCookingSession {
 
   private final GetHousehold households;
   private final CookingSessionRepository sessions;
+  private final KitchenMediator mediator;
   private final Clock clock;
 
   public AdvanceCookingSession(
-      HouseholdRepository households, CookingSessionRepository sessions, Clock clock) {
+      HouseholdRepository households,
+      CookingSessionRepository sessions,
+      KitchenMediator mediator,
+      Clock clock) {
     this.households = new GetHousehold(households);
     this.sessions = Objects.requireNonNull(sessions, "sessions");
+    this.mediator = Objects.requireNonNull(mediator, "mediator");
     this.clock = Objects.requireNonNull(clock, "clock");
   }
 
@@ -40,6 +45,7 @@ public final class AdvanceCookingSession {
       case ABANDON -> session.abandon(now);
     }
     sessions.save(session);
+    mediator.notify(new KitchenEvent.SessionChanged(session, now));
     return session;
   }
 }

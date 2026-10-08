@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.haypacomer.domain.device.DeviceId;
 import dev.haypacomer.domain.food.FoodCategory;
 import dev.haypacomer.domain.food.FoodMetadata;
 import dev.haypacomer.domain.household.HouseholdId;
@@ -142,8 +143,16 @@ class CookingSessionTest {
             original.startedAt(),
             new Paused(3, T0),
             T0,
-            List.of(new StepCompletion(1, T0), new StepCompletion(2, T0)));
+            List.of(new StepCompletion(1, T0), new StepCompletion(2, T0)),
+            DeviceId.newId());
 
+    assertTrue(restored.scale().isPresent());
+    assertTrue(original.scale().isEmpty());
+    DeviceId scale = DeviceId.newId();
+    original.useScale(scale);
+    assertEquals(scale, original.scale().orElseThrow());
+    original.abandon(T0);
+    assertThrows(IllegalSessionTransitionException.class, () -> original.useScale(scale));
     restored.resume(T0.plusSeconds(1));
     assertEquals(3, restored.currentStep());
     assertEquals(2, restored.completions().size());
@@ -158,7 +167,8 @@ class CookingSessionTest {
                 T0,
                 new Cooking(4),
                 T0,
-                List.of()));
+                List.of(),
+                null));
     assertThrows(IllegalArgumentException.class, () -> new Cooking(0));
     assertThrows(IllegalArgumentException.class, () -> new Paused(0, T0));
     assertThrows(IllegalArgumentException.class, () -> new StepCompletion(0, T0));

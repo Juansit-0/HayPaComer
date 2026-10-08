@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import dev.haypacomer.application.household.HouseholdNotFoundException;
 import dev.haypacomer.application.support.InMemoryCookingSessionRepository;
 import dev.haypacomer.application.support.InMemoryHouseholdRepository;
+import dev.haypacomer.application.support.InMemoryKitchenDevices;
 import dev.haypacomer.domain.food.FoodCategory;
 import dev.haypacomer.domain.food.FoodMetadata;
 import dev.haypacomer.domain.household.AccessDeniedException;
@@ -31,6 +32,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Currency;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,9 +59,13 @@ class CookingSessionUseCasesTest {
   private final UserId juan = UserId.newId();
   private final UserId guest = UserId.newId();
   private final UserId stranger = UserId.newId();
-  private final StartCookingSession start = new StartCookingSession(households, sessions, clock);
+  private final InMemoryKitchenDevices kitchen = new InMemoryKitchenDevices();
+  private final KitchenMediator mediator =
+      new GuidedCookingMediator(kitchen.scales, kitchen.timers, kitchen.devices, kitchen.hardware);
+  private final StartCookingSession start =
+      new StartCookingSession(households, sessions, kitchen.devices, mediator, clock);
   private final AdvanceCookingSession advance =
-      new AdvanceCookingSession(households, sessions, clock);
+      new AdvanceCookingSession(households, sessions, mediator, clock);
   private final ViewCookingSession view = new ViewCookingSession(households, sessions);
   private final ResumeCookingSession resume = new ResumeCookingSession(households, sessions);
   private Household household;
@@ -74,7 +80,7 @@ class CookingSessionUseCasesTest {
 
   @Test
   void cooksARecipeAndResumesTheActiveSession() {
-    CookingSession session = start.start(juan, household.id(), RICE_BOWL, 4);
+    CookingSession session = start.start(juan, household.id(), RICE_BOWL, 4, Optional.empty());
 
     assertEquals(Grams.of(300), session.recipe().requirements().getFirst().grams());
     assertEquals(session.id(), resume.active(guest, household.id()).orElseThrow().id());
@@ -87,29 +93,32 @@ class CookingSessionUseCasesTest {
 
     assertEquals(SessionPhase.FINISHED, finished.phase());
     assertTrue(resume.active(juan, household.id()).isEmpty());
-    assertEquals(SessionPhase.PREPARING, start.start(juan, household.id(), RICE_BOWL, 2).phase());
+    assertEquals(
+        SessionPhase.PREPARING,
+        start.start(juan, household.id(), RICE_BOWL, 2, Optional.empty()).phase());
   }
 
   @Test
   void onlyOneActiveSessionPerHousehold() {
-    CookingSession first = start.start(juan, household.id(), RICE_BOWL, 2);
+    CookingSession first = start.start(juan, household.id(), RICE_BOWL, 2, Optional.empty());
 
     SessionAlreadyActiveException conflict =
         assertThrows(
             SessionAlreadyActiveException.class,
-            () -> start.start(juan, household.id(), RICE_BOWL, 2));
+            () -> start.start(juan, household.id(), RICE_BOWL, 2, Optional.empty()));
     assertEquals(first.id(), conflict.active());
 
     advance.apply(juan, household.id(), first.id(), SessionAction.ABANDON);
-    start.start(juan, household.id(), RICE_BOWL, 2);
+    start.start(juan, household.id(), RICE_BOWL, 2, Optional.empty());
   }
 
   @Test
   void guestsWatchButDoNotCookAndStrangersSeeNothing() {
-    CookingSession session = start.start(juan, household.id(), RICE_BOWL, 2);
+    CookingSession session = start.start(juan, household.id(), RICE_BOWL, 2, Optional.empty());
 
     assertThrows(
-        AccessDeniedException.class, () -> start.start(guest, household.id(), RICE_BOWL, 2));
+        AccessDeniedException.class,
+        () -> start.start(guest, household.id(), RICE_BOWL, 2, Optional.empty()));
     assertThrows(
         AccessDeniedException.class,
         () -> advance.apply(guest, household.id(), session.id(), SessionAction.NEXT));
@@ -120,7 +129,7 @@ class CookingSessionUseCasesTest {
 
   @Test
   void rejectsUnknownSessionsAndIllegalTransitions() {
-    CookingSession session = start.start(juan, household.id(), RICE_BOWL, 2);
+    CookingSession session = start.start(juan, household.id(), RICE_BOWL, 2, Optional.empty());
     CookingSessionId unknown = CookingSessionId.newId();
 
     assertThrows(

@@ -80,6 +80,13 @@ class CookingSessionIntegrationTest {
 
     mvc.perform(get(sessions + "/active").header("Authorization", juan))
         .andExpect(status().isNoContent());
+    send(
+            sessions,
+            juan,
+            RICE_BOWL.replace(
+                "\"targetServings\":4",
+                "\"targetServings\":4,\"scaleId\":\"" + UUID.randomUUID() + "\""))
+        .andExpect(status().isNotFound());
     String created =
         body(
             send(sessions, juan, RICE_BOWL)

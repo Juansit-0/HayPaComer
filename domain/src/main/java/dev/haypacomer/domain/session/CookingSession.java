@@ -1,5 +1,6 @@
 package dev.haypacomer.domain.session;
 
+import dev.haypacomer.domain.device.DeviceId;
 import dev.haypacomer.domain.household.HouseholdId;
 import dev.haypacomer.domain.identity.UserId;
 import dev.haypacomer.domain.recipe.Recipe;
@@ -20,6 +21,7 @@ public final class CookingSession {
   private final List<StepCompletion> completions;
   private SessionState state;
   private Instant updatedAt;
+  private DeviceId scale;
 
   private CookingSession(
       CookingSessionId id,
@@ -29,7 +31,8 @@ public final class CookingSession {
       Instant startedAt,
       SessionState state,
       Instant updatedAt,
-      List<StepCompletion> completions) {
+      List<StepCompletion> completions,
+      DeviceId scale) {
     this.id = Objects.requireNonNull(id, "id");
     this.household = Objects.requireNonNull(household, "household");
     this.recipe = Objects.requireNonNull(recipe, "recipe");
@@ -38,6 +41,7 @@ public final class CookingSession {
     this.state = Objects.requireNonNull(state, "state");
     this.updatedAt = Objects.requireNonNull(updatedAt, "updatedAt");
     this.completions = new ArrayList<>(completions);
+    this.scale = scale;
     if (state.currentStep() > recipe.steps().size()) {
       throw new IllegalArgumentException("Step " + state.currentStep() + " is beyond the recipe");
     }
@@ -53,7 +57,8 @@ public final class CookingSession {
         at,
         new Preparing(),
         at,
-        List.of());
+        List.of(),
+        null);
   }
 
   public static CookingSession restore(
@@ -64,9 +69,10 @@ public final class CookingSession {
       Instant startedAt,
       SessionState state,
       Instant updatedAt,
-      List<StepCompletion> completions) {
+      List<StepCompletion> completions,
+      DeviceId scale) {
     return new CookingSession(
-        id, household, recipe, startedBy, startedAt, state, updatedAt, completions);
+        id, household, recipe, startedBy, startedAt, state, updatedAt, completions, scale);
   }
 
   public CookingSessionId id() {
@@ -103,6 +109,18 @@ public final class CookingSession {
 
   public int currentStep() {
     return state.currentStep();
+  }
+
+  public Optional<DeviceId> scale() {
+    return Optional.ofNullable(scale);
+  }
+
+  public void useScale(DeviceId device) {
+    Objects.requireNonNull(device, "device");
+    if (!phase().active()) {
+      throw new IllegalSessionTransitionException(phase(), "attach a scale to");
+    }
+    scale = device;
   }
 
   public Optional<RecipeStep> step() {

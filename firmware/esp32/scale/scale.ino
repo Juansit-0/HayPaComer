@@ -220,6 +220,14 @@ void play(const char* pattern) {
   } else if (strcmp(pattern, "COLD_CHAIN_ALARM") == 0) {
     setLed(true, false, true);
     delay(400);
+  } else if (strcmp(pattern, "TIMER_DONE_BEEP") == 0) {
+    setLed(false, false, true);
+    for (int beep = 0; beep < 3; beep++) {
+      digitalWrite(BUZZER_PIN, HIGH);
+      delay(150);
+      digitalWrite(BUZZER_PIN, LOW);
+      delay(150);
+    }
   }
   setLed(false, false, false);
 }

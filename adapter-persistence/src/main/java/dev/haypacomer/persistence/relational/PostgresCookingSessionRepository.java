@@ -1,6 +1,7 @@
 package dev.haypacomer.persistence.relational;
 
 import dev.haypacomer.application.port.CookingSessionRepository;
+import dev.haypacomer.domain.device.DeviceId;
 import dev.haypacomer.domain.food.FoodMetadata;
 import dev.haypacomer.domain.household.HouseholdId;
 import dev.haypacomer.domain.identity.UserId;
@@ -33,7 +34,7 @@ public class PostgresCookingSessionRepository implements CookingSessionRepositor
 
   private static final String SELECT =
       "SELECT id, household_id, started_by, recipe::text AS recipe, state, current_step,"
-          + " started_at, state_since, updated_at FROM cooking_sessions";
+          + " started_at, state_since, updated_at, scale_device_id FROM cooking_sessions";
 
   private final JdbcClient jdbc;
   private final TransactionTemplate transaction;
@@ -78,7 +79,8 @@ public class PostgresCookingSessionRepository implements CookingSessionRepositor
                     Optional.ofNullable(row.getObject("state_since", OffsetDateTime.class))
                         .map(OffsetDateTime::toInstant)
                         .orElse(null),
-                    Timestamps.read(row, "updated_at")))
+                    Timestamps.read(row, "updated_at"),
+                    row.getObject("scale_device_id", UUID.class)))
         .optional()
         .map(this::toSession);
   }
@@ -104,7 +106,8 @@ public class PostgresCookingSessionRepository implements CookingSessionRepositor
         row.startedAt(),
         state(row.phase(), row.currentStep(), row.stateSince()),
         row.updatedAt(),
-        completions);
+        completions,
+        row.scale() == null ? null : new DeviceId(row.scale()));
   }
 
   private static SessionState state(SessionPhase phase, int step, Instant since) {
@@ -133,14 +136,15 @@ public class PostgresCookingSessionRepository implements CookingSessionRepositor
             """
             INSERT INTO cooking_sessions (id, household_id, started_by, recipe, state,
                                           current_step, servings, started_at, state_since,
-                                          updated_at)
+                                          updated_at, scale_device_id)
             VALUES (:id, :household, :startedBy, :recipe::jsonb, :state, :step, :servings,
-                    :startedAt, :since, :updatedAt)
+                    :startedAt, :since, :updatedAt, :scale)
             ON CONFLICT (id) DO UPDATE SET
                 state = EXCLUDED.state,
                 current_step = EXCLUDED.current_step,
                 state_since = EXCLUDED.state_since,
-                updated_at = EXCLUDED.updated_at
+                updated_at = EXCLUDED.updated_at,
+                scale_device_id = EXCLUDED.scale_device_id
             """)
         .param("id", session.id().value())
         .param("household", session.household().value())
@@ -155,6 +159,7 @@ public class PostgresCookingSessionRepository implements CookingSessionRepositor
             since == null ? null : Timestamps.toDatabase(since),
             Types.TIMESTAMP_WITH_TIMEZONE)
         .param("updatedAt", Timestamps.toDatabase(session.updatedAt()))
+        .param("scale", session.scale().map(DeviceId::value).orElse(null), Types.OTHER)
         .update();
     for (StepCompletion completion : session.completions()) {
       jdbc.sql(
@@ -179,5 +184,6 @@ public class PostgresCookingSessionRepository implements CookingSessionRepositor
       int currentStep,
       Instant startedAt,
       Instant stateSince,
-      Instant updatedAt) {}
+      Instant updatedAt,
+      UUID scale) {}
 }
