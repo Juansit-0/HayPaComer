@@ -15,7 +15,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 | F3 | Door and temperature sensors | 8 | done |
 | F4 | HX711 scale | 5 | done |
 | F5 | Quantities, substitutions, and guided cooking | 8 | done |
-| F6 | AI, web, and agent | 21 | pending |
+| F6 | AI, web, and agent | 21 | in progress |
 | F7 | Analytics, robustness, and demo | 16 | pending |
 
 ## F0 detail
@@ -102,11 +102,12 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 
 ## F6 detail
 
+- [x] 56. offline rule engine
 - [x] 61. 7-day weekly plan with rescue-first strategy
 
 ## F6 assignments
 
-- Steps 61, 62, and 63 (planning) belong to Jenifer Urbano (`Jenifrutica`), from her own account; guides in [`docs/tasks/`](tasks/README.md).
+- Steps 61, 62, and 63 (planning) belong to Jenifer Urbano (`Jenifrutica`); guides in [`docs/tasks/`](tasks/README.md).
 - The remaining F6 steps stay with the owner.
 
 ## Notes

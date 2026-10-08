@@ -13,4 +13,16 @@
   <artifactId>adapter-ai</artifactId>
   <name>HayPaComer - adapter-ai</name>
   <description>Offline rule engine and Gemini / OpenAI-compatible adapters with validated JSON</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>dev.haypacomer</groupId>
+      <artifactId>application</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 </project>
