@@ -132,7 +132,7 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 
 | Method | Path | Access | Purpose |
 |---|---|---|---|
-| POST, GET | `/households/{h}/recipes` | member, guest | Create, list recipes |
+| POST, GET | `/households/{h}/recipes` | member, guest | Save a household recipe (requirements with grams or quantity, steps with optional timer and weighing) and list them by name |
 | GET, PATCH, DELETE | `/recipes/{id}` | guest, member, member | Recipe detail, update, delete |
 | POST | `/recipes/{id}/clone` | member | Clone template (prototype) |
 | POST | `/recipes/{id}/scale` | guest | Rescale portions |
@@ -172,9 +172,9 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 | DELETE | `/households/{h}/market-list/items/{id}` | member | Remove |
 | DELETE | `/households/{h}/market-list/checked` | member | Clear bought items |
 | POST | `/households/{h}/market-list/from-plan` | member | Add plan delta |
-| POST | `/households/{h}/weekly-plans` | member | Generate 7-day rescue-first plan |
-| GET | `/households/{h}/weekly-plans/current` | guest | Current plan |
-| PATCH | `/plan-entries/{id}` | member | Change an entry |
+| POST | `/households/{h}/weekly-plans` | member | Generate a 7-day lunch and dinner plan starting today from the saved recipes: food about to expire first, only dishes every diner can eat, no repeat on consecutive days, and `needsShopping` where the fridge falls short; optional `servings` and `diners`; replaces the plan of the same week |
+| GET | `/households/{h}/weekly-plans/current` | guest | Plan that covers today with each entry's date; 404 when there is none |
+| PATCH | `/households/{h}/plan-entries/{id}` | member | Change the recipe and servings of an entry; `needsShopping` is checked again against the fridge |
 | POST | `/weekly-plans/{id}/clone` | member | Clone plan (prototype) |
 
 ## Notifications and analytics
