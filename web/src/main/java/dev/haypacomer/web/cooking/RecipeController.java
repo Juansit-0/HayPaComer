@@ -61,7 +61,7 @@ public class RecipeController {
                         new RecipeRequirement(
                             food(requirement.food()),
                             Grams.of(requirement.grams()),
-                            requirement.optional()))
+                            Boolean.TRUE.equals(requirement.optional())))
                 .toList(),
             List.of());
     Map<String, List<String>> allowed =
@@ -88,7 +88,7 @@ public class RecipeController {
   record RequirementRequest(
       @NotBlank String food,
       @NotNull @DecimalMin(value = "0", inclusive = false) BigDecimal grams,
-      boolean optional) {}
+      Boolean optional) {}
 
   record EvaluateRequest(
       @NotBlank String name,
