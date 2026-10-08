@@ -27,6 +27,7 @@ import dev.haypacomer.application.port.HouseholdRepository;
 import dev.haypacomer.application.port.InventoryMovementLog;
 import dev.haypacomer.application.port.SnapshotStore;
 import dev.haypacomer.application.port.UnitOfWork;
+import dev.haypacomer.application.quantity.InterpretQuantity;
 import dev.haypacomer.domain.inventory.FreshnessPolicy;
 import dev.haypacomer.domain.sensor.FridgeThresholds;
 import java.time.Clock;
@@ -189,5 +190,10 @@ public class KitchenConfiguration {
       ViewInventory viewInventory,
       Clock clock) {
     return new HayPaComerFacade(getHousehold, setUpFridge, listFridges, viewInventory, clock);
+  }
+
+  @Bean
+  InterpretQuantity interpretQuantity(FoodCatalogRepository catalog) {
+    return new InterpretQuantity(catalog);
   }
 }

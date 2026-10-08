@@ -92,6 +92,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 ## F5 detail
 
 - [x] 48. enough/reduce/substitute/missing evaluator (strategy)
+- [x] 49. quantity and unit interpreter
 
 ## Notes
 

@@ -18,6 +18,8 @@ import dev.haypacomer.application.inventory.SnapshotNotFoundException;
 import dev.haypacomer.application.scale.NoRecentSampleException;
 import dev.haypacomer.application.sensor.MalformedSensorPayloadException;
 import dev.haypacomer.domain.household.AccessDeniedException;
+import dev.haypacomer.domain.quantity.InvalidQuantityException;
+import dev.haypacomer.domain.quantity.UnconvertibleQuantityException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -94,6 +96,17 @@ public class ApiExceptionHandler {
   @ExceptionHandler(FoodNotInCatalogException.class)
   ProblemDetail foodNotInCatalog(FoodNotInCatalogException exception) {
     return problem(HttpStatus.UNPROCESSABLE_CONTENT, "Unknown food", exception.getMessage());
+  }
+
+  @ExceptionHandler(InvalidQuantityException.class)
+  ProblemDetail invalidQuantity(InvalidQuantityException exception) {
+    return problem(HttpStatus.UNPROCESSABLE_CONTENT, "Unreadable quantity", exception.getMessage());
+  }
+
+  @ExceptionHandler(UnconvertibleQuantityException.class)
+  ProblemDetail unconvertibleQuantity(UnconvertibleQuantityException exception) {
+    return problem(
+        HttpStatus.UNPROCESSABLE_CONTENT, "Quantity cannot be weighed", exception.getMessage());
   }
 
   @ExceptionHandler(NothingToUndoException.class)
