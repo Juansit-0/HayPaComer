@@ -132,6 +132,16 @@ class PlanningIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"recipeId\":\"" + UUID.randomUUID() + "\",\"servings\":2}"))
         .andExpect(status().isNotFound());
+    String delta =
+        body(
+            send(base + "/market-list/from-plan", juan, "")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].food").value("Lentils"))
+                .andExpect(jsonPath("$[0].availableGrams").value(0.0)));
+    double lentils = JsonPath.<Double>read(delta, "$[0].neededGrams");
+    send(base + "/market-list/from-plan", juan, "")
+        .andExpect(jsonPath("$[0].addedGrams").value(0.0))
+        .andExpect(jsonPath("$[0].pendingGrams").value(lentils));
     String templates =
         body(
             mvc.perform(get("/api/v1/recipe-templates").header("Authorization", juan))

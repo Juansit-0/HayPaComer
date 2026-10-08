@@ -2,6 +2,7 @@ package dev.haypacomer.web.planning;
 
 import dev.haypacomer.application.cooking.EvaluateRecipe;
 import dev.haypacomer.application.inventory.ViewInventory;
+import dev.haypacomer.application.planning.AddPlanDeltaToMarketList;
 import dev.haypacomer.application.planning.ChangePlanEntry;
 import dev.haypacomer.application.planning.CloneRecipe;
 import dev.haypacomer.application.planning.CloneWeeklyPlan;
@@ -12,6 +13,7 @@ import dev.haypacomer.application.planning.SaveRecipe;
 import dev.haypacomer.application.planning.ViewCurrentPlan;
 import dev.haypacomer.application.port.FoodProfileRepository;
 import dev.haypacomer.application.port.HouseholdRepository;
+import dev.haypacomer.application.port.MarketListRepository;
 import dev.haypacomer.application.port.RecipeRepository;
 import dev.haypacomer.application.port.RecipeTemplateRepository;
 import dev.haypacomer.application.port.WeeklyPlanRepository;
@@ -61,6 +63,16 @@ public class PlanningConfiguration {
   @Bean
   CloneWeeklyPlan cloneWeeklyPlan(HouseholdRepository households, WeeklyPlanRepository plans) {
     return new CloneWeeklyPlan(households, plans);
+  }
+
+  @Bean
+  AddPlanDeltaToMarketList addPlanDeltaToMarketList(
+      HouseholdRepository households,
+      WeeklyPlanRepository plans,
+      ViewInventory inventory,
+      MarketListRepository lists,
+      Clock clock) {
+    return new AddPlanDeltaToMarketList(households, plans, inventory, lists, clock);
   }
 
   @Bean
