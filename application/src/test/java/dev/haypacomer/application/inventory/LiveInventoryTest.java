@@ -11,6 +11,9 @@ import dev.haypacomer.application.fridge.SetUpFridge;
 import dev.haypacomer.application.inventory.ChangeFoodOwnership.Grant;
 import dev.haypacomer.application.inventory.ChangeFoodOwnership.Revoke;
 import dev.haypacomer.application.inventory.ChangeFoodOwnership.SetVisibility;
+import dev.haypacomer.application.live.BroadcastLiveUpdate;
+import dev.haypacomer.application.live.LiveUpdate;
+import dev.haypacomer.application.live.LiveUpdateKind;
 import dev.haypacomer.application.support.InMemoryColdChainRepository;
 import dev.haypacomer.application.support.InMemoryFridgeRepository;
 import dev.haypacomer.application.support.InMemoryHouseholdRepository;
@@ -43,6 +46,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Currency;
 import java.util.List;
 import java.util.Set;
@@ -111,6 +115,7 @@ class LiveInventoryTest {
             stores.audit,
             stores.unitOfWork,
             new InMemorySnapshotStore(),
+            new BroadcastLiveUpdate(List.of(live::add)),
             clock);
     changeOwnership =
         new ChangeFoodOwnership(households, fridges, stores.ownerships, stores.movements);
@@ -122,6 +127,8 @@ class LiveInventoryTest {
             new InMemoryColdChainRepository(),
             FreshnessPolicy.DEFAULT);
   }
+
+  private final List<LiveUpdate> live = new ArrayList<>();
 
   private FoodItem stock(UserId actor, String food, long gross, long tare, Visibility visibility) {
     CommandOutcome outcome =
@@ -307,5 +314,24 @@ class LiveInventoryTest {
     assertEquals(Grams.ZERO, forAna.getLast().food().item().quantity());
     assertTrue(forJuan.stream().allMatch(InventoryEntry::usable));
     assertTrue(forJuan.stream().anyMatch(entry -> entry.food().item().name().equals("Yogurt")));
+  }
+
+  @Test
+  void everyRealChangeIsBroadcastLiveButReplaysAreNot() {
+    FoodItem milk = stock(juan, "Milk", 892, 50, null);
+    UUID command = UUID.randomUUID();
+    commands.execute(
+        juan,
+        new ConsumeFoodCommand(
+            command, household.id(), milk.id(), Grams.of(200), MovementSource.MANUAL));
+    commands.execute(
+        juan,
+        new ConsumeFoodCommand(
+            command, household.id(), milk.id(), Grams.of(200), MovementSource.MANUAL));
+
+    assertEquals(2, live.size());
+    assertEquals(LiveUpdateKind.INVENTORY, live.getLast().kind());
+    assertEquals(household.id(), live.getLast().household());
+    assertTrue(live.getLast().detail().endsWith("642.00 g left"));
   }
 }

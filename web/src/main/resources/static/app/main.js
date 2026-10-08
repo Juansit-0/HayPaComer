@@ -2,6 +2,7 @@ import { api, session } from "./api.js";
 import { chooseHousehold, householdLabel, renderSignIn } from "./auth.js";
 import { renderFridge } from "./fridge.js";
 import { renderMarket } from "./market.js";
+import { connectLive, disconnectLive } from "./live.js";
 import { renderNow } from "./now.js";
 import { errorText } from "./ui.js";
 
@@ -40,6 +41,7 @@ async function render() {
   }
   tabs.hidden = false;
   sessionBar.hidden = false;
+  connectLive(household.id);
   document.querySelector("[data-household]").innerHTML = householdLabel(household);
   const route = current();
   tabs.querySelectorAll("a").forEach((link) => {
@@ -61,7 +63,17 @@ window.addEventListener("hashchange", async () => {
   main.focus({ preventScroll: true });
 });
 
+window.addEventListener("hpc:live-state", (event) => {
+  document.querySelector("[data-live]").dataset.state = event.detail;
+  document.querySelector("[data-live]").textContent = event.detail === "on" ? "Live" : "Reconnecting";
+});
+
+window.addEventListener("hpc:live", (event) => {
+  if (event.detail.kind === "alert") refreshInbox();
+});
+
 window.addEventListener("hpc:signed-out", () => {
+  disconnectLive();
   household = null;
   render();
 });
@@ -69,6 +81,7 @@ window.addEventListener("hpc:signed-out", () => {
 document.querySelector("[data-signout]").addEventListener("click", async () => {
   const refreshToken = session.refresh;
   session.clear();
+  disconnectLive();
   household = null;
   if (refreshToken) {
     await api("/auth/logout", { method: "POST", body: { refreshToken }, auth: false }).catch(() => null);

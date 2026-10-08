@@ -1,7 +1,15 @@
 import { api } from "./api.js";
+import { liveFeed } from "./live.js";
 import { esc, grams, showError, statusPill, toast, whenText } from "./ui.js";
 
 const URGENT = ["EXPIRED", "UNDER_REVIEW", "AT_RISK", "LEFTOVER"];
+const LABELS = { inventory: "Stock", sensor: "Sensor", alert: "Alert" };
+const ACTIONS = { STOCK_FOOD: "Food added", CONSUME_FOOD: "Food used", DISCARD_FOOD: "Food thrown away" };
+const sentence = (text) => {
+  const stock = text.match(/^([A-Z_]+) ([\d.]+) g left$/);
+  if (stock) return `${ACTIONS[stock[1]] ?? "Stock changed"}, ${grams(stock[2])} left`;
+  return text.charAt(0).toUpperCase() + text.slice(1).replace(/ C$/, "\u2009°C");
+};
 
 function candidate(recipe) {
   return {
@@ -82,6 +90,14 @@ export async function renderNow(main, household) {
       </div>
     </section>
 
+    <section class="stack" aria-labelledby="live-title">
+      <div>
+        <h2 id="live-title">Happening now</h2>
+        <p class="lead">Door, temperature, and stock changes appear here as they happen.</p>
+      </div>
+      <ul class="list feed" data-feed aria-live="polite"></ul>
+    </section>
+
     <section class="stack" aria-labelledby="cook-title">
       <div>
         <h2 id="cook-title">Cook now</h2>
@@ -102,6 +118,30 @@ export async function renderNow(main, household) {
           : ""
       }
     </section>`;
+
+  const feed = main.querySelector("[data-feed]");
+  const drawFeed = () => {
+    const events = liveFeed();
+    feed.innerHTML = events.length
+      ? events
+          .map(
+            (event) => `<li>
+              <div class="item-meta"><span class="status ${event.kind === "alert" ? "attention" : "quiet"}">${esc(LABELS[event.kind] ?? event.kind)}</span><span>${esc(sentence(event.detail))}</span></div>
+              <time class="data" datetime="${esc(event.at)}">${new Date(event.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</time>
+            </li>`,
+          )
+          .join("")
+      : `<li><span class="lead">Quiet for now. Open the fridge door or use some food to see it here.</span></li>`;
+  };
+  drawFeed();
+  const onLive = () => {
+    if (!document.body.contains(feed)) {
+      window.removeEventListener("hpc:live", onLive);
+      return;
+    }
+    drawFeed();
+  };
+  window.addEventListener("hpc:live", onLive);
 
   main.querySelector("[data-consume]")?.addEventListener("submit", async (event) => {
     event.preventDefault();

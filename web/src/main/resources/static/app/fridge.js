@@ -3,8 +3,23 @@ import { esc, foodOptions, formData, grams, showError, statusPill, toast, whenTe
 
 let selectedTray = null;
 
-function cabinet(fridge) {
-  return `<div class="cabinet" role="group" aria-label="${esc(fridge.name)}">${fridge.children
+function twinLine(twin) {
+  const door =
+    twin.doorOpen === null || twin.doorOpen === undefined
+      ? `<span class="status quiet">Door unknown</span>`
+      : twin.doorOpen
+        ? `<span class="status attention">Door open</span>`
+        : `<span class="status">Door closed</span>`;
+  const cold =
+    twin.celsius === null || twin.celsius === undefined
+      ? `<span class="lead">No temperature yet</span>`
+      : `<span class="data">${Number(twin.celsius).toFixed(1)}\u2009°C</span>`;
+  return `<div class="twin" data-twin="${esc(twin.fridgeId)}">${door}${cold}</div>`;
+}
+
+function cabinet(fridge, twin) {
+  return `<div class="cabinet-head"><h2>${esc(fridge.name)}</h2>${twinLine(twin)}</div>
+  <div class="cabinet" role="group" aria-label="${esc(fridge.name)}">${fridge.children
     .map(
       (zone) => `<div class="zone">
         <div class="zone-head"><span>${esc(zone.name)}</span><span class="data">${grams(zone.grams)}</span></div>
@@ -68,6 +83,7 @@ function trayDetail(tray, items) {
 export async function renderFridge(main, household) {
   const base = `/households/${household.id}`;
   const [fridges, inventory] = await Promise.all([api(`${base}/fridges`), api(`${base}/inventory`)]);
+  const twins = await Promise.all(fridges.map((fridge) => api(`${base}/fridges/${fridge.id}/twin`)));
 
   if (fridges.length === 0) {
     main.innerHTML = `<section class="empty" aria-labelledby="fridge-title">
@@ -106,9 +122,26 @@ export async function renderFridge(main, household) {
       <p class="lead"><span class="data">${grams(total)}</span> of measured food. Pick a shelf to see and change what is on it.</p>
     </div>
     <div class="fridge-layout">
-      <div class="stack">${fridges.map(cabinet).join("")}</div>
+      <div class="stack">${fridges.map((fridge, index) => cabinet(fridge, twins[index])).join("")}</div>
       ${tray ? trayDetail(tray, inventory.filter((item) => item.trayId === tray.id)) : ""}
     </div>`;
+
+  const shown = main.querySelector(".fridge-layout");
+  let pending;
+  const onLive = (event) => {
+    if (!document.body.contains(shown)) {
+      window.removeEventListener("hpc:live", onLive);
+      return;
+    }
+    if (event.detail.kind === "alert") return;
+    if (main.querySelector("form :focus")) return;
+    clearTimeout(pending);
+    pending = setTimeout(() => {
+      window.removeEventListener("hpc:live", onLive);
+      renderFridge(main, household);
+    }, 400);
+  };
+  window.addEventListener("hpc:live", onLive);
 
   main.querySelectorAll("[data-tray]").forEach((button) =>
     button.addEventListener("click", () => {
