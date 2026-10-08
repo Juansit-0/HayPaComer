@@ -1,6 +1,7 @@
 package dev.haypacomer.web.kitchen;
 
 import dev.haypacomer.application.HayPaComerFacade;
+import dev.haypacomer.application.ai.SuggestDishes;
 import dev.haypacomer.application.audit.ListActivity;
 import dev.haypacomer.application.coldchain.ListColdChains;
 import dev.haypacomer.application.coldchain.ReviewColdChain;
@@ -19,6 +20,7 @@ import dev.haypacomer.application.inventory.TakeSnapshot;
 import dev.haypacomer.application.inventory.UndoLastChange;
 import dev.haypacomer.application.inventory.ViewInventory;
 import dev.haypacomer.application.market.AddMissingToMarketList;
+import dev.haypacomer.application.port.AiRateLimiter;
 import dev.haypacomer.application.port.AuditLog;
 import dev.haypacomer.application.port.ColdChainRepository;
 import dev.haypacomer.application.port.CookingSessionRepository;
@@ -29,6 +31,7 @@ import dev.haypacomer.application.port.FoodProfileRepository;
 import dev.haypacomer.application.port.FridgeRepository;
 import dev.haypacomer.application.port.HouseholdRepository;
 import dev.haypacomer.application.port.InventoryMovementLog;
+import dev.haypacomer.application.port.KitchenAdvisor;
 import dev.haypacomer.application.port.MarketListRepository;
 import dev.haypacomer.application.port.ScaleSessionStore;
 import dev.haypacomer.application.port.SnapshotStore;
@@ -92,6 +95,19 @@ public class KitchenConfiguration {
       SubstitutionRuleRepository rules,
       Clock clock) {
     return new EvaluateRecipe(households, viewInventory, profiles, rules, clock);
+  }
+
+  @Bean
+  SuggestDishes suggestDishes(
+      HouseholdRepository households,
+      ViewInventory viewInventory,
+      FoodProfileRepository profiles,
+      SubstitutionRuleRepository rules,
+      KitchenAdvisor advisor,
+      AiRateLimiter rateLimiter,
+      Clock clock) {
+    return new SuggestDishes(
+        households, viewInventory, profiles, rules, advisor, rateLimiter, clock);
   }
 
   @Bean
