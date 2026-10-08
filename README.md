@@ -43,6 +43,7 @@ mvn -pl web -am spring-boot:run
 - [`brand/brand-book.md`](brand/brand-book.md) - brand guide, strategy, voice, and tokens
 - [`docs/`](docs) - architecture, data model, REST API, patterns, responsible AI, agent, event protocol, firmware, ADRs
 - [`docs/proposal/`](docs/proposal) - original proposal (LaTeX + PDF)
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) - setup, rules, and the pull request workflow for teammates; task guides in [`docs/tasks/`](docs/tasks/README.md)
 
 ## Demo promise
 
