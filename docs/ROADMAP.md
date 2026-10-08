@@ -95,6 +95,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 49. quantity and unit interpreter
 - [x] 50. substitutions with proportion, limits, and allergies
 - [x] 51. cooking session with states and resume (state)
+- [x] 52. session, scale, and timer mediator
 
 ## Notes
 

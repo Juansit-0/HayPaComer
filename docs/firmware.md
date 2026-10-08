@@ -22,7 +22,7 @@ ESP32 sketches that speak the event protocol (`docs/event-protocol.md`) with the
 |---|---|---|
 | HX711 DOUT | GPIO 32 | Raw counts sampled at 10 Hz, median of the last 5 samples |
 | HX711 SCK | GPIO 33 | Clock |
-| Buzzer, RGB LED | GPIO 14, 25, 26, 27 | Short beep and green blink on `WEIGHT_CONFIRMED_BLINK` |
+| Buzzer, RGB LED | GPIO 14, 25, 26, 27 | Short beep and green blink on `WEIGHT_CONFIRMED_BLINK`; three beeps and blue light on `TIMER_DONE_BEEP` when a cooking step timer ends |
 
 - The sketch sends `RAW_WEIGHT` envelopes with raw counts; tare, calibration, conversion to grams, and fridge or cooking mode live in the backend, so recalibrating never needs a reflash.
 - A reading is stable after 1 s within 800 counts (about 2 g at 428 counts per gram); a new stable value that moved at least 2000 counts is sent at once, and a heartbeat every 5 s keeps the backend sample fresh for tare and calibration.

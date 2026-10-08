@@ -148,7 +148,7 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 
 | Method | Path | Access | Purpose |
 |---|---|---|---|
-| POST | `/households/{h}/cooking-sessions` | member | Start a session (PREPARING) for an inline recipe with steps (instruction, optional `timerSeconds`, optional `weigh` food with grams or quantity) scaled to `targetServings`; 409 with `activeSessionId` while another session is active |
+| POST | `/households/{h}/cooking-sessions` | member | Start a session (PREPARING) for an inline recipe with steps (instruction, optional `timerSeconds`, optional `weigh` food with grams or quantity) scaled to `targetServings`, optional `scaleId` of a household scale that the session drives; 409 with `activeSessionId` while another session is active |
 | GET | `/households/{h}/cooking-sessions/active` | guest | Resume: the active session with its current step, or 204 |
 | GET | `/households/{h}/cooking-sessions/{id}` | guest | Current state, step, all steps, and completed steps |
 | POST | `/households/{h}/cooking-sessions/{id}/next` | member | PREPARING to step 1, next step, or FINISHED after the last; 409 when paused or over |

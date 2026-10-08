@@ -5,6 +5,7 @@ import dev.haypacomer.application.session.ResumeCookingSession;
 import dev.haypacomer.application.session.SessionAction;
 import dev.haypacomer.application.session.StartCookingSession;
 import dev.haypacomer.application.session.ViewCookingSession;
+import dev.haypacomer.domain.device.DeviceId;
 import dev.haypacomer.domain.household.HouseholdId;
 import dev.haypacomer.domain.recipe.RecipeStep;
 import dev.haypacomer.domain.session.CookingSession;
@@ -21,6 +22,7 @@ import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -73,7 +75,8 @@ public class CookingSessionController {
                 request.minutes(),
                 request.requirements(),
                 request.steps()),
-            request.targetServings()));
+            request.targetServings(),
+            Optional.ofNullable(request.scaleId()).map(DeviceId::new)));
   }
 
   @GetMapping("/active")
@@ -143,7 +146,8 @@ public class CookingSessionController {
       @Min(1) int minutes,
       @NotEmpty List<@Valid RequirementRequest> requirements,
       @Size(max = 50) List<@Valid StepRequest> steps,
-      @Min(1) int targetServings) {}
+      @Min(1) int targetServings,
+      UUID scaleId) {}
 
   record StepResponse(
       int position,
@@ -166,6 +170,7 @@ public class CookingSessionController {
       UUID id,
       String recipe,
       int servings,
+      UUID scaleId,
       SessionPhase phase,
       int currentStep,
       int totalSteps,
@@ -180,6 +185,7 @@ public class CookingSessionController {
           session.id().value(),
           session.recipe().name(),
           session.recipe().servings(),
+          session.scale().map(DeviceId::value).orElse(null),
           session.phase(),
           session.currentStep(),
           session.recipe().steps().size(),

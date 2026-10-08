@@ -7,6 +7,9 @@ import static dev.haypacomer.persistence.relational.PersistenceFixtures.user;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.haypacomer.domain.device.Device;
+import dev.haypacomer.domain.device.DeviceKind;
+import dev.haypacomer.domain.fridge.Fridge;
 import dev.haypacomer.domain.household.Household;
 import dev.haypacomer.domain.identity.User;
 import dev.haypacomer.domain.quantity.Grams;
@@ -56,10 +59,16 @@ class PostgresCookingSessionRepositoryTest extends PostgresTestSupport {
         Household.create(
             "Apartment", Currency.getInstance("COP"), ZoneId.of("UTC"), juan.id(), NOW);
     new PostgresHouseholdRepository(dataSource).save(household);
+    Fridge fridge = Fridge.named("Kitchen");
+    new PostgresFridgeRepository(dataSource).save(household.id(), fridge);
     PostgresCookingSessionRepository sessions = new PostgresCookingSessionRepository(dataSource);
 
     CookingSession session = CookingSession.start(household.id(), OMELETTE, 2, juan.id(), NOW);
     sessions.save(session);
+    Device scale =
+        Device.register(
+            household.id(), fridge.id(), "Scale", DeviceKind.ESP32_SCALE, "0a".repeat(32), NOW);
+    new PostgresDeviceRepository(dataSource).save(scale);
     assertEquals(session.id(), sessions.active(household.id()).orElseThrow().id());
 
     session.next(NOW.plusSeconds(10));
@@ -75,7 +84,9 @@ class PostgresCookingSessionRepositoryTest extends PostgresTestSupport {
         Grams.of(100), loaded.recipe().steps().getFirst().weighingTarget().orElseThrow().target());
     assertEquals(Duration.ofMinutes(4), loaded.step().orElseThrow().timerDuration().orElseThrow());
     assertEquals(juan.id(), loaded.startedBy());
+    assertTrue(loaded.scale().isEmpty());
 
+    loaded.useScale(scale.id());
     loaded.resume(NOW.plusSeconds(90));
     loaded.next(NOW.plusSeconds(300));
     loaded.next(NOW.plusSeconds(360));
@@ -83,6 +94,7 @@ class PostgresCookingSessionRepositoryTest extends PostgresTestSupport {
 
     CookingSession finished = sessions.find(household.id(), session.id()).orElseThrow();
     assertEquals(SessionPhase.FINISHED, finished.phase());
+    assertEquals(scale.id(), finished.scale().orElseThrow());
     assertEquals(3, finished.completions().size());
     assertEquals(NOW.plusSeconds(360), finished.updatedAt());
     assertTrue(sessions.active(household.id()).isEmpty());
