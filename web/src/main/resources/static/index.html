@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HayPaComer</title>
+  <meta name="description" content="What can you cook right now with what is really in your fridge.">
+  <link rel="icon" href="/brand/logo-mark.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Hanken+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="/brand/tokens.css">
+  <link rel="stylesheet" href="/app/app.css">
+  <script type="module" src="/app/main.js"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="bar">
+    <a class="brand" href="#/now" aria-label="HayPaComer, now">
+      <svg class="mark" viewBox="0 0 64 64" aria-hidden="true">
+        <rect x="12" y="10" width="8" height="44" rx="3" fill="currentColor"/>
+        <rect x="44" y="10" width="8" height="44" rx="3" fill="currentColor"/>
+        <path d="M8 32 H56" stroke="var(--color-primary)" stroke-width="6" stroke-linecap="round"/>
+        <circle cx="32" cy="19" r="4" fill="var(--color-primary)"/>
+      </svg>
+      <span class="wordmark">HayPaComer</span>
+    </a>
+    <nav class="tabs" aria-label="Sections" hidden>
+      <a href="#/now" data-tab="now">Now</a>
+      <a href="#/fridge" data-tab="fridge">Fridge</a>
+      <a href="#/market" data-tab="market">Market</a>
+    </nav>
+    <div class="session" hidden>
+      <a class="inbox" href="#/now" data-inbox aria-label="Notifications"></a>
+      <span class="household" data-household></span>
+      <button class="ghost" type="button" data-signout>Sign out</button>
+    </div>
+  </header>
+  <main id="main" tabindex="-1"></main>
+  <div class="toast" role="status" aria-live="polite" data-toast></div>
+</body>
+</html>
