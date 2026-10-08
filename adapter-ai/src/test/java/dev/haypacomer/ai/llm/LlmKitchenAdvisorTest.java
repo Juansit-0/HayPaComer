@@ -12,6 +12,7 @@ import dev.haypacomer.application.ai.StatusExplanation;
 import dev.haypacomer.application.ai.SuggestionRequest;
 import dev.haypacomer.application.ai.Suggestions;
 import dev.haypacomer.application.ai.Urgency;
+import dev.haypacomer.application.port.AiResponseCache;
 import dev.haypacomer.domain.cooking.Availability;
 import dev.haypacomer.domain.food.FoodCategory;
 import dev.haypacomer.domain.food.FoodMetadata;
@@ -28,9 +29,13 @@ import dev.haypacomer.domain.recipe.RecipeId;
 import dev.haypacomer.domain.recipe.RecipeRequirement;
 import dev.haypacomer.domain.recipe.RecipeSource;
 import dev.haypacomer.domain.substitution.SubstitutionCatalog;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
@@ -205,5 +210,45 @@ class LlmKitchenAdvisorTest {
         InvalidAiResponseException.class,
         () ->
             new LlmKitchenAdvisor(new ScriptedClient("{}")).explain(new PlainFood(chicken), TODAY));
+  }
+
+  @Test
+  void cachesOnlyValidatedAnswers() {
+    Map<String, String> stored = new HashMap<>();
+    AiResponseCache cache =
+        new AiResponseCache() {
+          @Override
+          public Optional<String> get(String key) {
+            return Optional.ofNullable(stored.get(key));
+          }
+
+          @Override
+          public void put(String key, String json, Duration timeToLive) {
+            assertEquals(Duration.ofHours(1), timeToLive);
+            stored.put(key, json);
+          }
+        };
+    ScriptedClient client =
+        new ScriptedClient(
+            "{\"action\":\"STOCK\",\"food\":\"soup\",\"confidence\":0.8}", "not json");
+    LlmKitchenAdvisor advisor = new LlmKitchenAdvisor(client, cache, Duration.ofHours(1));
+
+    advisor.parseIntent("save soup", TODAY);
+    advisor.parseIntent("save soup", TODAY);
+    assertEquals(1, client.prompts.size());
+    assertEquals(1, stored.size());
+    assertThrows(InvalidAiResponseException.class, () -> advisor.parseIntent("toss it", TODAY));
+    assertEquals(1, stored.size());
+
+    stored.replaceAll((key, json) -> "{\"action\":\"FLY\"}");
+    ScriptedClient fresh =
+        new ScriptedClient("{\"action\":\"STOCK\",\"food\":\"soup\",\"confidence\":0.8}");
+    assertEquals(
+        "soup",
+        new LlmKitchenAdvisor(fresh, cache, Duration.ofHours(1))
+            .parseIntent("save soup", TODAY)
+            .orElseThrow()
+            .food());
+    assertEquals(1, fresh.prompts.size());
   }
 }
