@@ -13,13 +13,17 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-final class RecipeRanker {
+public final class RecipeRanker {
 
   private static final int RESCUE_POINTS = 100;
   private static final int FULL_SERVINGS_POINTS = 20;
   private static final int MINUTES_PER_PENALTY_POINT = 5;
 
-  List<Suggestion> rank(SuggestionRequest request) {
+  public List<Suggestion> rank(SuggestionRequest request) {
+    return rankAll(request).stream().limit(request.limit()).toList();
+  }
+
+  public List<Suggestion> rankAll(SuggestionRequest request) {
     RescueStrategy strategy =
         new RescueStrategy(request.substitutions(), request.diners(), FlexibleStrategy.standard());
     return request.candidates().stream()
@@ -35,7 +39,6 @@ final class RecipeRanker {
             Comparator.comparingInt(Suggestion::score)
                 .reversed()
                 .thenComparing(suggestion -> suggestion.evaluation().recipe().name()))
-        .limit(request.limit())
         .toList();
   }
 

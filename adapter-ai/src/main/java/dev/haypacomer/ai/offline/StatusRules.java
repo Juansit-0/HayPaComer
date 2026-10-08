@@ -9,9 +9,9 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
-final class StatusRules {
+public final class StatusRules {
 
-  StatusExplanation explain(StockedFood food, LocalDate today) {
+  public StatusExplanation explain(StockedFood food, LocalDate today) {
     String name = food.item().name();
     Optional<LocalDate> expiry = food.item().expiresOn();
     if (food.has(FoodStatus.EXPIRED)) {
