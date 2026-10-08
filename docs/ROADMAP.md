@@ -100,6 +100,11 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 54. automatic missing items to the market list
 - [x] 55. portions, substitutions, and step progression
 
+## F6 assignments
+
+- Steps 61, 62, and 63 (planning) belong to Jenifer Urbano (`Jenifrutica`), from her own account; guides in [`docs/tasks/`](tasks/README.md).
+- The remaining F6 steps stay with the owner.
+
 ## Notes
 
 - Before the public repository exists, steps are local commits on `main`.
