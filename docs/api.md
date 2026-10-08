@@ -135,7 +135,7 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 | GET, PATCH, DELETE | `/recipes/{id}` | guest, member, member | Recipe detail, update, delete |
 | POST | `/recipes/{id}/clone` | member | Clone template (prototype) |
 | POST | `/recipes/{id}/scale` | guest | Rescale portions |
-| POST | `/recipes/{id}/evaluate` | guest | Enough, reduce, substitute, or missing per requirement |
+| POST | `/households/{h}/recipes/evaluate` | guest | Inline recipe plus target servings and strategy (STRICT, FLEXIBLE, RESCUE with allowed substitutes) evaluated against the usable inventory: ENOUGH, REDUCE, SUBSTITUTE, or MISSING per requirement |
 | POST | `/households/{h}/suggestions` | guest | Cook now: minutes, people, equipment -> up to three options with evidence |
 | POST | `/households/{h}/rescue` | guest | Rescue mode suggestions |
 | POST | `/suggestions/{id}/accept` | member | Accept suggestion (household learning) |
