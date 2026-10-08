@@ -7,6 +7,11 @@ spring:
     password: ${POSTGRES_PASSWORD:}
   flyway:
     locations: classpath:db/migration
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
   mvc:
     problemdetails:
       enabled: true
@@ -49,3 +54,14 @@ haypacomer:
   notifications:
     telegram:
       bot-token: ${TELEGRAM_BOT_TOKEN:}
+  ai:
+    provider: ${AI_PROVIDER:offline}
+    timeout: 10s
+    cache-time-to-live: 1h
+    gemini:
+      api-key: ${GEMINI_API_KEY:}
+      model: ${GEMINI_MODEL:gemini-2.5-flash}
+    openai-compatible:
+      base-url: ${OPENAI_COMPATIBLE_BASE_URL:}
+      api-key: ${OPENAI_COMPATIBLE_API_KEY:}
+      model: ${OPENAI_COMPATIBLE_MODEL:gpt-4o-mini}

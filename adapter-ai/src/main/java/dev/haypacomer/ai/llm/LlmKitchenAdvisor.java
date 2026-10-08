@@ -8,16 +8,22 @@ import dev.haypacomer.application.ai.StatusExplanation;
 import dev.haypacomer.application.ai.Suggestion;
 import dev.haypacomer.application.ai.SuggestionRequest;
 import dev.haypacomer.application.ai.Suggestions;
+import dev.haypacomer.application.port.AiResponseCache;
 import dev.haypacomer.application.port.KitchenAdvisor;
 import dev.haypacomer.domain.food.FoodMetadata;
 import dev.haypacomer.domain.inventory.StockedFood;
 import dev.haypacomer.domain.quantity.InvalidQuantityException;
 import dev.haypacomer.domain.quantity.QuantityExpression;
 import dev.haypacomer.domain.quantity.QuantityParser;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -25,6 +31,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import tools.jackson.databind.JsonNode;
 
@@ -38,11 +45,63 @@ public final class LlmKitchenAdvisor implements KitchenAdvisor {
           + " shape. Never invent foods, grams, dates, or safety advice that are not in the input.";
 
   private final LlmClient client;
+  private final AiResponseCache cache;
+  private final Duration cacheFor;
   private final RecipeRanker ranker = new RecipeRanker();
   private final StatusRules status = new StatusRules();
 
   public LlmKitchenAdvisor(LlmClient client) {
+    this(client, NO_CACHE, Duration.ofMinutes(1));
+  }
+
+  public LlmKitchenAdvisor(LlmClient client, AiResponseCache cache, Duration cacheFor) {
     this.client = Objects.requireNonNull(client, "client");
+    this.cache = Objects.requireNonNull(cache, "cache");
+    this.cacheFor = Objects.requireNonNull(cacheFor, "cacheFor");
+  }
+
+  private static final AiResponseCache NO_CACHE =
+      new AiResponseCache() {
+        @Override
+        public Optional<String> get(String key) {
+          return Optional.empty();
+        }
+
+        @Override
+        public void put(String key, String json, Duration timeToLive) {}
+      };
+
+  private <T> T ask(LlmPrompt prompt, Function<JsonNode, T> read) {
+    String key = cacheKey(prompt);
+    Optional<T> cached = cache.get(key).flatMap(json -> readIfValid(json, read));
+    if (cached.isPresent()) {
+      return cached.get();
+    }
+    String json = client.completeJson(prompt);
+    T value = read.apply(JsonContract.object(json));
+    cache.put(key, json, cacheFor);
+    return value;
+  }
+
+  private static <T> Optional<T> readIfValid(String json, Function<JsonNode, T> read) {
+    try {
+      return Optional.of(read.apply(JsonContract.object(json)));
+    } catch (InvalidAiResponseException stale) {
+      return Optional.empty();
+    }
+  }
+
+  private String cacheKey(LlmPrompt prompt) {
+    try {
+      byte[] digest =
+          MessageDigest.getInstance("SHA-256")
+              .digest(
+                  (client.source() + "\n" + prompt.system() + "\n" + prompt.user())
+                      .getBytes(StandardCharsets.UTF_8));
+      return HexFormat.of().formatHex(digest);
+    } catch (NoSuchAlgorithmException missing) {
+      throw new IllegalStateException("SHA-256 is not available", missing);
+    }
   }
 
   @Override
@@ -71,20 +130,24 @@ public final class LlmKitchenAdvisor implements KitchenAdvisor {
                             .map(FoodMetadata::name)
                             .collect(Collectors.joining(", ")))
             .collect(Collectors.joining("\n"));
-    JsonNode answer =
-        JsonContract.object(
-            client.completeJson(
-                new LlmPrompt(
-                    RULES,
-                    "Pick at most "
-                        + request.limit()
-                        + " recipes from this list, best first, preferring the ones that use"
-                        + " expiring food. Answer {\"choices\":[{\"recipe\":\"exact name\","
-                        + "\"reason\":\"one short sentence\"}]}.\n"
-                        + options)));
+    LlmPrompt prompt =
+        new LlmPrompt(
+            RULES,
+            "Pick at most "
+                + request.limit()
+                + " recipes from this list, best first, preferring the ones that use"
+                + " expiring food. Answer {\"choices\":[{\"recipe\":\"exact name\","
+                + "\"reason\":\"one short sentence\"}]}.\n"
+                + options);
+    return new Suggestions(
+        ask(prompt, answer -> choices(answer, byName, request.limit())), client.source());
+  }
+
+  private static List<Suggestion> choices(
+      JsonNode answer, Map<String, Suggestion> byName, int limit) {
     JsonNode choices = answer.path("choices");
-    if (!choices.isArray() || choices.size() > request.limit()) {
-      throw new InvalidAiResponseException("choices must be a list of at most " + request.limit());
+    if (!choices.isArray() || choices.size() > limit) {
+      throw new InvalidAiResponseException("choices must be a list of at most " + limit);
     }
     List<Suggestion> picked = new ArrayList<>();
     Set<String> seen = new HashSet<>();
@@ -104,7 +167,7 @@ public final class LlmKitchenAdvisor implements KitchenAdvisor {
               known.score(),
               JsonContract.text(choice, "reason", MAX_REASON)));
     }
-    return new Suggestions(picked, client.source());
+    return picked;
   }
 
   @Override
@@ -112,18 +175,20 @@ public final class LlmKitchenAdvisor implements KitchenAdvisor {
     if (text == null || text.isBlank() || text.length() > 200) {
       return Optional.empty();
     }
-    JsonNode answer =
-        JsonContract.object(
-            client.completeJson(
-                new LlmPrompt(
-                    RULES,
-                    "Today is "
-                        + today
-                        + ". Turn the sentence into {\"action\":\"STOCK|CONSUME|DISCARD|"
-                        + "ADD_TO_MARKET\" or null,\"food\":\"name\",\"quantity\":\"300 g\" or"
-                        + " null,\"expiresOn\":\"YYYY-MM-DD\" or null,\"confidence\":0.0-1.0}."
-                        + " Sentence: "
-                        + text)));
+    LlmPrompt prompt =
+        new LlmPrompt(
+            RULES,
+            "Today is "
+                + today
+                + ". Turn the sentence into {\"action\":\"STOCK|CONSUME|DISCARD|"
+                + "ADD_TO_MARKET\" or null,\"food\":\"name\",\"quantity\":\"300 g\" or"
+                + " null,\"expiresOn\":\"YYYY-MM-DD\" or null,\"confidence\":0.0-1.0}."
+                + " Sentence: "
+                + text);
+    return ask(prompt, answer -> intent(answer, today));
+  }
+
+  private Optional<ParsedIntent> intent(JsonNode answer, LocalDate today) {
     Optional<String> action = JsonContract.optionalText(answer, "action", 20);
     if (action.isEmpty()) {
       return Optional.empty();
@@ -159,18 +224,16 @@ public final class LlmKitchenAdvisor implements KitchenAdvisor {
   @Override
   public StatusExplanation explain(StockedFood food, LocalDate today) {
     StatusExplanation rules = status.explain(food, today);
-    JsonNode answer =
-        JsonContract.object(
-            client.completeJson(
-                new LlmPrompt(
-                    RULES,
-                    "Rewrite this kitchen advice in one friendly sentence without changing its"
-                        + " meaning. Answer {\"message\":\"...\"}. Advice: "
-                        + rules.message())));
+    LlmPrompt prompt =
+        new LlmPrompt(
+            RULES,
+            "Rewrite this kitchen advice in one friendly sentence without changing its"
+                + " meaning. Answer {\"message\":\"...\"}. Advice: "
+                + rules.message());
     return new StatusExplanation(
         rules.food(),
         rules.urgency(),
-        JsonContract.text(answer, "message", MAX_MESSAGE),
+        ask(prompt, answer -> JsonContract.text(answer, "message", MAX_MESSAGE)),
         client.source());
   }
 
