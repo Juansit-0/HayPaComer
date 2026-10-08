@@ -137,6 +137,7 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 | POST | `/recipes/{id}/clone` | member | Clone template (prototype) |
 | POST | `/recipes/{id}/scale` | guest | Rescale portions |
 | POST | `/households/{h}/recipes/evaluate` | guest | Inline recipe plus target servings and strategy (STRICT, FLEXIBLE, RESCUE with the substitution rules that every diner can eat; optional `diners` member ids, default the whole household; each requirement takes `grams` or a `quantity` text) evaluated against the usable inventory: ENOUGH, REDUCE, SUBSTITUTE, or MISSING per requirement |
+| POST | `/households/{h}/recipes/missing-to-market` | member | Inline recipe plus `targetServings`: every mandatory shortfall against the usable inventory is topped up on the market list (source RECIPE) without adding grams that are already pending; returns shortfall, added, and pending grams per food |
 | POST | `/households/{h}/suggestions` | guest | Cook now: minutes, people, equipment -> up to three options with evidence |
 | POST | `/households/{h}/rescue` | guest | Rescue mode suggestions |
 | POST | `/suggestions/{id}/accept` | member | Accept suggestion (household learning) |

@@ -2,6 +2,7 @@ package dev.haypacomer.web.cooking;
 
 import dev.haypacomer.application.cooking.EvaluateRecipe;
 import dev.haypacomer.application.cooking.StrategyKind;
+import dev.haypacomer.application.market.AddMissingToMarketList;
 import dev.haypacomer.domain.cooking.RecipeEvaluation;
 import dev.haypacomer.domain.cooking.RequirementEvaluation;
 import dev.haypacomer.domain.cooking.RequirementVerdict;
@@ -30,11 +31,43 @@ import org.springframework.web.bind.annotation.RestController;
 public class RecipeController {
 
   private final EvaluateRecipe evaluateRecipe;
+  private final AddMissingToMarketList addMissingToMarketList;
   private final RecipeAssembler assembler;
 
-  public RecipeController(EvaluateRecipe evaluateRecipe, RecipeAssembler assembler) {
+  public RecipeController(
+      EvaluateRecipe evaluateRecipe,
+      AddMissingToMarketList addMissingToMarketList,
+      RecipeAssembler assembler) {
     this.evaluateRecipe = evaluateRecipe;
+    this.addMissingToMarketList = addMissingToMarketList;
     this.assembler = assembler;
+  }
+
+  @PostMapping("/api/v1/households/{householdId}/recipes/missing-to-market")
+  List<MissingResponse> missingToMarket(
+      @AuthenticationPrincipal Jwt jwt,
+      @PathVariable UUID householdId,
+      @Valid @RequestBody MissingRequest request) {
+    return addMissingToMarketList
+        .add(
+            CurrentUser.of(jwt),
+            new HouseholdId(householdId),
+            assembler.assemble(
+                request.name(),
+                request.servings(),
+                request.minutes(),
+                request.requirements(),
+                List.of()),
+            request.targetServings())
+        .stream()
+        .map(
+            item ->
+                new MissingResponse(
+                    item.food().name(),
+                    item.shortfall().value(),
+                    item.added().value(),
+                    item.pending().value()))
+        .toList();
   }
 
   @PostMapping("/api/v1/households/{householdId}/recipes/evaluate")
@@ -60,6 +93,16 @@ public class RecipeController {
                 ? Set.of()
                 : request.diners().stream().map(MemberId::new).collect(Collectors.toSet())));
   }
+
+  record MissingRequest(
+      @NotBlank String name,
+      @Min(1) int servings,
+      @Min(1) int minutes,
+      @NotEmpty List<@Valid RequirementRequest> requirements,
+      @Min(1) int targetServings) {}
+
+  record MissingResponse(
+      String food, BigDecimal shortfallGrams, BigDecimal addedGrams, BigDecimal pendingGrams) {}
 
   record EvaluateRequest(
       @NotBlank String name,

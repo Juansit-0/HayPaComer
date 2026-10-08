@@ -97,6 +97,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 51. cooking session with states and resume (state)
 - [x] 52. session, scale, and timer mediator
 - [x] 53. timers and guided weighing per step
+- [x] 54. automatic missing items to the market list
 
 ## Notes
 

@@ -111,4 +111,18 @@ class MarketListTest {
     assertEquals(List.of(item), restored.items());
     assertEquals(list.household(), restored.household());
   }
+
+  @Test
+  void topsUpOnlyTheGramsThatAreNotPendingYet() {
+    assertTrue(list.topUp(CHICKEN, Grams.of(120), MarketSource.RECIPE, juan, NOW).isPresent());
+    assertEquals(Grams.of(120), list.pendingGrams(CHICKEN));
+    assertTrue(list.topUp(CHICKEN, Grams.of(100), MarketSource.RECIPE, ana, NOW).isEmpty());
+
+    MarketItem raised =
+        list.topUp(CHICKEN, Grams.of(200), MarketSource.RECIPE, ana, NOW).orElseThrow();
+
+    assertEquals(Grams.of(200), raised.grams());
+    assertEquals(MarketSource.RECIPE, raised.source());
+    assertEquals(Grams.ZERO, list.pendingGrams(PASTA));
+  }
 }

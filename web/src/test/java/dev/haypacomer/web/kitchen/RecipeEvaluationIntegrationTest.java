@@ -1,5 +1,6 @@
 package dev.haypacomer.web.kitchen;
 
+import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -129,6 +130,15 @@ class RecipeEvaluationIntegrationTest {
         .andExpect(status().isBadRequest());
     call(evaluate, juan, recipe("STRICT", "").replace("Rice\"", "Unicorn\""))
         .andExpect(status().isUnprocessableContent());
+    String missing = base + "/recipes/missing-to-market";
+    call(missing, juan, recipe("STRICT", ""))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.length()").value(1))
+        .andExpect(jsonPath("$[0].food").value("Chicken breast"))
+        .andExpect(jsonPath("$[0].addedGrams").value(120.0));
+    call(missing, juan, recipe("STRICT", "")).andExpect(jsonPath("$[0].addedGrams").value(0.0));
+    mvc.perform(get(base + "/market-list").header("Authorization", juan))
+        .andExpect(jsonPath("$..food").value(hasItem("Chicken breast")));
   }
 
   @Test
