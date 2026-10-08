@@ -3,6 +3,8 @@ package dev.haypacomer.application.support;
 import dev.haypacomer.application.port.AlertSignal;
 import dev.haypacomer.application.port.DeviceRepository;
 import dev.haypacomer.application.port.HardwareFactory;
+import dev.haypacomer.application.port.ScaleCalibrationRepository;
+import dev.haypacomer.application.port.ScaleSampleStore;
 import dev.haypacomer.application.port.ScaleSessionStore;
 import dev.haypacomer.application.port.SensorEventDecoder;
 import dev.haypacomer.application.port.StepTimerStore;
@@ -12,10 +14,14 @@ import dev.haypacomer.domain.device.Device;
 import dev.haypacomer.domain.device.DeviceId;
 import dev.haypacomer.domain.device.DeviceKind;
 import dev.haypacomer.domain.household.HouseholdId;
+import dev.haypacomer.domain.quantity.Grams;
+import dev.haypacomer.domain.scale.RawSample;
+import dev.haypacomer.domain.scale.ScaleCalibration;
 import dev.haypacomer.domain.scale.WeighingTarget;
 import dev.haypacomer.domain.sensor.ScaleMode;
 import dev.haypacomer.domain.session.CookingSessionId;
 import dev.haypacomer.domain.session.StepTimer;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -29,6 +35,39 @@ public final class InMemoryKitchenDevices {
   public final Map<DeviceId, WeighingTarget> cookingTargets = new HashMap<>();
   public final Map<CookingSessionId, StepTimer> timerMap = new LinkedHashMap<>();
   public final List<String> signals = new ArrayList<>();
+  public final Map<DeviceId, RawSample> latestSamples = new HashMap<>();
+  public final Map<DeviceId, ScaleCalibration> calibrationMap = new HashMap<>();
+
+  public final ScaleSampleStore samples =
+      new ScaleSampleStore() {
+        @Override
+        public void record(DeviceId device, RawSample sample) {
+          latestSamples.put(device, sample);
+        }
+
+        @Override
+        public Optional<RawSample> latest(DeviceId device) {
+          return Optional.ofNullable(latestSamples.get(device));
+        }
+
+        @Override
+        public boolean stable(DeviceId device, Grams grams, Instant at) {
+          return true;
+        }
+      };
+
+  public final ScaleCalibrationRepository calibrations =
+      new ScaleCalibrationRepository() {
+        @Override
+        public Optional<ScaleCalibration> find(DeviceId device) {
+          return Optional.ofNullable(calibrationMap.get(device));
+        }
+
+        @Override
+        public void save(DeviceId device, ScaleCalibration calibration) {
+          calibrationMap.put(device, calibration);
+        }
+      };
 
   public final DeviceRepository devices =
       new DeviceRepository() {

@@ -7,6 +7,8 @@ import dev.haypacomer.application.sensor.AlertPattern;
 import dev.haypacomer.application.sensor.HardwareFactories;
 import dev.haypacomer.domain.device.DeviceId;
 import dev.haypacomer.domain.recipe.RecipeStep;
+import dev.haypacomer.domain.scale.WeighingProgress;
+import dev.haypacomer.domain.scale.WeighingStatus;
 import dev.haypacomer.domain.scale.WeighingTarget;
 import dev.haypacomer.domain.session.CookingSession;
 import dev.haypacomer.domain.session.CookingSessionId;
@@ -40,6 +42,7 @@ public final class GuidedCookingMediator implements KitchenMediator {
   public void notify(KitchenEvent event) {
     switch (event) {
       case KitchenEvent.SessionChanged changed -> sessionChanged(changed.session(), changed.at());
+      case KitchenEvent.StepWeighed weighed -> stepWeighed(weighed.session(), weighed.progress());
       case KitchenEvent.ClockTicked ticked -> clockTicked(ticked.at());
     }
   }
@@ -76,6 +79,18 @@ public final class GuidedCookingMediator implements KitchenMediator {
             duration -> timers.save(StepTimer.start(session.id(), step.position(), duration, at)));
   }
 
+  private void stepWeighed(CookingSession session, WeighingProgress progress) {
+    if (progress.status() == WeighingStatus.ON_TARGET) {
+      session.scale().ifPresent(scale -> signal(scale, AlertPattern.WEIGHT_CONFIRMED_BLINK));
+    }
+  }
+
+  private void signal(DeviceId scale, AlertPattern pattern) {
+    devices
+        .findById(scale)
+        .ifPresent(device -> hardware.forDevice(device).alerts().signal(device.id(), pattern));
+  }
+
   private void close(CookingSession session) {
     timers.remove(session.id());
     session.scale().ifPresent(scales::fridge);
@@ -89,13 +104,7 @@ public final class GuidedCookingMediator implements KitchenMediator {
       }
       timers.save(timer.markSignaled());
       Optional.ofNullable(scaleOfSession.get(timer.session()))
-          .flatMap(devices::findById)
-          .ifPresent(
-              device ->
-                  hardware
-                      .forDevice(device)
-                      .alerts()
-                      .signal(device.id(), AlertPattern.TIMER_DONE_BEEP));
+          .ifPresent(scale -> signal(scale, AlertPattern.TIMER_DONE_BEEP));
     }
   }
 }

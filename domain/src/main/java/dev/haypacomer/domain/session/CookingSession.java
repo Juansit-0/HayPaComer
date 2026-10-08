@@ -3,8 +3,12 @@ package dev.haypacomer.domain.session;
 import dev.haypacomer.domain.device.DeviceId;
 import dev.haypacomer.domain.household.HouseholdId;
 import dev.haypacomer.domain.identity.UserId;
+import dev.haypacomer.domain.quantity.Grams;
 import dev.haypacomer.domain.recipe.Recipe;
 import dev.haypacomer.domain.recipe.RecipeStep;
+import dev.haypacomer.domain.recipe.StepWeighing;
+import dev.haypacomer.domain.scale.WeighingProgress;
+import dev.haypacomer.domain.scale.WeighingTarget;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +26,7 @@ public final class CookingSession {
   private SessionState state;
   private Instant updatedAt;
   private DeviceId scale;
+  private Grams measured;
 
   private CookingSession(
       CookingSessionId id,
@@ -32,7 +37,8 @@ public final class CookingSession {
       SessionState state,
       Instant updatedAt,
       List<StepCompletion> completions,
-      DeviceId scale) {
+      DeviceId scale,
+      Grams measured) {
     this.id = Objects.requireNonNull(id, "id");
     this.household = Objects.requireNonNull(household, "household");
     this.recipe = Objects.requireNonNull(recipe, "recipe");
@@ -42,6 +48,7 @@ public final class CookingSession {
     this.updatedAt = Objects.requireNonNull(updatedAt, "updatedAt");
     this.completions = new ArrayList<>(completions);
     this.scale = scale;
+    this.measured = measured;
     if (state.currentStep() > recipe.steps().size()) {
       throw new IllegalArgumentException("Step " + state.currentStep() + " is beyond the recipe");
     }
@@ -58,6 +65,7 @@ public final class CookingSession {
         new Preparing(),
         at,
         List.of(),
+        null,
         null);
   }
 
@@ -70,9 +78,19 @@ public final class CookingSession {
       SessionState state,
       Instant updatedAt,
       List<StepCompletion> completions,
-      DeviceId scale) {
+      DeviceId scale,
+      Grams measured) {
     return new CookingSession(
-        id, household, recipe, startedBy, startedAt, state, updatedAt, completions, scale);
+        id,
+        household,
+        recipe,
+        startedBy,
+        startedAt,
+        state,
+        updatedAt,
+        completions,
+        scale,
+        measured);
   }
 
   public CookingSessionId id() {
@@ -128,6 +146,30 @@ public final class CookingSession {
     return position == 0 ? Optional.empty() : Optional.of(recipe.steps().get(position - 1));
   }
 
+  public Optional<Grams> measured() {
+    return Optional.ofNullable(measured);
+  }
+
+  public WeighingTarget weighingTargetFor(int position) {
+    if (phase() != SessionPhase.COOKING || position != state.currentStep()) {
+      throw new IllegalSessionTransitionException(phase(), "weigh step " + position + " of");
+    }
+    StepWeighing weighing =
+        step()
+            .flatMap(RecipeStep::weighingTarget)
+            .orElseThrow(
+                () -> new IllegalArgumentException("Step " + position + " has nothing to weigh"));
+    return WeighingTarget.of(weighing.food().name(), weighing.target());
+  }
+
+  public WeighingProgress weigh(int position, Grams grams, Instant at) {
+    Objects.requireNonNull(grams, "grams");
+    WeighingProgress progress = weighingTargetFor(position).evaluate(grams);
+    measured = grams;
+    updatedAt = at;
+    return progress;
+  }
+
   public List<StepCompletion> completions() {
     return List.copyOf(completions);
   }
@@ -136,7 +178,8 @@ public final class CookingSession {
     SessionState before = state;
     state = state.next(recipe.steps().size(), at);
     if (before.phase() == SessionPhase.COOKING) {
-      completions.add(new StepCompletion(before.currentStep(), at));
+      completions.add(new StepCompletion(before.currentStep(), at, measured));
+      measured = null;
     }
     updatedAt = at;
   }

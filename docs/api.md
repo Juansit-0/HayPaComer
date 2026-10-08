@@ -155,8 +155,9 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 | POST | `/households/{h}/cooking-sessions/{id}/pause` | member | Pause the current step |
 | POST | `/households/{h}/cooking-sessions/{id}/resume` | member | Resume on the same step |
 | POST | `/households/{h}/cooking-sessions/{id}/abandon` | member | Abandon an active session |
+| POST | `/households/{h}/cooking-sessions/{id}/steps/{n}/weigh` | member | Guided weighing of the current step: optional `{grams}`, otherwise a fresh calibrated reading of the session scale; returns SHORT / ON_TARGET / OVER with remaining grams (ON_TARGET blinks the scale); the measurement is kept with the completed step; 409 for another step, 400 without grams or scale |
+| GET | `/households/{h}/cooking-sessions/{id}/timer` | guest | Current step timer: duration, remaining seconds, paused, done; 204 when the step has none |
 | POST | `/households/{h}/cooking-sessions/{id}/finish` | member | Finish and discount used grams (planned) |
-| POST | `/households/{h}/cooking-sessions/{id}/steps/{n}/weigh` | member | Guided weighing for a step (planned) |
 
 ## Market list and weekly plan
 

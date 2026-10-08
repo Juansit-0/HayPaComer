@@ -107,8 +107,26 @@ class CookingSessionIntegrationTest {
     send(session + "/next", juan, "")
         .andExpect(jsonPath("$.phase").value("COOKING"))
         .andExpect(jsonPath("$.step.instruction").value("Weigh the rice"));
+    mvc.perform(get(session + "/timer").header("Authorization", juan))
+        .andExpect(status().isNoContent());
+    send(session + "/steps/1/weigh", juan, "{\"grams\":250}")
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.status").value("SHORT"))
+        .andExpect(jsonPath("$.remainingGrams").value(50.0))
+        .andExpect(jsonPath("$.session.measuredGrams").value(250.0));
+    send(session + "/steps/1/weigh", juan, "").andExpect(status().isBadRequest());
+    send(session + "/steps/2/weigh", juan, "{\"grams\":1}").andExpect(status().isConflict());
+    send(session + "/steps/1/weigh", juan, "{\"grams\":300}")
+        .andExpect(jsonPath("$.status").value("ON_TARGET"));
     send(session + "/next", juan, "").andExpect(jsonPath("$.currentStep").value(2));
+    mvc.perform(get(session + "/timer").header("Authorization", juan))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.step").value(2))
+        .andExpect(jsonPath("$.durationSeconds").value(900))
+        .andExpect(jsonPath("$.paused").value(false));
     send(session + "/pause", juan, "").andExpect(jsonPath("$.phase").value("PAUSED"));
+    mvc.perform(get(session + "/timer").header("Authorization", juan))
+        .andExpect(jsonPath("$.paused").value(true));
     mvc.perform(get(sessions + "/active").header("Authorization", juan))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.phase").value("PAUSED"))

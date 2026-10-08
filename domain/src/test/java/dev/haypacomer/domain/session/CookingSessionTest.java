@@ -19,6 +19,8 @@ import dev.haypacomer.domain.recipe.RecipeRequirement;
 import dev.haypacomer.domain.recipe.RecipeSource;
 import dev.haypacomer.domain.recipe.RecipeStep;
 import dev.haypacomer.domain.recipe.StepWeighing;
+import dev.haypacomer.domain.scale.WeighingProgress;
+import dev.haypacomer.domain.scale.WeighingStatus;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
@@ -144,7 +146,8 @@ class CookingSessionTest {
             new Paused(3, T0),
             T0,
             List.of(new StepCompletion(1, T0), new StepCompletion(2, T0)),
-            DeviceId.newId());
+            DeviceId.newId(),
+            null);
 
     assertTrue(restored.scale().isPresent());
     assertTrue(original.scale().isEmpty());
@@ -168,10 +171,33 @@ class CookingSessionTest {
                 new Cooking(4),
                 T0,
                 List.of(),
+                null,
                 null));
     assertThrows(IllegalArgumentException.class, () -> new Cooking(0));
     assertThrows(IllegalArgumentException.class, () -> new Paused(0, T0));
     assertThrows(IllegalArgumentException.class, () -> new StepCompletion(0, T0));
     assertTrue(SessionPhase.PAUSED.active());
+  }
+
+  @Test
+  void weighsOnlyTheCurrentWeighingStepAndKeepsTheMeasurement() {
+    CookingSession session = start();
+    assertThrows(
+        IllegalSessionTransitionException.class, () -> session.weigh(1, Grams.of(300), T0));
+    session.next(T0);
+
+    WeighingProgress shortOf = session.weigh(1, Grams.of(250), T0.plusSeconds(5));
+    WeighingProgress onTarget = session.weigh(1, Grams.of(298), T0.plusSeconds(9));
+
+    assertEquals(WeighingStatus.SHORT, shortOf.status());
+    assertEquals(WeighingStatus.ON_TARGET, onTarget.status());
+    assertEquals(Grams.of(298), session.measured().orElseThrow());
+    assertThrows(IllegalSessionTransitionException.class, () -> session.weigh(2, Grams.of(1), T0));
+    session.next(T0.plusSeconds(10));
+    assertEquals(Grams.of(298), session.completions().getFirst().measuredGrams().orElseThrow());
+    assertTrue(session.measured().isEmpty());
+    assertThrows(IllegalArgumentException.class, () -> session.weigh(2, Grams.of(1), T0));
+    session.next(T0.plusSeconds(20));
+    assertTrue(session.completions().get(1).measuredGrams().isEmpty());
   }
 }
