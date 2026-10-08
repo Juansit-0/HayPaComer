@@ -14,7 +14,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 | F2 | Application | 6 | done |
 | F3 | Door and temperature sensors | 8 | done |
 | F4 | HX711 scale | 5 | done |
-| F5 | Quantities, substitutions, and guided cooking | 8 | in progress |
+| F5 | Quantities, substitutions, and guided cooking | 8 | done |
 | F6 | AI, web, and agent | 21 | pending |
 | F7 | Analytics, robustness, and demo | 16 | pending |
 
@@ -98,6 +98,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 52. session, scale, and timer mediator
 - [x] 53. timers and guided weighing per step
 - [x] 54. automatic missing items to the market list
+- [x] 55. portions, substitutions, and step progression
 
 ## Notes
 
