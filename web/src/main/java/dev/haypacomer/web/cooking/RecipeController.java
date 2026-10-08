@@ -2,23 +2,14 @@ package dev.haypacomer.web.cooking;
 
 import dev.haypacomer.application.cooking.EvaluateRecipe;
 import dev.haypacomer.application.cooking.StrategyKind;
-import dev.haypacomer.application.inventory.FoodNotInCatalogException;
-import dev.haypacomer.application.port.FoodCatalogRepository;
-import dev.haypacomer.application.quantity.InterpretQuantity;
 import dev.haypacomer.domain.cooking.RecipeEvaluation;
 import dev.haypacomer.domain.cooking.RequirementEvaluation;
 import dev.haypacomer.domain.cooking.RequirementVerdict;
-import dev.haypacomer.domain.food.FoodMetadata;
 import dev.haypacomer.domain.household.HouseholdId;
 import dev.haypacomer.domain.member.MemberId;
-import dev.haypacomer.domain.quantity.Grams;
 import dev.haypacomer.domain.recipe.Recipe;
-import dev.haypacomer.domain.recipe.RecipeId;
-import dev.haypacomer.domain.recipe.RecipeRequirement;
-import dev.haypacomer.domain.recipe.RecipeSource;
 import dev.haypacomer.web.security.CurrentUser;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -39,16 +30,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class RecipeController {
 
   private final EvaluateRecipe evaluateRecipe;
-  private final InterpretQuantity interpretQuantity;
-  private final FoodCatalogRepository catalog;
+  private final RecipeAssembler assembler;
 
-  public RecipeController(
-      EvaluateRecipe evaluateRecipe,
-      InterpretQuantity interpretQuantity,
-      FoodCatalogRepository catalog) {
+  public RecipeController(EvaluateRecipe evaluateRecipe, RecipeAssembler assembler) {
     this.evaluateRecipe = evaluateRecipe;
-    this.interpretQuantity = interpretQuantity;
-    this.catalog = catalog;
+    this.assembler = assembler;
   }
 
   @PostMapping("/api/v1/households/{householdId}/recipes/evaluate")
@@ -57,20 +43,11 @@ public class RecipeController {
       @PathVariable UUID householdId,
       @Valid @RequestBody EvaluateRequest request) {
     Recipe recipe =
-        new Recipe(
-            RecipeId.newId(),
+        assembler.assemble(
             request.name(),
             request.servings(),
             request.minutes(),
-            RecipeSource.MANUAL,
-            request.requirements().stream()
-                .map(
-                    requirement ->
-                        new RecipeRequirement(
-                            food(requirement.food()),
-                            grams(requirement),
-                            Boolean.TRUE.equals(requirement.optional())))
-                .toList(),
+            request.requirements(),
             List.of());
     return EvaluationResponse.from(
         evaluateRecipe.evaluate(
@@ -83,27 +60,6 @@ public class RecipeController {
                 ? Set.of()
                 : request.diners().stream().map(MemberId::new).collect(Collectors.toSet())));
   }
-
-  private Grams grams(RequirementRequest requirement) {
-    if (requirement.grams() != null) {
-      return Grams.of(requirement.grams());
-    }
-    if (requirement.quantity() == null) {
-      throw new IllegalArgumentException(
-          "Requirement for " + requirement.food() + " needs grams or a quantity");
-    }
-    return interpretQuantity.interpret(requirement.food(), requirement.quantity()).grams();
-  }
-
-  private FoodMetadata food(String name) {
-    return catalog.findByName(name).orElseThrow(() -> new FoodNotInCatalogException(name));
-  }
-
-  record RequirementRequest(
-      @NotBlank String food,
-      @DecimalMin(value = "0", inclusive = false) BigDecimal grams,
-      String quantity,
-      Boolean optional) {}
 
   record EvaluateRequest(
       @NotBlank String name,

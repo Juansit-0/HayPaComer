@@ -148,13 +148,15 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 
 | Method | Path | Access | Purpose |
 |---|---|---|---|
-| POST | `/cooking-sessions` | member | Start session for recipe and servings |
-| GET | `/cooking-sessions/{id}` | guest | Current state and step |
-| POST | `/cooking-sessions/{id}/next` | member | Next step |
-| POST | `/cooking-sessions/{id}/pause` | member | Pause |
-| POST | `/cooking-sessions/{id}/resume` | member | Resume |
-| POST | `/cooking-sessions/{id}/finish` | member | Finish and discount used grams |
-| POST | `/cooking-sessions/{id}/steps/{n}/weigh` | member | Guided weighing for a step |
+| POST | `/households/{h}/cooking-sessions` | member | Start a session (PREPARING) for an inline recipe with steps (instruction, optional `timerSeconds`, optional `weigh` food with grams or quantity) scaled to `targetServings`; 409 with `activeSessionId` while another session is active |
+| GET | `/households/{h}/cooking-sessions/active` | guest | Resume: the active session with its current step, or 204 |
+| GET | `/households/{h}/cooking-sessions/{id}` | guest | Current state, step, all steps, and completed steps |
+| POST | `/households/{h}/cooking-sessions/{id}/next` | member | PREPARING to step 1, next step, or FINISHED after the last; 409 when paused or over |
+| POST | `/households/{h}/cooking-sessions/{id}/pause` | member | Pause the current step |
+| POST | `/households/{h}/cooking-sessions/{id}/resume` | member | Resume on the same step |
+| POST | `/households/{h}/cooking-sessions/{id}/abandon` | member | Abandon an active session |
+| POST | `/households/{h}/cooking-sessions/{id}/finish` | member | Finish and discount used grams (planned) |
+| POST | `/households/{h}/cooking-sessions/{id}/steps/{n}/weigh` | member | Guided weighing for a step (planned) |
 
 ## Market list and weekly plan
 
