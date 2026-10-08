@@ -312,6 +312,23 @@ input.grams { width: 9ch; font-family: var(--data-font); font-variant-numeric: t
 
 .shelf .data { font-weight: 600; }
 
+.cabinet-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-xs) var(--space-s);
+}
+
+.twin { display: flex; gap: var(--space-s); align-items: baseline; }
+.twin .data { font-size: var(--size-h4); font-weight: 600; }
+
+.live { display: inline-flex; align-items: center; gap: 6px; }
+.live::before { content: ""; width: 8px; height: 8px; border-radius: var(--radius-full); background: var(--color-border-strong); }
+.live[data-state="on"]::before { background: var(--status-positive); }
+
+.feed time { color: var(--color-text-weak); }
+
 .market-group { display: grid; gap: 0; }
 .market-group h3 { color: var(--color-text-weak); font-size: var(--size-small); font-weight: 600; }
 .market-group .list > li { padding: var(--space-xs) 0; }

@@ -8,6 +8,7 @@ import dev.haypacomer.application.device.RegisterDevice;
 import dev.haypacomer.application.device.RevokeDevice;
 import dev.haypacomer.application.inventory.ExecuteInventoryCommand;
 import dev.haypacomer.application.inventory.FoodAccessGuard;
+import dev.haypacomer.application.live.BroadcastLiveUpdate;
 import dev.haypacomer.application.notification.NotifyHousehold;
 import dev.haypacomer.application.port.DeviceRepository;
 import dev.haypacomer.application.port.FoodOwnershipRepository;
@@ -179,9 +180,10 @@ public class DeviceConfiguration {
       ObserveSensorEvent observe,
       TrackColdChain coldChain,
       ApplyFridgeScaleReading fridgeScale,
+      BroadcastLiveUpdate live,
       Clock clock) {
     return new IngestSensorEvents(
-        hardware, validation, log, observe, coldChain, fridgeScale, clock);
+        hardware, validation, log, observe, coldChain, fridgeScale, live, clock);
   }
 
   @Bean

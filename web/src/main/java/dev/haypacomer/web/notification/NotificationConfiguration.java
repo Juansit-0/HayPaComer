@@ -1,5 +1,7 @@
 package dev.haypacomer.web.notification;
 
+import dev.haypacomer.application.live.AlertsToLive;
+import dev.haypacomer.application.live.BroadcastLiveUpdate;
 import dev.haypacomer.application.notification.ChannelDispatcher;
 import dev.haypacomer.application.notification.ListNotifications;
 import dev.haypacomer.application.notification.MarkNotificationRead;
@@ -28,6 +30,7 @@ public class NotificationConfiguration {
       HouseholdRepository households,
       NotificationPreferenceRepository preferences,
       PostgresNotificationInbox inbox,
+      BroadcastLiveUpdate live,
       @Value("${haypacomer.notifications.telegram.bot-token:}") String telegramToken) {
     List<NotificationChannel> channels = new ArrayList<>();
     channels.add(inbox);
@@ -37,7 +40,8 @@ public class NotificationConfiguration {
           new TelegramNotificationChannel(
               TelegramNotificationChannel.API, telegramToken, Duration.ofSeconds(5)));
     }
-    return new NotifyHousehold(List.of(new ChannelDispatcher(households, preferences, channels)));
+    return new NotifyHousehold(
+        List.of(new ChannelDispatcher(households, preferences, channels), new AlertsToLive(live)));
   }
 
   @Bean

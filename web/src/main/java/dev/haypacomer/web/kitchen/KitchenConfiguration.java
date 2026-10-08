@@ -20,6 +20,7 @@ import dev.haypacomer.application.inventory.SearchFoods;
 import dev.haypacomer.application.inventory.TakeSnapshot;
 import dev.haypacomer.application.inventory.UndoLastChange;
 import dev.haypacomer.application.inventory.ViewInventory;
+import dev.haypacomer.application.live.BroadcastLiveUpdate;
 import dev.haypacomer.application.market.AddMissingToMarketList;
 import dev.haypacomer.application.port.AiRateLimiter;
 import dev.haypacomer.application.port.AuditLog;
@@ -173,6 +174,7 @@ public class KitchenConfiguration {
       AuditLog audit,
       UnitOfWork unitOfWork,
       SnapshotStore snapshots,
+      BroadcastLiveUpdate live,
       Clock clock) {
     return new ExecuteInventoryCommand(
         households,
@@ -184,6 +186,7 @@ public class KitchenConfiguration {
         audit,
         unitOfWork,
         snapshots,
+        live,
         clock);
   }
 

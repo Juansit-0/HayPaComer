@@ -38,6 +38,13 @@ public final class FridgeMonitor {
     return fridge;
   }
 
+  public Optional<Measurement> latest(String channel) {
+    return channels.stream()
+        .filter(candidate -> candidate.name().equals(channel))
+        .findFirst()
+        .flatMap(MeasurementChannel::latest);
+  }
+
   public boolean record(SensorEvent event) {
     if (!event.fridge().equals(fridge)) {
       throw new IllegalArgumentException("Event belongs to another fridge");

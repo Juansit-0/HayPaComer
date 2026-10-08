@@ -5,6 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.haypacomer.application.coldchain.TrackColdChain;
+import dev.haypacomer.application.live.BroadcastLiveUpdate;
+import dev.haypacomer.application.live.LiveUpdate;
+import dev.haypacomer.application.live.LiveUpdateKind;
 import dev.haypacomer.application.port.AlertSignal;
 import dev.haypacomer.application.port.DeviceRepository;
 import dev.haypacomer.application.port.FridgeMonitorRegistry;
@@ -174,8 +177,11 @@ class IngestSensorEventsTest {
         new ObserveSensorEvent(registry, devices, hardware),
         new TrackColdChain(chains, FridgeThresholds.DEFAULT),
         (scale, reading) -> Optional.empty(),
+        new BroadcastLiveUpdate(List.of(live::add)),
         clock);
   }
+
+  private final List<LiveUpdate> live = new ArrayList<>();
 
   private SensorEventId id() {
     return new SensorEventId(UUID.randomUUID());
@@ -229,6 +235,10 @@ class IngestSensorEventsTest {
             .anyMatch(finding -> finding.kind() == FindingKind.COLD_CHAIN_BREACH));
     assertTrue(buzzer.contains(AlertPattern.DOOR_OPEN_BEEP));
     assertFalse(report.allRejected());
+    assertEquals(
+        List.of("door open", "9 C", "9.5 C"), live.stream().map(LiveUpdate::detail).toList());
+    assertTrue(live.stream().allMatch(update -> update.kind() == LiveUpdateKind.SENSOR));
+    assertEquals(device.fridge().value(), live.getFirst().fridge());
 
     decoded.clear();
     decoded.add(warm);

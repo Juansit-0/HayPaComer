@@ -1,6 +1,9 @@
 package dev.haypacomer.application.inventory;
 
 import dev.haypacomer.application.audit.AuditEntry;
+import dev.haypacomer.application.live.BroadcastLiveUpdate;
+import dev.haypacomer.application.live.LiveUpdate;
+import dev.haypacomer.application.live.LiveUpdateKind;
 import dev.haypacomer.application.port.AuditLog;
 import dev.haypacomer.application.port.FoodCatalogRepository;
 import dev.haypacomer.application.port.FoodOwnershipRepository;
@@ -32,6 +35,7 @@ public final class ExecuteInventoryCommand {
   private final InventoryCaretaker caretaker;
   private final SnapshotStore snapshots;
   private final Clock clock;
+  private final BroadcastLiveUpdate live;
 
   public ExecuteInventoryCommand(
       HouseholdRepository households,
@@ -44,6 +48,33 @@ public final class ExecuteInventoryCommand {
       UnitOfWork unitOfWork,
       SnapshotStore snapshots,
       Clock clock) {
+    this(
+        households,
+        fridges,
+        ownerships,
+        movements,
+        catalog,
+        guard,
+        audit,
+        unitOfWork,
+        snapshots,
+        BroadcastLiveUpdate.NOBODY,
+        clock);
+  }
+
+  public ExecuteInventoryCommand(
+      HouseholdRepository households,
+      FridgeRepository fridges,
+      FoodOwnershipRepository ownerships,
+      InventoryMovementLog movements,
+      FoodCatalogRepository catalog,
+      FoodAccessGuard guard,
+      AuditLog audit,
+      UnitOfWork unitOfWork,
+      SnapshotStore snapshots,
+      BroadcastLiveUpdate live,
+      Clock clock) {
+    this.live = Objects.requireNonNull(live, "live");
     this.inventory = new HouseholdInventory(households, fridges, ownerships, movements);
     this.catalog = Objects.requireNonNull(catalog, "catalog");
     this.guard = Objects.requireNonNull(guard, "guard");
@@ -56,42 +87,53 @@ public final class ExecuteInventoryCommand {
 
   public CommandOutcome execute(UserId actor, InventoryCommand command) {
     Household household = inventory.household(actor, command.household());
-    return unitOfWork.run(
-        () -> {
-          Optional<InventoryMovement> previous = inventory.movement(command.id());
-          if (previous.isPresent()) {
-            return replay(previous.get());
-          }
-          Instant now = clock.instant();
-          InventoryMemento before = caretaker.capture(command.household());
-          CommandOutcome outcome =
-              command.execute(
-                  new InventoryWorkspace(actor, household, inventory, guard, catalog, now));
-          Map<String, String> detail = new HashMap<>(command.detail());
-          detail.put("commandId", command.id().toString());
-          detail.put("remainingGrams", outcome.remaining().value().toPlainString());
-          audit.record(
-              new AuditEntry(
-                  actor,
-                  command.household(),
-                  command.action(),
-                  "FOOD_ITEM",
-                  outcome.item().value(),
-                  detail,
-                  now));
-          snapshots.save(
-              new InventorySnapshot(
-                  UUID.randomUUID(),
-                  command.household(),
-                  SnapshotKind.UNDO,
-                  command.id(),
-                  actor,
-                  command.action(),
-                  before,
-                  now,
-                  null));
-          return outcome;
-        });
+    CommandOutcome result =
+        unitOfWork.run(
+            () -> {
+              Optional<InventoryMovement> previous = inventory.movement(command.id());
+              if (previous.isPresent()) {
+                return replay(previous.get());
+              }
+              Instant now = clock.instant();
+              InventoryMemento before = caretaker.capture(command.household());
+              CommandOutcome outcome =
+                  command.execute(
+                      new InventoryWorkspace(actor, household, inventory, guard, catalog, now));
+              Map<String, String> detail = new HashMap<>(command.detail());
+              detail.put("commandId", command.id().toString());
+              detail.put("remainingGrams", outcome.remaining().value().toPlainString());
+              audit.record(
+                  new AuditEntry(
+                      actor,
+                      command.household(),
+                      command.action(),
+                      "FOOD_ITEM",
+                      outcome.item().value(),
+                      detail,
+                      now));
+              snapshots.save(
+                  new InventorySnapshot(
+                      UUID.randomUUID(),
+                      command.household(),
+                      SnapshotKind.UNDO,
+                      command.id(),
+                      actor,
+                      command.action(),
+                      before,
+                      now,
+                      null));
+              return outcome;
+            });
+    if (!result.replayed()) {
+      live.publish(
+          LiveUpdate.of(
+              command.household(),
+              LiveUpdateKind.INVENTORY,
+              null,
+              command.action() + " " + result.remaining().value().toPlainString() + " g left",
+              clock.instant()));
+    }
+    return result;
   }
 
   private CommandOutcome replay(InventoryMovement movement) {
