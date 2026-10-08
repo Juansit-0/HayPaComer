@@ -132,6 +132,36 @@ class PlanningIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"recipeId\":\"" + UUID.randomUUID() + "\",\"servings\":2}"))
         .andExpect(status().isNotFound());
+    String templates =
+        body(
+            mvc.perform(get("/api/v1/recipe-templates").header("Authorization", juan))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(5))
+                .andExpect(jsonPath("$[0].name").value("Arepa with cheese")));
+    String arepa = JsonPath.read(templates, "$[0].id");
+    send(base + "/recipes/" + arepa + "/clone", juan, "")
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.clonedFrom").value(arepa))
+        .andExpect(jsonPath("$.requirements[0].food").value("Arepa"));
+    mvc.perform(get(base + "/recipes").header("Authorization", juan))
+        .andExpect(jsonPath("$.length()").value(3));
+    String planId = JsonPath.read(plan, "$.id");
+    String nextWeek = LocalDate.now().plusWeeks(1).toString();
+    send(base + "/weekly-plans/" + planId + "/clone", juan, "{\"weekStart\":\"" + nextWeek + "\"}")
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.clonedFrom").value(planId))
+        .andExpect(jsonPath("$.weekStart").value(nextWeek))
+        .andExpect(jsonPath("$.entries.length()").value(14));
+    send(
+            base + "/weekly-plans/" + planId + "/clone",
+            juan,
+            "{\"weekStart\":\"" + LocalDate.now() + "\"}")
+        .andExpect(status().isBadRequest());
+    send(
+            base + "/weekly-plans/" + UUID.randomUUID() + "/clone",
+            juan,
+            "{\"weekStart\":\"" + nextWeek + "\"}")
+        .andExpect(status().isNotFound());
     send(base + "/weekly-plans", null, "{}").andExpect(status().isUnauthorized());
   }
 }

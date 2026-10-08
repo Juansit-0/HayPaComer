@@ -15,6 +15,7 @@ import dev.haypacomer.domain.planning.PlanEntry;
 import dev.haypacomer.domain.planning.PlanEntryId;
 import dev.haypacomer.domain.planning.WeeklyPlan;
 import dev.haypacomer.domain.quantity.Grams;
+import dev.haypacomer.domain.recipe.ClonedRecipe;
 import dev.haypacomer.domain.recipe.Recipe;
 import dev.haypacomer.domain.recipe.RecipeId;
 import dev.haypacomer.domain.recipe.RecipeRequirement;
@@ -26,7 +27,9 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Currency;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.simple.JdbcClient;
 
 class PostgresPlanningRepositoriesTest extends PostgresTestSupport {
 
@@ -125,5 +128,53 @@ class PostgresPlanningRepositoriesTest extends PostgresTestSupport {
     plans.save(replacement);
     assertEquals(replacement.id(), plans.current(household.id(), MONDAY).orElseThrow().id());
     assertTrue(plans.findByEntry(household.id(), lunch.id()).isEmpty());
+  }
+
+  @Test
+  void copiesRememberTheirOriginAndTemplatesStayGlobal() {
+    Household household = household();
+    PostgresRecipeRepository recipes = new PostgresRecipeRepository(dataSource);
+    JdbcClient jdbc = JdbcClient.create(dataSource);
+    jdbc.sql(
+            "INSERT INTO recipes (id, name, servings, minutes, source, is_template)"
+                + " VALUES (:id, 'Boiled egg', 1, 10, 'TEMPLATE', TRUE)")
+        .param("id", BOILED_EGG.id().value())
+        .update();
+    jdbc.sql(
+            "INSERT INTO recipe_requirements (recipe_id, food_id, position, grams, optional)"
+                + " SELECT :id, id, 0, 50, FALSE FROM food_catalog WHERE name_key = 'egg'")
+        .param("id", BOILED_EGG.id().value())
+        .update();
+
+    assertEquals(List.of("Boiled egg"), recipes.templates().stream().map(Recipe::name).toList());
+    Recipe template = recipes.template(BOILED_EGG.id()).orElseThrow();
+    assertEquals(BOILED_EGG.requirements(), template.requirements());
+    assertTrue(recipes.find(household.id(), BOILED_EGG.id()).isEmpty());
+    assertTrue(recipes.findByHousehold(household.id()).isEmpty());
+
+    ClonedRecipe copy = ClonedRecipe.of(template);
+    recipes.saveCopy(household.id(), copy);
+    assertEquals(copy.recipe(), recipes.find(household.id(), copy.recipe().id()).orElseThrow());
+    assertEquals(
+        BOILED_EGG.id().value(),
+        jdbc.sql("SELECT cloned_from FROM recipes WHERE id = :id")
+            .param("id", copy.recipe().id().value())
+            .query(UUID.class)
+            .single());
+    assertTrue(recipes.template(copy.recipe().id()).isEmpty());
+
+    PostgresWeeklyPlanRepository plans = new PostgresWeeklyPlanRepository(dataSource);
+    WeeklyPlan original =
+        WeeklyPlan.create(
+            household.id(), MONDAY, List.of(PlanEntry.of(1, Meal.LUNCH, copy.recipe(), 2, false)));
+    plans.save(original);
+    WeeklyPlan clone = original.cloneFor(MONDAY.plusWeeks(1));
+    plans.save(clone);
+
+    WeeklyPlan loaded = plans.find(household.id(), clone.id()).orElseThrow();
+    assertEquals(original.id(), loaded.clonedFrom().orElseThrow());
+    assertEquals(clone.entries(), loaded.entries());
+    assertTrue(plans.find(household.id(), original.id()).orElseThrow().clonedFrom().isEmpty());
+    assertTrue(plans.find(HouseholdId.newId(), clone.id()).isEmpty());
   }
 }

@@ -104,6 +104,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 
 - [x] 56. offline rule engine
 - [x] 61. 7-day weekly plan with rescue-first strategy
+- [x] 62. clonable plan and recipe templates (prototype)
 
 ## F6 assignments
 

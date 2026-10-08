@@ -8,6 +8,7 @@ import dev.haypacomer.domain.planning.PlanEntryId;
 import dev.haypacomer.domain.planning.WeeklyPlan;
 import dev.haypacomer.domain.planning.WeeklyPlanId;
 import dev.haypacomer.domain.recipe.Recipe;
+import java.sql.Types;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -41,6 +42,16 @@ public class PostgresWeeklyPlanRepository implements WeeklyPlanRepository {
   }
 
   @Override
+  public Optional<WeeklyPlan> find(HouseholdId household, WeeklyPlanId id) {
+    return jdbc.sql("SELECT id FROM weekly_plans WHERE household_id = :household AND id = :id")
+        .param("household", household.value())
+        .param("id", id.value())
+        .query(UUID.class)
+        .optional()
+        .map(found -> load(household, found));
+  }
+
+  @Override
   public Optional<WeeklyPlan> current(HouseholdId household, LocalDate today) {
     return jdbc.sql(
             """
@@ -71,10 +82,14 @@ public class PostgresWeeklyPlanRepository implements WeeklyPlanRepository {
   }
 
   private WeeklyPlan load(HouseholdId household, UUID id) {
-    LocalDate weekStart =
-        jdbc.sql("SELECT week_start FROM weekly_plans WHERE id = :id")
+    PlanRow plan =
+        jdbc.sql("SELECT week_start, cloned_from FROM weekly_plans WHERE id = :id")
             .param("id", id)
-            .query(LocalDate.class)
+            .query(
+                (row, rowNumber) ->
+                    new PlanRow(
+                        row.getObject("week_start", LocalDate.class),
+                        row.getObject("cloned_from", UUID.class)))
             .single();
     List<EntryRow> rows =
         jdbc.sql(
@@ -98,7 +113,7 @@ public class PostgresWeeklyPlanRepository implements WeeklyPlanRepository {
     return WeeklyPlan.restore(
         new WeeklyPlanId(id),
         household,
-        weekStart,
+        plan.weekStart(),
         rows.stream()
             .map(
                 row ->
@@ -109,7 +124,8 @@ public class PostgresWeeklyPlanRepository implements WeeklyPlanRepository {
                         byId.get(row.recipe()),
                         row.servings(),
                         row.needsShopping()))
-            .toList());
+            .toList(),
+        plan.clonedFrom() == null ? null : new WeeklyPlanId(plan.clonedFrom()));
   }
 
   private void write(WeeklyPlan plan) {
@@ -122,12 +138,14 @@ public class PostgresWeeklyPlanRepository implements WeeklyPlanRepository {
         .update();
     jdbc.sql(
             """
-            INSERT INTO weekly_plans (id, household_id, week_start) VALUES (:id, :household, :start)
+            INSERT INTO weekly_plans (id, household_id, week_start, cloned_from)
+            VALUES (:id, :household, :start, :clonedFrom)
             ON CONFLICT (id) DO NOTHING
             """)
         .param("id", plan.id().value())
         .param("household", plan.household().value())
         .param("start", plan.weekStart())
+        .param("clonedFrom", plan.clonedFrom().map(WeeklyPlanId::value).orElse(null), Types.OTHER)
         .update();
     jdbc.sql("DELETE FROM plan_entries WHERE plan_id = :id")
         .param("id", plan.id().value())
@@ -148,6 +166,8 @@ public class PostgresWeeklyPlanRepository implements WeeklyPlanRepository {
           .update();
     }
   }
+
+  private record PlanRow(LocalDate weekStart, UUID clonedFrom) {}
 
   private record EntryRow(
       UUID id, int day, Meal meal, UUID recipe, int servings, boolean needsShopping) {}

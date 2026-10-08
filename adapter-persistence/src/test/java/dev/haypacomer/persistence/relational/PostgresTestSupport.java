@@ -21,6 +21,8 @@ abstract class PostgresTestSupport {
   static int seededFoods;
   static int soySauceAllergens;
   static int seededSubstitutionRules;
+  static int seededTemplates;
+  static int seededTemplateSteps;
 
   @BeforeAll
   static void migrate() {
@@ -40,6 +42,12 @@ abstract class PostgresTestSupport {
             .single();
     seededSubstitutionRules =
         jdbc.sql("SELECT count(*) FROM substitution_rules").query(Integer.class).single();
+    seededTemplates =
+        jdbc.sql("SELECT count(*) FROM recipes WHERE is_template AND household_id IS NULL")
+            .query(Integer.class)
+            .single();
+    seededTemplateSteps =
+        jdbc.sql("SELECT count(*) FROM recipe_steps").query(Integer.class).single();
   }
 
   @BeforeEach
