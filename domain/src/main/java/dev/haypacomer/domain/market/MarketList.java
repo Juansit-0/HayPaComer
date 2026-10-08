@@ -71,6 +71,19 @@ public final class MarketList {
     return item;
   }
 
+  public Grams pendingGrams(FoodMetadata food) {
+    return pendingFor(food).map(MarketItem::grams).orElse(Grams.ZERO);
+  }
+
+  public Optional<MarketItem> topUp(
+      FoodMetadata food, Grams needed, MarketSource source, UserId addedBy, Instant at) {
+    Grams gap = pendingGrams(food).shortfallTo(needed);
+    if (gap.isZero()) {
+      return Optional.empty();
+    }
+    return Optional.of(add(food, gap, source, addedBy, at));
+  }
+
   public MarketItem changeGrams(MarketItemId id, Grams grams) {
     return replace(require(id).withGrams(grams));
   }

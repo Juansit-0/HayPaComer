@@ -18,6 +18,7 @@ import dev.haypacomer.application.inventory.SearchFoods;
 import dev.haypacomer.application.inventory.TakeSnapshot;
 import dev.haypacomer.application.inventory.UndoLastChange;
 import dev.haypacomer.application.inventory.ViewInventory;
+import dev.haypacomer.application.market.AddMissingToMarketList;
 import dev.haypacomer.application.port.AuditLog;
 import dev.haypacomer.application.port.ColdChainRepository;
 import dev.haypacomer.application.port.CookingSessionRepository;
@@ -28,6 +29,7 @@ import dev.haypacomer.application.port.FoodProfileRepository;
 import dev.haypacomer.application.port.FridgeRepository;
 import dev.haypacomer.application.port.HouseholdRepository;
 import dev.haypacomer.application.port.InventoryMovementLog;
+import dev.haypacomer.application.port.MarketListRepository;
 import dev.haypacomer.application.port.ScaleSessionStore;
 import dev.haypacomer.application.port.SnapshotStore;
 import dev.haypacomer.application.port.StepTimerStore;
@@ -90,6 +92,15 @@ public class KitchenConfiguration {
       SubstitutionRuleRepository rules,
       Clock clock) {
     return new EvaluateRecipe(households, viewInventory, profiles, rules, clock);
+  }
+
+  @Bean
+  AddMissingToMarketList addMissingToMarketList(
+      HouseholdRepository households,
+      EvaluateRecipe evaluateRecipe,
+      MarketListRepository lists,
+      Clock clock) {
+    return new AddMissingToMarketList(households, evaluateRecipe, lists, clock);
   }
 
   @Bean
