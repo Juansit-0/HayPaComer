@@ -1,5 +1,6 @@
 package dev.haypacomer.web.planning;
 
+import dev.haypacomer.application.planning.AddPlanDeltaToMarketList;
 import dev.haypacomer.application.planning.ChangePlanEntry;
 import dev.haypacomer.application.planning.CloneRecipe;
 import dev.haypacomer.application.planning.CloneWeeklyPlan;
@@ -59,6 +60,7 @@ public class PlanningController {
   private final ChangePlanEntry changePlanEntry;
   private final CloneRecipe cloneRecipe;
   private final CloneWeeklyPlan cloneWeeklyPlan;
+  private final AddPlanDeltaToMarketList addPlanDelta;
   private final RecipeAssembler assembler;
 
   public PlanningController(
@@ -69,6 +71,7 @@ public class PlanningController {
       ChangePlanEntry changePlanEntry,
       CloneRecipe cloneRecipe,
       CloneWeeklyPlan cloneWeeklyPlan,
+      AddPlanDeltaToMarketList addPlanDelta,
       RecipeAssembler assembler) {
     this.saveRecipe = saveRecipe;
     this.listRecipes = listRecipes;
@@ -77,6 +80,7 @@ public class PlanningController {
     this.changePlanEntry = changePlanEntry;
     this.cloneRecipe = cloneRecipe;
     this.cloneWeeklyPlan = cloneWeeklyPlan;
+    this.addPlanDelta = addPlanDelta;
     this.assembler = assembler;
   }
 
@@ -132,6 +136,20 @@ public class PlanningController {
             request.weekStart()));
   }
 
+  @PostMapping("/market-list/from-plan")
+  List<DeltaResponse> planDelta(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID householdId) {
+    return addPlanDelta.add(CurrentUser.of(jwt), new HouseholdId(householdId)).stream()
+        .map(
+            item ->
+                new DeltaResponse(
+                    item.food().name(),
+                    item.needed().value(),
+                    item.available().value(),
+                    item.added().value(),
+                    item.pending().value()))
+        .toList();
+  }
+
   @PostMapping("/weekly-plans")
   @ResponseStatus(HttpStatus.CREATED)
   PlanResponse generate(
@@ -178,6 +196,13 @@ public class PlanningController {
       @Min(1) int minutes,
       @NotEmpty List<@Valid RequirementRequest> requirements,
       @Size(max = 50) List<@Valid StepRequest> steps) {}
+
+  record DeltaResponse(
+      String food,
+      BigDecimal neededGrams,
+      BigDecimal availableGrams,
+      BigDecimal addedGrams,
+      BigDecimal pendingGrams) {}
 
   record CloneRequest(@NotNull LocalDate weekStart) {}
 
