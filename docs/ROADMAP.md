@@ -107,6 +107,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 62. clonable plan and recipe templates (prototype)
 - [x] 63. plan delta into the market list
 - [x] 66. telegram, web, and log channels (observer, strategy)
+- [x] 67. openapi catalog, rfc7807 errors, and actuator health
 
 ## F6 assignments
 

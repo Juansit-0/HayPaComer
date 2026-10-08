@@ -26,13 +26,44 @@ import dev.haypacomer.domain.household.AccessDeniedException;
 import dev.haypacomer.domain.quantity.InvalidQuantityException;
 import dev.haypacomer.domain.quantity.UnconvertibleQuantityException;
 import dev.haypacomer.domain.session.IllegalSessionTransitionException;
+import dev.haypacomer.web.security.ProblemTypes;
+import java.util.Map;
+import java.util.TreeMap;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
+@Order(Ordered.HIGHEST_PRECEDENCE)
 public class ApiExceptionHandler {
+
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  ProblemDetail invalidBody(MethodArgumentNotValidException exception) {
+    ProblemDetail problem =
+        problem(
+            HttpStatus.BAD_REQUEST, "Invalid request", "Some fields are missing or out of range");
+    Map<String, String> errors = new TreeMap<>();
+    exception
+        .getBindingResult()
+        .getFieldErrors()
+        .forEach(
+            error ->
+                errors.putIfAbsent(
+                    error.getField(),
+                    error.getDefaultMessage() == null ? "is invalid" : error.getDefaultMessage()));
+    problem.setProperty("errors", errors);
+    return problem;
+  }
+
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  ProblemDetail unreadableBody(HttpMessageNotReadableException exception) {
+    return problem(HttpStatus.BAD_REQUEST, "Invalid request", "The request body is not valid JSON");
+  }
 
   @ExceptionHandler(InvalidCredentialsException.class)
   ProblemDetail invalidCredentials(InvalidCredentialsException exception) {
@@ -180,6 +211,7 @@ public class ApiExceptionHandler {
   private static ProblemDetail problem(HttpStatus status, String title, String detail) {
     ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, detail);
     problem.setTitle(title);
+    problem.setType(ProblemTypes.of(title));
     return problem;
   }
 }

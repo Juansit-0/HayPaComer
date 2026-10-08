@@ -3,13 +3,13 @@
 All business logic, AI, and the agent run in the backend. The web UI and the ESP32 talk to it only through this API and the SSE stream; AI provider keys never leave the server.
 
 - Base path: `/api/v1`. Production host: `https://api.haypacomer.dev` (web UI at `https://haypacomer.dev`).
-- Format: JSON; errors as RFC 7807 `application/problem+json`.
+- Format: JSON; every error, including 401 and 403 from the security chains, is RFC 7807 `application/problem+json` with `type` `https://haypacomer.dev/problems/<title>`, `title`, `status`, `detail`, and `instance`; invalid bodies add `errors` (field to message).
 - Authentication: `Authorization: Bearer <access JWT>` for people; `X-Device-Key: <key>` for ESP32 devices, accepted only under `/api/v1/device/**` (a separate security chain; device keys never reach user endpoints and JWTs never reach device endpoints).
 - Roles are per household: `OWNER`, `MEMBER`, `GUEST`. Food ownership (private, shared, ask first, grants) is checked on every inventory read and write.
 - Pagination: `?page=&size=&sort=`; collections return `{ items, page, size, total }`.
 - Inventory writes (stock, consume, discard) accept an `Idempotency-Key` UUID header; it becomes the command id, so a retry returns the first outcome with `replayed: true` instead of discounting twice.
 - Email links (verification, reset, invitations) carry the token in the URL fragment (`#token=`), so it never reaches server logs; clients post it in the request body.
-- OpenAPI at `/v3/api-docs` and Swagger UI at `/swagger-ui` is the contract; this file is the catalog.
+- OpenAPI at `/v3/api-docs` (springdoc, Bearer and `X-Device-Key` schemes) and Swagger UI at `/docs` is the contract; this file is the catalog.
 
 Access column: `public` (no token), `user` (any authenticated person), `member` (MEMBER or OWNER of the household), `guest` (any role in the household), `owner`, `device`.
 
@@ -212,8 +212,9 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 | Method | Path | Access | Purpose |
 |---|---|---|---|
 | GET | `/households/{h}/stream` | guest | SSE: events, alerts, inventory changes, twin updates |
-| GET | `/actuator/health` | public | Health (PostgreSQL, Redis, AI provider) |
+| GET | `/actuator/health` | public | Overall health without details; `/actuator/health/liveness` and `/actuator/health/readiness` for probes |
+| GET | `/actuator/info` | public | Application name and description |
 | GET | `/v3/api-docs` | public | OpenAPI document |
-| GET | `/swagger-ui` | public | API explorer |
+| GET | `/docs` | public | Swagger UI API explorer |
 
 Each endpoint ships in the roadmap step of its feature (see `PLAN.md` section 9), with MockMvc tests for success, validation, and authorization failures.
