@@ -37,6 +37,8 @@ set -a && source .env && set +a
 mvn -pl web -am spring-boot:run
 ```
 
+Then open `http://localhost:8080`. The web UI has three screens: Now (what to use first, fridge totals, cook now), Fridge (the fridge drawn shelf by shelf: use, throw away, or add food), and Market (list by aisle, cart, and what the weekly plan needs). The API catalog is at `/docs`.
+
 ## Documentation
 
 - [`PLAN.md`](PLAN.md) - master plan and roadmap

@@ -112,6 +112,19 @@
   </dependencies>
 
   <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+      <resource>
+        <directory>${project.basedir}/../brand/assets</directory>
+        <targetPath>static/brand</targetPath>
+        <includes>
+          <include>tokens.css</include>
+          <include>logo-mark.svg</include>
+        </includes>
+      </resource>
+    </resources>
     <plugins>
       <plugin>
         <groupId>org.springframework.boot</groupId>
