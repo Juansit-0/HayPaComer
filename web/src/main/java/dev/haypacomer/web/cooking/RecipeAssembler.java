@@ -27,7 +27,7 @@ public class RecipeAssembler {
     this.catalog = catalog;
   }
 
-  Recipe assemble(
+  public Recipe assemble(
       String name,
       int servings,
       int minutes,

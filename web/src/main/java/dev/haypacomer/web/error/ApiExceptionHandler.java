@@ -15,6 +15,8 @@ import dev.haypacomer.application.inventory.FoodNotInCatalogException;
 import dev.haypacomer.application.inventory.NothingToUndoException;
 import dev.haypacomer.application.inventory.PermissionRequiredException;
 import dev.haypacomer.application.inventory.SnapshotNotFoundException;
+import dev.haypacomer.application.planning.RecipeNotFoundException;
+import dev.haypacomer.application.planning.WeeklyPlanNotFoundException;
 import dev.haypacomer.application.scale.NoRecentSampleException;
 import dev.haypacomer.application.sensor.MalformedSensorPayloadException;
 import dev.haypacomer.application.session.CookingSessionNotFoundException;
@@ -39,6 +41,16 @@ public class ApiExceptionHandler {
   @ExceptionHandler(TooManyLoginAttemptsException.class)
   ProblemDetail tooManyAttempts(TooManyLoginAttemptsException exception) {
     return problem(HttpStatus.TOO_MANY_REQUESTS, "Too many attempts", exception.getMessage());
+  }
+
+  @ExceptionHandler(RecipeNotFoundException.class)
+  ProblemDetail recipeNotFound(RecipeNotFoundException exception) {
+    return problem(HttpStatus.NOT_FOUND, "Not found", exception.getMessage());
+  }
+
+  @ExceptionHandler(WeeklyPlanNotFoundException.class)
+  ProblemDetail planNotFound(WeeklyPlanNotFoundException exception) {
+    return problem(HttpStatus.NOT_FOUND, "Not found", exception.getMessage());
   }
 
   @ExceptionHandler(EmailAlreadyRegisteredException.class)

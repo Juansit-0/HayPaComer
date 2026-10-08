@@ -100,6 +100,10 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 54. automatic missing items to the market list
 - [x] 55. portions, substitutions, and step progression
 
+## F6 detail
+
+- [x] 61. 7-day weekly plan with rescue-first strategy
+
 ## F6 assignments
 
 - Steps 61, 62, and 63 (planning) belong to Jenifer Urbano (`Jenifrutica`), from her own account; guides in [`docs/tasks/`](tasks/README.md).
