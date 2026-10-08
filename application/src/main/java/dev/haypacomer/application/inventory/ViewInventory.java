@@ -13,6 +13,7 @@ import dev.haypacomer.domain.identity.UserId;
 import dev.haypacomer.domain.inventory.FreshnessPolicy;
 import dev.haypacomer.domain.inventory.OwnedFood;
 import dev.haypacomer.domain.inventory.PlainFood;
+import dev.haypacomer.domain.inventory.PrivateFoodProxy;
 import dev.haypacomer.domain.inventory.StockedFood;
 import dev.haypacomer.domain.inventory.UnderReviewFood;
 import dev.haypacomer.domain.member.MemberId;
@@ -63,6 +64,7 @@ public final class ViewInventory {
             tray ->
                 tray.children().stream()
                     .map(item -> stocked(item, today, underReview))
+                    .map(food -> PrivateFoodProxy.guard(food, viewer))
                     .map(
                         food ->
                             new InventoryEntry(
