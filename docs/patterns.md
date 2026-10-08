@@ -24,7 +24,7 @@ HayPaComer covers 23/23 GoF patterns. Honesty rule: each pattern is used in a re
 | Behavioral | Memento | `Fridge` (originator) produces an immutable `FridgeMemento` and is rebuilt from it; `InventoryCaretaker` stores household mementos with ownership before every inventory command (multi-level undo) and for manual snapshots the owner can restore. Tests: `FridgeMementoTest`, `UndoAndSnapshotsTest` | F2 |
 | Behavioral | Observer | SSE panel, notifications, and analytics subscribers | F6 |
 | Behavioral | State | `ColdChain` delegates to `ColdChainState` (`Normal`, `Warming`, `UnderReview`): a breach longer than the grace period moves to under review, recovery alone does not close it, and only a human review after recovery returns to normal. Cooking session states come in F5. Test: `ColdChainTest` | F3 |
-| Behavioral | Strategy | Quantity evaluation (enough, reduce, substitute, missing), channels, weekly plan | F5 |
+| Behavioral | Strategy | `EvaluationStrategy` with `StrictStrategy` (any shortfall is MISSING), `FlexibleStrategy` (fewer servings within a 25% cooking tolerance), and `RescueStrategy` (allowed substitute in stock, else flexible) evaluates a recipe against the usable, edible inventory; `EvaluateRecipe` picks it by `StrategyKind`. Later: notification channels and weekly plan. Test: `EvaluationStrategyTest` | F5 |
 | Behavioral | Template Method | Report generation | F7 |
 | Behavioral | Visitor | Analytics over the composite tree | F7 |
 

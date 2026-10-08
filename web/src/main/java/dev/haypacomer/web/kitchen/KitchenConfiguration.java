@@ -5,6 +5,7 @@ import dev.haypacomer.application.audit.ListActivity;
 import dev.haypacomer.application.coldchain.ListColdChains;
 import dev.haypacomer.application.coldchain.ReviewColdChain;
 import dev.haypacomer.application.coldchain.TrackColdChain;
+import dev.haypacomer.application.cooking.EvaluateRecipe;
 import dev.haypacomer.application.fridge.ListFridges;
 import dev.haypacomer.application.fridge.SetUpFridge;
 import dev.haypacomer.application.household.GetHousehold;
@@ -58,6 +59,12 @@ public class KitchenConfiguration {
       ColdChainRepository coldChains,
       FreshnessPolicy freshness) {
     return new ViewInventory(households, fridges, ownerships, coldChains, freshness);
+  }
+
+  @Bean
+  EvaluateRecipe evaluateRecipe(
+      HouseholdRepository households, ViewInventory viewInventory, Clock clock) {
+    return new EvaluateRecipe(households, viewInventory, clock);
   }
 
   @Bean
