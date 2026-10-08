@@ -34,8 +34,8 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 | PATCH | `/me` | user | Update display name |
 | DELETE | `/me` | user | Delete account |
 | PUT | `/me/password` | user | Change password (revokes other sessions) |
-| GET | `/me/notification-preferences` | user | Channel preferences |
-| PUT | `/me/notification-preferences` | user | Update channels and Telegram chat id |
+| GET | `/me/notification-preferences` | user | Channels (WEB, TELEGRAM, LOG; default WEB and LOG) and Telegram chat id |
+| PUT | `/me/notification-preferences` | user | Replace channels and Telegram chat id (numeric; required for TELEGRAM) |
 
 ## Households and members
 
@@ -182,8 +182,8 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 
 | Method | Path | Access | Purpose |
 |---|---|---|---|
-| GET | `/notifications` | user | Caller notifications |
-| PATCH | `/notifications/{id}/read` | user | Mark read |
+| GET | `/notifications` | user | Caller's web inbox, newest first (50): door left open and fridge too warm |
+| PATCH | `/notifications/{id}/read` | user | Mark read (204); 404 for notifications of other users |
 | GET | `/households/{h}/analytics/summary?month=` | guest | Kg saved, money avoided, waste |
 | GET | `/households/{h}/analytics/ranking?month=` | guest | Per-member ranking |
 | GET | `/households/{h}/analytics/trend?months=` | guest | Monthly trend |

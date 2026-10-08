@@ -4,6 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.haypacomer.application.notification.Notification;
+import dev.haypacomer.application.notification.NotificationType;
+import dev.haypacomer.application.notification.NotifyHousehold;
 import dev.haypacomer.application.port.AlertSignal;
 import dev.haypacomer.application.port.DeviceRepository;
 import dev.haypacomer.application.port.FridgeMonitorRegistry;
@@ -156,8 +159,9 @@ class SensorMonitoringTest {
         };
     HardwareFactories hardware = new HardwareFactories(List.of(family));
     Registry registry = new Registry();
-    observe = new ObserveSensorEvent(registry, devices, hardware);
-    check = new CheckFridgeAlerts(registry, devices, hardware, clock);
+    NotifyHousehold notify = new NotifyHousehold(List.of(published::add));
+    observe = new ObserveSensorEvent(registry, devices, hardware, notify);
+    check = new CheckFridgeAlerts(registry, devices, hardware, notify, clock);
   }
 
   private DoorEvent door(DoorState state, long seconds) {
@@ -168,6 +172,8 @@ class SensorMonitoringTest {
         T0.plusSeconds(seconds),
         state);
   }
+
+  private final List<Notification> published = new ArrayList<>();
 
   @Test
   void doorLeftOpenBeepsOncePerEpisodeFromThePeriodicCheck() {
@@ -186,6 +192,30 @@ class SensorMonitoringTest {
     clock.now = T0.plusSeconds(145);
     check.check();
     assertEquals(List.of(AlertPattern.DOOR_OPEN_BEEP, AlertPattern.DOOR_OPEN_BEEP), buzzer);
+    assertEquals(2, published.size());
+    Notification first = published.getFirst();
+    assertEquals(NotificationType.DOOR_LEFT_OPEN, first.type());
+    assertEquals(device.household(), first.household());
+    assertEquals(
+        "The fridge door has been open for 41 s. Close it to keep the food cold.", first.body());
+  }
+
+  @Test
+  void aWarmFridgeNotifiesTheHouseholdButStockChangesDoNot() {
+    for (int minute = 0; minute <= 21; minute++) {
+      observe.observe(
+          device,
+          new TemperatureReading(
+              new SensorEventId(UUID.randomUUID()),
+              device.id(),
+              device.fridge(),
+              T0.plus(Duration.ofMinutes(minute)),
+              new BigDecimal("6.20")));
+    }
+
+    assertEquals(1, published.size());
+    assertEquals(NotificationType.COLD_CHAIN_BREACH, published.getFirst().type());
+    assertTrue(published.getFirst().body().startsWith("The fridge stayed at 6.2 C for 2"));
   }
 
   @Test

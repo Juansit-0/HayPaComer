@@ -8,6 +8,7 @@ import dev.haypacomer.application.device.RegisterDevice;
 import dev.haypacomer.application.device.RevokeDevice;
 import dev.haypacomer.application.inventory.ExecuteInventoryCommand;
 import dev.haypacomer.application.inventory.FoodAccessGuard;
+import dev.haypacomer.application.notification.NotifyHousehold;
 import dev.haypacomer.application.port.DeviceRepository;
 import dev.haypacomer.application.port.FoodOwnershipRepository;
 import dev.haypacomer.application.port.FridgeMonitorRegistry;
@@ -146,8 +147,11 @@ public class DeviceConfiguration {
 
   @Bean
   ObserveSensorEvent observeSensorEvent(
-      FridgeMonitorRegistry registry, DeviceRepository devices, HardwareFactories hardware) {
-    return new ObserveSensorEvent(registry, devices, hardware);
+      FridgeMonitorRegistry registry,
+      DeviceRepository devices,
+      HardwareFactories hardware,
+      NotifyHousehold notifications) {
+    return new ObserveSensorEvent(registry, devices, hardware, notifications);
   }
 
   @Bean
@@ -155,8 +159,9 @@ public class DeviceConfiguration {
       FridgeMonitorRegistry registry,
       DeviceRepository devices,
       HardwareFactories hardware,
+      NotifyHousehold notifications,
       Clock clock) {
-    return new CheckFridgeAlerts(registry, devices, hardware, clock);
+    return new CheckFridgeAlerts(registry, devices, hardware, notifications, clock);
   }
 
   @Bean

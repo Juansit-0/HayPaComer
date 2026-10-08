@@ -15,6 +15,7 @@ import dev.haypacomer.application.inventory.FoodNotInCatalogException;
 import dev.haypacomer.application.inventory.NothingToUndoException;
 import dev.haypacomer.application.inventory.PermissionRequiredException;
 import dev.haypacomer.application.inventory.SnapshotNotFoundException;
+import dev.haypacomer.application.notification.NotificationNotFoundException;
 import dev.haypacomer.application.planning.RecipeNotFoundException;
 import dev.haypacomer.application.planning.WeeklyPlanNotFoundException;
 import dev.haypacomer.application.scale.NoRecentSampleException;
@@ -50,6 +51,11 @@ public class ApiExceptionHandler {
 
   @ExceptionHandler(WeeklyPlanNotFoundException.class)
   ProblemDetail planNotFound(WeeklyPlanNotFoundException exception) {
+    return problem(HttpStatus.NOT_FOUND, "Not found", exception.getMessage());
+  }
+
+  @ExceptionHandler(NotificationNotFoundException.class)
+  ProblemDetail notificationNotFound(NotificationNotFoundException exception) {
     return problem(HttpStatus.NOT_FOUND, "Not found", exception.getMessage());
   }
 

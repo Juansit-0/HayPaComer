@@ -2,7 +2,9 @@ package dev.haypacomer.web.device;
 
 import static org.hamcrest.Matchers.hasItems;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -15,6 +17,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -127,5 +130,38 @@ class SensorIntakeIntegrationTest {
     mvc.perform(get("/api/v1/device/commands").header("X-Device-Key", key))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$", hasItems("DOOR_OPEN_BEEP", "COLD_CHAIN_ALARM")));
+
+    String inbox =
+        mvc.perform(get("/api/v1/notifications").header("Authorization", juan))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(2))
+            .andExpect(jsonPath("$[*].type", hasItems("DOOR_LEFT_OPEN", "COLD_CHAIN_BREACH")))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    String first = JsonPath.read(inbox, "$[0].id");
+    mvc.perform(patch("/api/v1/notifications/" + first + "/read").header("Authorization", juan))
+        .andExpect(status().isNoContent());
+    mvc.perform(get("/api/v1/notifications").header("Authorization", juan))
+        .andExpect(jsonPath("$[0].readAt").exists());
+    mvc.perform(
+            patch("/api/v1/notifications/" + UUID.randomUUID() + "/read")
+                .header("Authorization", juan))
+        .andExpect(status().isNotFound());
+    mvc.perform(get("/api/v1/me/notification-preferences").header("Authorization", juan))
+        .andExpect(jsonPath("$.channels", hasItems("WEB", "LOG")));
+    mvc.perform(
+            put("/api/v1/me/notification-preferences")
+                .header("Authorization", juan)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"channels\":[\"WEB\",\"TELEGRAM\"],\"telegramChatId\":\"12345\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.telegramChatId").value("12345"));
+    mvc.perform(
+            put("/api/v1/me/notification-preferences")
+                .header("Authorization", juan)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"channels\":[\"TELEGRAM\"]}"))
+        .andExpect(status().isBadRequest());
   }
 }

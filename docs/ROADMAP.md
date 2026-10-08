@@ -106,6 +106,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 61. 7-day weekly plan with rescue-first strategy
 - [x] 62. clonable plan and recipe templates (prototype)
 - [x] 63. plan delta into the market list
+- [x] 66. telegram, web, and log channels (observer, strategy)
 
 ## F6 assignments
 
