@@ -5,8 +5,7 @@ Thanks for helping build HayPaComer. This guide gets a new teammate from a clean
 ## 1. Access
 
 1. The repository owner adds your GitHub account as a collaborator (Settings, Collaborators). Accept the email invitation.
-2. Work from your own account only. Never share a personal access token; if one was ever pasted in a chat or a file, revoke it in GitHub (Settings, Developer settings, Personal access tokens) and create a new one.
-3. Configure your own identity once, so your commits are attributed to you:
+2. Configure your own identity once, so your commits are attributed to you:
 
 ```bash
 git config --global user.name "Your Name"
