@@ -114,6 +114,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 65. live sse panel and digital twin (observer)
 - [x] 66. telegram, web, and log channels (observer, strategy)
 - [x] 67. openapi catalog, rfc7807 errors, and actuator health
+- [x] 68. redis stores for agent memory, conversations, traces, and confirmations
 
 ## F6 assignments
 
