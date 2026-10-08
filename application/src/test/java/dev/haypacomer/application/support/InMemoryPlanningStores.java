@@ -1,10 +1,13 @@
 package dev.haypacomer.application.support;
 
 import dev.haypacomer.application.port.RecipeRepository;
+import dev.haypacomer.application.port.RecipeTemplateRepository;
 import dev.haypacomer.application.port.WeeklyPlanRepository;
 import dev.haypacomer.domain.household.HouseholdId;
 import dev.haypacomer.domain.planning.PlanEntryId;
 import dev.haypacomer.domain.planning.WeeklyPlan;
+import dev.haypacomer.domain.planning.WeeklyPlanId;
+import dev.haypacomer.domain.recipe.ClonedRecipe;
 import dev.haypacomer.domain.recipe.Recipe;
 import dev.haypacomer.domain.recipe.RecipeId;
 import java.time.LocalDate;
@@ -20,6 +23,21 @@ public final class InMemoryPlanningStores {
   private final Map<RecipeId, HouseholdId> recipeOwners = new LinkedHashMap<>();
   private final Map<RecipeId, Recipe> recipeMap = new LinkedHashMap<>();
   public final List<WeeklyPlan> planList = new ArrayList<>();
+  public final Map<RecipeId, RecipeId> clonedFrom = new LinkedHashMap<>();
+  public final List<Recipe> templateList = new ArrayList<>();
+
+  public final RecipeTemplateRepository templates =
+      new RecipeTemplateRepository() {
+        @Override
+        public List<Recipe> templates() {
+          return List.copyOf(templateList);
+        }
+
+        @Override
+        public Optional<Recipe> template(RecipeId id) {
+          return templateList.stream().filter(recipe -> recipe.id().equals(id)).findFirst();
+        }
+      };
 
   public final RecipeRepository recipes =
       new RecipeRepository() {
@@ -27,6 +45,12 @@ public final class InMemoryPlanningStores {
         public void save(HouseholdId household, Recipe recipe) {
           recipeOwners.put(recipe.id(), household);
           recipeMap.put(recipe.id(), recipe);
+        }
+
+        @Override
+        public void saveCopy(HouseholdId household, ClonedRecipe copy) {
+          save(household, copy.recipe());
+          clonedFrom.put(copy.recipe().id(), copy.clonedFrom());
         }
 
         @Override
@@ -53,6 +77,13 @@ public final class InMemoryPlanningStores {
                       || existing.household().equals(plan.household())
                           && existing.weekStart().equals(plan.weekStart()));
           planList.add(plan);
+        }
+
+        @Override
+        public Optional<WeeklyPlan> find(HouseholdId household, WeeklyPlanId id) {
+          return planList.stream()
+              .filter(plan -> plan.household().equals(household) && plan.id().equals(id))
+              .findFirst();
         }
 
         @Override

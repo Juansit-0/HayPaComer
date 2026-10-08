@@ -1,9 +1,11 @@
 package dev.haypacomer.persistence.relational;
 
 import dev.haypacomer.application.port.RecipeRepository;
+import dev.haypacomer.application.port.RecipeTemplateRepository;
 import dev.haypacomer.domain.food.FoodMetadata;
 import dev.haypacomer.domain.household.HouseholdId;
 import dev.haypacomer.domain.quantity.Grams;
+import dev.haypacomer.domain.recipe.ClonedRecipe;
 import dev.haypacomer.domain.recipe.Recipe;
 import dev.haypacomer.domain.recipe.RecipeId;
 import dev.haypacomer.domain.recipe.RecipeRequirement;
@@ -29,7 +31,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.support.TransactionTemplate;
 
 @Repository
-public class PostgresRecipeRepository implements RecipeRepository {
+public class PostgresRecipeRepository implements RecipeRepository, RecipeTemplateRepository {
 
   private final JdbcClient jdbc;
   private final TransactionTemplate transaction;
@@ -41,7 +43,31 @@ public class PostgresRecipeRepository implements RecipeRepository {
 
   @Override
   public void save(HouseholdId household, Recipe recipe) {
-    transaction.executeWithoutResult(status -> write(household, recipe));
+    transaction.executeWithoutResult(status -> write(household, recipe, null));
+  }
+
+  @Override
+  public void saveCopy(HouseholdId household, ClonedRecipe copy) {
+    transaction.executeWithoutResult(
+        status -> write(household, copy.recipe(), copy.clonedFrom().value()));
+  }
+
+  @Override
+  public List<Recipe> templates() {
+    return load(
+        null,
+        jdbc.sql("SELECT id FROM recipes WHERE is_template ORDER BY name")
+            .query(UUID.class)
+            .list());
+  }
+
+  @Override
+  public Optional<Recipe> template(RecipeId id) {
+    return jdbc.sql("SELECT id FROM recipes WHERE id = :id AND is_template")
+        .param("id", id.value())
+        .query(UUID.class)
+        .optional()
+        .flatMap(found -> load(null, List.of(found)).stream().findFirst());
   }
 
   @Override
@@ -84,7 +110,7 @@ public class PostgresRecipeRepository implements RecipeRepository {
                     RecipeSource.valueOf(row.getString("source"))))
         .list()
         .stream()
-        .filter(row -> household == null || row.household().equals(household.value()))
+        .filter(row -> household == null || household.value().equals(row.household()))
         .forEach(row -> rows.put(row.id(), row));
     if (rows.isEmpty()) {
       return List.of();
@@ -150,11 +176,11 @@ public class PostgresRecipeRepository implements RecipeRepository {
     return recipes;
   }
 
-  private void write(HouseholdId household, Recipe recipe) {
+  private void write(HouseholdId household, Recipe recipe, UUID clonedFrom) {
     jdbc.sql(
             """
-            INSERT INTO recipes (id, household_id, name, servings, minutes, source)
-            VALUES (:id, :household, :name, :servings, :minutes, :source)
+            INSERT INTO recipes (id, household_id, name, servings, minutes, source, cloned_from)
+            VALUES (:id, :household, :name, :servings, :minutes, :source, :clonedFrom)
             ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, servings = EXCLUDED.servings,
                 minutes = EXCLUDED.minutes, source = EXCLUDED.source
             """)
@@ -164,6 +190,7 @@ public class PostgresRecipeRepository implements RecipeRepository {
         .param("servings", recipe.servings())
         .param("minutes", recipe.minutes())
         .param("source", recipe.source().name())
+        .param("clonedFrom", clonedFrom, Types.OTHER)
         .update();
     jdbc.sql("DELETE FROM recipe_requirements WHERE recipe_id = :id")
         .param("id", recipe.id().value())

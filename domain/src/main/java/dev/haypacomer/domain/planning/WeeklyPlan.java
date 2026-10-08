@@ -17,10 +17,16 @@ public final class WeeklyPlan {
   private final HouseholdId household;
   private final LocalDate weekStart;
   private final List<PlanEntry> entries;
+  private final WeeklyPlanId clonedFrom;
 
   private WeeklyPlan(
-      WeeklyPlanId id, HouseholdId household, LocalDate weekStart, List<PlanEntry> entries) {
+      WeeklyPlanId id,
+      HouseholdId household,
+      LocalDate weekStart,
+      List<PlanEntry> entries,
+      WeeklyPlanId clonedFrom) {
     this.id = Objects.requireNonNull(id, "id");
+    this.clonedFrom = clonedFrom;
     this.household = Objects.requireNonNull(household, "household");
     this.weekStart = Objects.requireNonNull(weekStart, "weekStart");
     this.entries = new ArrayList<>(entries);
@@ -36,12 +42,42 @@ public final class WeeklyPlan {
 
   public static WeeklyPlan create(
       HouseholdId household, LocalDate weekStart, List<PlanEntry> entries) {
-    return new WeeklyPlan(WeeklyPlanId.newId(), household, weekStart, entries);
+    return new WeeklyPlan(WeeklyPlanId.newId(), household, weekStart, entries, null);
   }
 
   public static WeeklyPlan restore(
-      WeeklyPlanId id, HouseholdId household, LocalDate weekStart, List<PlanEntry> entries) {
-    return new WeeklyPlan(id, household, weekStart, entries);
+      WeeklyPlanId id,
+      HouseholdId household,
+      LocalDate weekStart,
+      List<PlanEntry> entries,
+      WeeklyPlanId clonedFrom) {
+    return new WeeklyPlan(id, household, weekStart, entries, clonedFrom);
+  }
+
+  public WeeklyPlan cloneFor(LocalDate newWeekStart) {
+    Objects.requireNonNull(newWeekStart, "newWeekStart");
+    if (newWeekStart.equals(weekStart)) {
+      throw new IllegalArgumentException("A copy must start on a different week");
+    }
+    return new WeeklyPlan(
+        WeeklyPlanId.newId(),
+        household,
+        newWeekStart,
+        entries.stream()
+            .map(
+                entry ->
+                    PlanEntry.of(
+                        entry.day(),
+                        entry.meal(),
+                        entry.recipe(),
+                        entry.servings(),
+                        entry.needsShopping()))
+            .toList(),
+        id);
+  }
+
+  public Optional<WeeklyPlanId> clonedFrom() {
+    return Optional.ofNullable(clonedFrom);
   }
 
   public WeeklyPlanId id() {

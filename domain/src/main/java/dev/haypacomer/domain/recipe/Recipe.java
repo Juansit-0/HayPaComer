@@ -57,6 +57,17 @@ public record Recipe(
     return Set.copyOf(allergens);
   }
 
+  public Recipe copy() {
+    return new Recipe(
+        RecipeId.newId(),
+        name,
+        servings,
+        minutes,
+        source == RecipeSource.TEMPLATE ? RecipeSource.MANUAL : source,
+        requirements,
+        steps);
+  }
+
   public Recipe scaledTo(int targetServings) {
     if (targetServings < 1) {
       throw new IllegalArgumentException("Servings must be at least 1: " + targetServings);

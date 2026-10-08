@@ -1,6 +1,8 @@
 package dev.haypacomer.web.planning;
 
 import dev.haypacomer.application.planning.ChangePlanEntry;
+import dev.haypacomer.application.planning.CloneRecipe;
+import dev.haypacomer.application.planning.CloneWeeklyPlan;
 import dev.haypacomer.application.planning.GenerateWeeklyPlan;
 import dev.haypacomer.application.planning.ListRecipes;
 import dev.haypacomer.application.planning.SaveRecipe;
@@ -11,6 +13,8 @@ import dev.haypacomer.domain.planning.Meal;
 import dev.haypacomer.domain.planning.PlanEntry;
 import dev.haypacomer.domain.planning.PlanEntryId;
 import dev.haypacomer.domain.planning.WeeklyPlan;
+import dev.haypacomer.domain.planning.WeeklyPlanId;
+import dev.haypacomer.domain.recipe.ClonedRecipe;
 import dev.haypacomer.domain.recipe.Recipe;
 import dev.haypacomer.domain.recipe.RecipeId;
 import dev.haypacomer.domain.recipe.RecipeStep;
@@ -53,6 +57,8 @@ public class PlanningController {
   private final GenerateWeeklyPlan generateWeeklyPlan;
   private final ViewCurrentPlan viewCurrentPlan;
   private final ChangePlanEntry changePlanEntry;
+  private final CloneRecipe cloneRecipe;
+  private final CloneWeeklyPlan cloneWeeklyPlan;
   private final RecipeAssembler assembler;
 
   public PlanningController(
@@ -61,12 +67,16 @@ public class PlanningController {
       GenerateWeeklyPlan generateWeeklyPlan,
       ViewCurrentPlan viewCurrentPlan,
       ChangePlanEntry changePlanEntry,
+      CloneRecipe cloneRecipe,
+      CloneWeeklyPlan cloneWeeklyPlan,
       RecipeAssembler assembler) {
     this.saveRecipe = saveRecipe;
     this.listRecipes = listRecipes;
     this.generateWeeklyPlan = generateWeeklyPlan;
     this.viewCurrentPlan = viewCurrentPlan;
     this.changePlanEntry = changePlanEntry;
+    this.cloneRecipe = cloneRecipe;
+    this.cloneWeeklyPlan = cloneWeeklyPlan;
     this.assembler = assembler;
   }
 
@@ -93,6 +103,33 @@ public class PlanningController {
     return listRecipes.list(CurrentUser.of(jwt), new HouseholdId(householdId)).stream()
         .map(RecipeResponse::from)
         .toList();
+  }
+
+  @PostMapping("/recipes/{recipeId}/clone")
+  @ResponseStatus(HttpStatus.CREATED)
+  RecipeResponse cloneRecipe(
+      @AuthenticationPrincipal Jwt jwt,
+      @PathVariable UUID householdId,
+      @PathVariable UUID recipeId) {
+    ClonedRecipe copy =
+        cloneRecipe.clone(
+            CurrentUser.of(jwt), new HouseholdId(householdId), new RecipeId(recipeId));
+    return RecipeResponse.from(copy.recipe(), copy.clonedFrom().value());
+  }
+
+  @PostMapping("/weekly-plans/{planId}/clone")
+  @ResponseStatus(HttpStatus.CREATED)
+  PlanResponse clonePlan(
+      @AuthenticationPrincipal Jwt jwt,
+      @PathVariable UUID householdId,
+      @PathVariable UUID planId,
+      @Valid @RequestBody CloneRequest request) {
+    return PlanResponse.from(
+        cloneWeeklyPlan.clone(
+            CurrentUser.of(jwt),
+            new HouseholdId(householdId),
+            new WeeklyPlanId(planId),
+            request.weekStart()));
   }
 
   @PostMapping("/weekly-plans")
@@ -142,6 +179,8 @@ public class PlanningController {
       @NotEmpty List<@Valid RequirementRequest> requirements,
       @Size(max = 50) List<@Valid StepRequest> steps) {}
 
+  record CloneRequest(@NotNull LocalDate weekStart) {}
+
   record GenerateRequest(@Min(1) @Max(20) Integer servings, List<UUID> diners) {}
 
   record ChangeRequest(@NotNull UUID recipeId, @Min(1) @Max(20) int servings) {}
@@ -171,9 +210,14 @@ public class PlanningController {
       int servings,
       int minutes,
       List<RequirementResponse> requirements,
-      List<StepResponse> steps) {
+      List<StepResponse> steps,
+      UUID clonedFrom) {
 
     static RecipeResponse from(Recipe recipe) {
+      return from(recipe, null);
+    }
+
+    static RecipeResponse from(Recipe recipe, UUID clonedFrom) {
       return new RecipeResponse(
           recipe.id().value(),
           recipe.name(),
@@ -187,7 +231,8 @@ public class PlanningController {
                           requirement.grams().value(),
                           requirement.optional()))
               .toList(),
-          recipe.steps().stream().map(StepResponse::from).toList());
+          recipe.steps().stream().map(StepResponse::from).toList(),
+          clonedFrom);
     }
   }
 
@@ -215,13 +260,18 @@ public class PlanningController {
   }
 
   record PlanResponse(
-      UUID id, LocalDate weekStart, LocalDate weekEnd, List<EntryResponse> entries) {
+      UUID id,
+      LocalDate weekStart,
+      LocalDate weekEnd,
+      UUID clonedFrom,
+      List<EntryResponse> entries) {
 
     static PlanResponse from(WeeklyPlan plan) {
       return new PlanResponse(
           plan.id().value(),
           plan.weekStart(),
           plan.weekEnd(),
+          plan.clonedFrom().map(WeeklyPlanId::value).orElse(null),
           plan.entries().stream()
               .map(entry -> EntryResponse.from(entry, plan.dateOf(entry)))
               .toList());

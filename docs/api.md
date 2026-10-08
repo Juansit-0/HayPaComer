@@ -134,7 +134,8 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 |---|---|---|---|
 | POST, GET | `/households/{h}/recipes` | member, guest | Save a household recipe (requirements with grams or quantity, steps with optional timer and weighing) and list them by name |
 | GET, PATCH, DELETE | `/recipes/{id}` | guest, member, member | Recipe detail, update, delete |
-| POST | `/recipes/{id}/clone` | member | Clone template (prototype) |
+| POST | `/households/{h}/recipes/{id}/clone` | member | Copy a household recipe or a global template into the household; the copy shows `clonedFrom` |
+| GET | `/recipe-templates` | user | Global recipe templates (5 seeded) |
 | POST | `/recipes/{id}/scale` | guest | Rescale portions |
 | POST | `/households/{h}/recipes/evaluate` | guest | Inline recipe plus target servings and strategy (STRICT, FLEXIBLE, RESCUE with the substitution rules that every diner can eat; optional `diners` member ids, default the whole household; each requirement takes `grams` or a `quantity` text) evaluated against the usable inventory: ENOUGH, REDUCE, SUBSTITUTE, or MISSING per requirement |
 | POST | `/households/{h}/recipes/missing-to-market` | member | Inline recipe plus `targetServings`: every mandatory shortfall against the usable inventory is topped up on the market list (source RECIPE) without adding grams that are already pending; returns shortfall, added, and pending grams per food |
@@ -175,7 +176,7 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 | POST | `/households/{h}/weekly-plans` | member | Generate a 7-day lunch and dinner plan starting today from the saved recipes: food about to expire first, only dishes every diner can eat, no repeat on consecutive days, and `needsShopping` where the fridge falls short; optional `servings` and `diners`; replaces the plan of the same week |
 | GET | `/households/{h}/weekly-plans/current` | guest | Plan that covers today with each entry's date; 404 when there is none |
 | PATCH | `/households/{h}/plan-entries/{id}` | member | Change the recipe and servings of an entry; `needsShopping` is checked again against the fridge |
-| POST | `/weekly-plans/{id}/clone` | member | Clone plan (prototype) |
+| POST | `/households/{h}/weekly-plans/{id}/clone` | member | Copy a plan to another week (`weekStart`, must differ); replaces any plan of that week; 404 for plans of other households |
 
 ## Notifications and analytics
 
