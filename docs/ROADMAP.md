@@ -117,7 +117,8 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 ## F6 assignments
 
 - Steps 61, 62, and 63 (planning) belong to Jenifer Urbano (`Jenifrutica`); guides in [`docs/tasks/`](tasks/README.md).
-- The remaining F6 steps stay with the owner.
+- Steps 66 to 92 also belong to Jenifer Urbano, including the remaining design patterns (Observer in 66, Template Method and Visitor in 78, Proxy in 80, Null Object in 81), the analytics dashboard (79), and hands-free voice (87).
+- The owner keeps steps 56 to 60 and the web interface steps 64 and 65.
 
 ## Notes
 
