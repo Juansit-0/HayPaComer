@@ -94,6 +94,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 48. enough/reduce/substitute/missing evaluator (strategy)
 - [x] 49. quantity and unit interpreter
 - [x] 50. substitutions with proportion, limits, and allergies
+- [x] 51. cooking session with states and resume (state)
 
 ## Notes
 

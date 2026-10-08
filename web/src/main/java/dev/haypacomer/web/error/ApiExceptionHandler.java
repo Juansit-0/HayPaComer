@@ -17,9 +17,12 @@ import dev.haypacomer.application.inventory.PermissionRequiredException;
 import dev.haypacomer.application.inventory.SnapshotNotFoundException;
 import dev.haypacomer.application.scale.NoRecentSampleException;
 import dev.haypacomer.application.sensor.MalformedSensorPayloadException;
+import dev.haypacomer.application.session.CookingSessionNotFoundException;
+import dev.haypacomer.application.session.SessionAlreadyActiveException;
 import dev.haypacomer.domain.household.AccessDeniedException;
 import dev.haypacomer.domain.quantity.InvalidQuantityException;
 import dev.haypacomer.domain.quantity.UnconvertibleQuantityException;
+import dev.haypacomer.domain.session.IllegalSessionTransitionException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -107,6 +110,23 @@ public class ApiExceptionHandler {
   ProblemDetail unconvertibleQuantity(UnconvertibleQuantityException exception) {
     return problem(
         HttpStatus.UNPROCESSABLE_CONTENT, "Quantity cannot be weighed", exception.getMessage());
+  }
+
+  @ExceptionHandler(CookingSessionNotFoundException.class)
+  ProblemDetail sessionNotFound(CookingSessionNotFoundException exception) {
+    return problem(HttpStatus.NOT_FOUND, "Not found", exception.getMessage());
+  }
+
+  @ExceptionHandler(SessionAlreadyActiveException.class)
+  ProblemDetail sessionAlreadyActive(SessionAlreadyActiveException exception) {
+    ProblemDetail problem = problem(HttpStatus.CONFLICT, "Already cooking", exception.getMessage());
+    problem.setProperty("activeSessionId", exception.active().value());
+    return problem;
+  }
+
+  @ExceptionHandler(IllegalSessionTransitionException.class)
+  ProblemDetail illegalTransition(IllegalSessionTransitionException exception) {
+    return problem(HttpStatus.CONFLICT, "Invalid session step", exception.getMessage());
   }
 
   @ExceptionHandler(NothingToUndoException.class)

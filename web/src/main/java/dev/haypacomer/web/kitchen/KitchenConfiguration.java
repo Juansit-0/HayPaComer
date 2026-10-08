@@ -20,6 +20,7 @@ import dev.haypacomer.application.inventory.UndoLastChange;
 import dev.haypacomer.application.inventory.ViewInventory;
 import dev.haypacomer.application.port.AuditLog;
 import dev.haypacomer.application.port.ColdChainRepository;
+import dev.haypacomer.application.port.CookingSessionRepository;
 import dev.haypacomer.application.port.FoodCatalogRepository;
 import dev.haypacomer.application.port.FoodOwnershipRepository;
 import dev.haypacomer.application.port.FoodProfileRepository;
@@ -32,6 +33,10 @@ import dev.haypacomer.application.port.UnitOfWork;
 import dev.haypacomer.application.profile.ListFoodProfiles;
 import dev.haypacomer.application.profile.UpdateFoodProfile;
 import dev.haypacomer.application.quantity.InterpretQuantity;
+import dev.haypacomer.application.session.AdvanceCookingSession;
+import dev.haypacomer.application.session.ResumeCookingSession;
+import dev.haypacomer.application.session.StartCookingSession;
+import dev.haypacomer.application.session.ViewCookingSession;
 import dev.haypacomer.domain.inventory.FreshnessPolicy;
 import dev.haypacomer.domain.sensor.FridgeThresholds;
 import java.time.Clock;
@@ -215,5 +220,29 @@ public class KitchenConfiguration {
   @Bean
   InterpretQuantity interpretQuantity(FoodCatalogRepository catalog) {
     return new InterpretQuantity(catalog);
+  }
+
+  @Bean
+  StartCookingSession startCookingSession(
+      HouseholdRepository households, CookingSessionRepository sessions, Clock clock) {
+    return new StartCookingSession(households, sessions, clock);
+  }
+
+  @Bean
+  AdvanceCookingSession advanceCookingSession(
+      HouseholdRepository households, CookingSessionRepository sessions, Clock clock) {
+    return new AdvanceCookingSession(households, sessions, clock);
+  }
+
+  @Bean
+  ViewCookingSession viewCookingSession(
+      HouseholdRepository households, CookingSessionRepository sessions) {
+    return new ViewCookingSession(households, sessions);
+  }
+
+  @Bean
+  ResumeCookingSession resumeCookingSession(
+      HouseholdRepository households, CookingSessionRepository sessions) {
+    return new ResumeCookingSession(households, sessions);
   }
 }
