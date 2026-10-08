@@ -1,5 +1,6 @@
 package dev.haypacomer.application.sensor;
 
+import dev.haypacomer.application.notification.NotifyHousehold;
 import dev.haypacomer.application.port.DeviceRepository;
 import dev.haypacomer.application.port.FridgeMonitorRegistry;
 import dev.haypacomer.domain.device.Device;
@@ -14,7 +15,15 @@ public final class ObserveSensorEvent {
 
   public ObserveSensorEvent(
       FridgeMonitorRegistry registry, DeviceRepository devices, HardwareFactories hardware) {
-    this.dispatcher = new AlertDispatcher(registry, devices, hardware);
+    this(registry, devices, hardware, NotifyHousehold.NOBODY);
+  }
+
+  public ObserveSensorEvent(
+      FridgeMonitorRegistry registry,
+      DeviceRepository devices,
+      HardwareFactories hardware,
+      NotifyHousehold notifications) {
+    this.dispatcher = new AlertDispatcher(registry, devices, hardware, notifications);
   }
 
   public List<Finding> observe(Device device, SensorEvent event) {

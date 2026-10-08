@@ -20,3 +20,6 @@ haypacomer:
   mail:
     base-url: ${PUBLIC_BASE_URL:https://haypacomer.dev}
     log-links: ${MAIL_LOG_LINKS:false}
+  notifications:
+    telegram:
+      bot-token: ${TELEGRAM_BOT_TOKEN:}

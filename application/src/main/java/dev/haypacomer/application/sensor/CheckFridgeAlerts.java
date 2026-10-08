@@ -1,5 +1,6 @@
 package dev.haypacomer.application.sensor;
 
+import dev.haypacomer.application.notification.NotifyHousehold;
 import dev.haypacomer.application.port.DeviceRepository;
 import dev.haypacomer.application.port.FridgeMonitorRegistry;
 import dev.haypacomer.domain.sensor.Finding;
@@ -18,7 +19,16 @@ public final class CheckFridgeAlerts {
       DeviceRepository devices,
       HardwareFactories hardware,
       Clock clock) {
-    this.dispatcher = new AlertDispatcher(registry, devices, hardware);
+    this(registry, devices, hardware, NotifyHousehold.NOBODY, clock);
+  }
+
+  public CheckFridgeAlerts(
+      FridgeMonitorRegistry registry,
+      DeviceRepository devices,
+      HardwareFactories hardware,
+      NotifyHousehold notifications,
+      Clock clock) {
+    this.dispatcher = new AlertDispatcher(registry, devices, hardware, notifications);
     this.clock = Objects.requireNonNull(clock, "clock");
   }
 
