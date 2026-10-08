@@ -1,5 +1,6 @@
 package dev.haypacomer.web.error;
 
+import dev.haypacomer.application.ai.AiRateLimitExceededException;
 import dev.haypacomer.application.auth.EmailAlreadyRegisteredException;
 import dev.haypacomer.application.auth.InvalidCredentialsException;
 import dev.haypacomer.application.auth.InvalidPasswordException;
@@ -88,6 +89,11 @@ public class ApiExceptionHandler {
   @ExceptionHandler(NotificationNotFoundException.class)
   ProblemDetail notificationNotFound(NotificationNotFoundException exception) {
     return problem(HttpStatus.NOT_FOUND, "Not found", exception.getMessage());
+  }
+
+  @ExceptionHandler(AiRateLimitExceededException.class)
+  ProblemDetail aiRateLimit(AiRateLimitExceededException exception) {
+    return problem(HttpStatus.TOO_MANY_REQUESTS, "Too many requests", exception.getMessage());
   }
 
   @ExceptionHandler(EmailAlreadyRegisteredException.class)
