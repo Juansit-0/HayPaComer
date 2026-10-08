@@ -4,10 +4,13 @@ import dev.haypacomer.application.inventory.CommandOutcome;
 import dev.haypacomer.application.inventory.ConsumeFoodCommand;
 import dev.haypacomer.application.inventory.ExecuteInventoryCommand;
 import dev.haypacomer.application.port.FridgeRepository;
+import dev.haypacomer.application.port.FridgeSessionRegistry;
 import dev.haypacomer.application.port.ScaleAssignmentRepository;
 import dev.haypacomer.application.sensor.WeightReadingHandler;
 import dev.haypacomer.domain.device.Device;
 import dev.haypacomer.domain.fridge.FoodItem;
+import dev.haypacomer.domain.household.AccessDeniedException;
+import dev.haypacomer.domain.identity.UserId;
 import dev.haypacomer.domain.inventory.MovementSource;
 import dev.haypacomer.domain.quantity.Grams;
 import dev.haypacomer.domain.sensor.ScaleMode;
@@ -20,16 +23,19 @@ public final class ApplyFridgeScaleReading implements WeightReadingHandler {
   private final ScaleAssignmentRepository assignments;
   private final FridgeRepository fridges;
   private final ExecuteInventoryCommand commands;
+  private final FridgeSessionRegistry sessions;
   private final Grams minimumChange;
 
   public ApplyFridgeScaleReading(
       ScaleAssignmentRepository assignments,
       FridgeRepository fridges,
       ExecuteInventoryCommand commands,
+      FridgeSessionRegistry sessions,
       Grams minimumChange) {
     this.assignments = Objects.requireNonNull(assignments, "assignments");
     this.fridges = Objects.requireNonNull(fridges, "fridges");
     this.commands = Objects.requireNonNull(commands, "commands");
+    this.sessions = Objects.requireNonNull(sessions, "sessions");
     this.minimumChange = Objects.requireNonNull(minimumChange, "minimumChange");
   }
 
@@ -45,11 +51,11 @@ public final class ApplyFridgeScaleReading implements WeightReadingHandler {
                 fridges.findByHousehold(assignment.household()).stream()
                     .flatMap(fridge -> fridge.findItem(assignment.item()).stream())
                     .findFirst()
-                    .flatMap(item -> discount(assignment, item, reading)));
+                    .flatMap(item -> discount(scale, assignment, item, reading)));
   }
 
   private Optional<CommandOutcome> discount(
-      ScaleAssignment assignment, FoodItem item, WeightReading reading) {
+      Device scale, ScaleAssignment assignment, FoodItem item, WeightReading reading) {
     Grams measuredNet =
         reading.grams().shortfallTo(item.tare()).isZero()
             ? reading.grams().minus(item.tare())
@@ -58,14 +64,22 @@ public final class ApplyFridgeScaleReading implements WeightReadingHandler {
     if (consumed.compareTo(minimumChange) < 0) {
       return Optional.empty();
     }
-    return Optional.of(
-        commands.execute(
-            assignment.assignedBy(),
-            new ConsumeFoodCommand(
-                reading.id().value(),
-                assignment.household(),
-                item.id(),
-                consumed,
-                MovementSource.SCALE)));
+    ConsumeFoodCommand command =
+        new ConsumeFoodCommand(
+            reading.id().value(),
+            assignment.household(),
+            item.id(),
+            consumed,
+            MovementSource.SCALE);
+    Optional<UserId> atTheFridge =
+        sessions.sessionOf(scale.fridge()).activeUser(reading.occurredAt());
+    if (atTheFridge.isPresent()) {
+      try {
+        return Optional.of(commands.execute(atTheFridge.get(), command));
+      } catch (AccessDeniedException notTheirs) {
+        return Optional.of(commands.execute(assignment.assignedBy(), command));
+      }
+    }
+    return Optional.of(commands.execute(assignment.assignedBy(), command));
   }
 }

@@ -303,6 +303,9 @@ class LiveInventoryTest {
     assertEquals("Milk", forAna.getFirst().food().item().name());
     assertFalse(forAna.getLast().usable());
     assertTrue(forAna.getLast().food().has(FoodStatus.PRIVATE));
+    assertEquals("Private food", forAna.getLast().food().item().name());
+    assertEquals(Grams.ZERO, forAna.getLast().food().item().quantity());
     assertTrue(forJuan.stream().allMatch(InventoryEntry::usable));
+    assertTrue(forJuan.stream().anyMatch(entry -> entry.food().item().name().equals("Yogurt")));
   }
 }

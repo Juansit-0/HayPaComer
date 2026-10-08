@@ -9,6 +9,7 @@ import dev.haypacomer.application.coldchain.TrackColdChain;
 import dev.haypacomer.application.cooking.EvaluateRecipe;
 import dev.haypacomer.application.fridge.ListFridges;
 import dev.haypacomer.application.fridge.SetUpFridge;
+import dev.haypacomer.application.fridge.UseFridgeSession;
 import dev.haypacomer.application.household.GetHousehold;
 import dev.haypacomer.application.inventory.ChangeFoodOwnership;
 import dev.haypacomer.application.inventory.ExecuteInventoryCommand;
@@ -29,6 +30,7 @@ import dev.haypacomer.application.port.FoodCatalogRepository;
 import dev.haypacomer.application.port.FoodOwnershipRepository;
 import dev.haypacomer.application.port.FoodProfileRepository;
 import dev.haypacomer.application.port.FridgeRepository;
+import dev.haypacomer.application.port.FridgeSessionRegistry;
 import dev.haypacomer.application.port.HouseholdRepository;
 import dev.haypacomer.application.port.InventoryMovementLog;
 import dev.haypacomer.application.port.KitchenAdvisor;
@@ -95,6 +97,15 @@ public class KitchenConfiguration {
       SubstitutionRuleRepository rules,
       Clock clock) {
     return new EvaluateRecipe(households, viewInventory, profiles, rules, clock);
+  }
+
+  @Bean
+  UseFridgeSession useFridgeSession(
+      HouseholdRepository households,
+      FridgeRepository fridges,
+      FridgeSessionRegistry sessions,
+      Clock clock) {
+    return new UseFridgeSession(households, fridges, sessions, clock);
   }
 
   @Bean

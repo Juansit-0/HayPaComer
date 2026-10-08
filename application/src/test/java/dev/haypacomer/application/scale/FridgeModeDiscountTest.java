@@ -15,6 +15,7 @@ import dev.haypacomer.application.port.DeviceRepository;
 import dev.haypacomer.application.port.ScaleAssignmentRepository;
 import dev.haypacomer.application.port.ScaleSampleStore;
 import dev.haypacomer.application.support.InMemoryFridgeRepository;
+import dev.haypacomer.application.support.InMemoryFridgeSessions;
 import dev.haypacomer.application.support.InMemoryHouseholdRepository;
 import dev.haypacomer.application.support.InMemoryInventoryStores;
 import dev.haypacomer.application.support.InMemorySnapshotStore;
@@ -66,6 +67,8 @@ class FridgeModeDiscountTest {
   private final Clock clock = Clock.fixed(NOW, ZoneOffset.UTC);
   private final UserId juan = UserId.newId();
   private final UserId guest = UserId.newId();
+  private final UserId ana = UserId.newId();
+  private final InMemoryFridgeSessions sessions = new InMemoryFridgeSessions();
   private Household household;
   private Fridge fridge;
   private Device scale;
@@ -95,6 +98,7 @@ class FridgeModeDiscountTest {
     household =
         Household.create("Apartment", Currency.getInstance("COP"), ZoneId.of("UTC"), juan, NOW);
     household.join(guest, Role.GUEST, NOW);
+    household.join(ana, Role.MEMBER, NOW);
     households.save(household);
     fridge =
         new SetUpFridge(households, fridges)
@@ -182,7 +186,7 @@ class FridgeModeDiscountTest {
   }
 
   private ApplyFridgeScaleReading discount() {
-    return new ApplyFridgeScaleReading(assignments, fridges, commands, Grams.of(5));
+    return new ApplyFridgeScaleReading(assignments, fridges, commands, sessions, Grams.of(5));
   }
 
   private WeightReading reading(long gross, boolean stable, ScaleMode mode) {
@@ -245,5 +249,20 @@ class FridgeModeDiscountTest {
         AccessDeniedException.class,
         () -> assign().assign(guest, household.id(), scale.id(), milk));
     assertEquals(juan, assign().assign(juan, household.id(), scale.id(), milk).assignedBy());
+  }
+
+  @Test
+  void theDiscountGoesToWhoeverIsAtTheFridge() {
+    assign().assign(juan, household.id(), scale.id(), milk);
+    sessions.sessionOf(fridge.id()).claim(ana, NOW.minusSeconds(30));
+
+    discount().apply(scale, reading(800, true, ScaleMode.FRIDGE));
+    assertEquals(ana, stores.movementLog.getLast().actor());
+
+    sessions.sessionOf(fridge.id()).release(ana, NOW);
+    sessions.sessionOf(fridge.id()).claim(guest, NOW.minusSeconds(10));
+    discount().apply(scale, reading(700, true, ScaleMode.FRIDGE));
+    assertEquals(juan, stores.movementLog.getLast().actor());
+    assertEquals(Grams.of(650), quantity());
   }
 }

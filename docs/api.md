@@ -68,7 +68,10 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 | POST, GET | `/zones/{z}/trays` | owner, guest | Create, list trays |
 | PATCH, DELETE | `/trays/{t}` | owner | Update, delete tray |
 | GET | `/households/{h}/fridges` | guest | Digital twin: every fridge as a tree with grams and item counts |
-| GET | `/households/{h}/inventory?rescueFirst=` | guest | Items across fridges in rescue order with freshness statuses |
+| GET | `/households/{h}/fridges/{f}/session` | guest | Who is using the fridge now and until when |
+| POST | `/households/{h}/fridges/{f}/session` | guest | Take the fridge (one member at a time, 3 minutes idle timeout); scale discounts go to this member; 409 while someone else has it |
+| DELETE | `/households/{h}/fridges/{f}/session` | guest | Leave the fridge |
+| GET | `/households/{h}/inventory?rescueFirst=` | guest | Items across fridges in rescue order with freshness statuses; other members' private food appears as "Private food" without grams or dates |
 | GET | `/households/{h}/kitchen` | guest | Kitchen snapshot: items, total grams, at risk, expired |
 
 ## Catalog

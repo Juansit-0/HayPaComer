@@ -23,6 +23,7 @@ import dev.haypacomer.application.scale.NoRecentSampleException;
 import dev.haypacomer.application.sensor.MalformedSensorPayloadException;
 import dev.haypacomer.application.session.CookingSessionNotFoundException;
 import dev.haypacomer.application.session.SessionAlreadyActiveException;
+import dev.haypacomer.domain.fridge.FridgeBusyException;
 import dev.haypacomer.domain.household.AccessDeniedException;
 import dev.haypacomer.domain.quantity.InvalidQuantityException;
 import dev.haypacomer.domain.quantity.UnconvertibleQuantityException;
@@ -89,6 +90,11 @@ public class ApiExceptionHandler {
   @ExceptionHandler(NotificationNotFoundException.class)
   ProblemDetail notificationNotFound(NotificationNotFoundException exception) {
     return problem(HttpStatus.NOT_FOUND, "Not found", exception.getMessage());
+  }
+
+  @ExceptionHandler(FridgeBusyException.class)
+  ProblemDetail fridgeBusy(FridgeBusyException exception) {
+    return problem(HttpStatus.CONFLICT, "Fridge in use", exception.getMessage());
   }
 
   @ExceptionHandler(AiRateLimitExceededException.class)
