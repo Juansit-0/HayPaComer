@@ -116,7 +116,8 @@ class AnalyticsIntegrationTest {
         .andExpect(jsonPath("$.total.discardedGrams").value(500))
         .andExpect(jsonPath("$.moneySaved").value(5500))
         .andExpect(jsonPath("$.moneyWasted").value(2400))
-        .andExpect(jsonPath("$.foods[0].foodKey").value("chicken breast"));
+        .andExpect(jsonPath("$.foods[0].foodKey").value("chicken breast"))
+        .andExpect(jsonPath("$.members[0].name").value("J"));
 
     mvc.perform(
             put(base + "/prices")
