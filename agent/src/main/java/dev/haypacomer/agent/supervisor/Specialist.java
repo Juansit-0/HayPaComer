@@ -22,7 +22,12 @@ public record Specialist(
           "chef",
           "What to cook now with measured stock, rescuing food that expires first.",
           Set.of(
-              "recall_memory", "query_inventory", "view_expiries", "view_weekly_plan", "remember"),
+              "recall_memory",
+              "query_inventory",
+              "view_expiries",
+              "view_weekly_plan",
+              "remember",
+              "estimate_expiry"),
           List.of("view_expiries", "query_inventory", "recall_memory"));
 
   public static final Specialist MARKET =

@@ -110,7 +110,9 @@ HayPaComer (name confirmed in Phase 0.5) is a smart home fridge: Java applicatio
 - Step A3 in `feat/expiry-logic`: Flyway `V23` (shelf life by zone in `food_catalog`, `food_items.expiry_source` and `opened_on`, `food.expiry-margin-days`); domain `expiry` (`ShelfLife`, `ExpiryRules`, `ExpirySource`, `ExpiryEstimate`, `ImpossibleExpiryException`); `ExpiryDesk`, `EstimateExpiry`, `MarkFoodOpened`; 422 for impossible dates; `GET /expiry-estimate`, `POST /items/{id}/open`.
 - Step A3 merged (#95, Jenifer Urbano).
 - Step B3 in `feat/web-language-switch`: `app/i18n.js` (`t`, `plural` with `Intl.PluralRules`, `foodName`, `placeName`, `Intl` numbers, money, days, and times; texts cached in `localStorage` with the ETag); every visible text in `static/app/*.js` and `index.html` is a key; Flyway `V24` seeds them in Spanish and English; language select in the header saves `PUT /me/locale`; `WebTextsTest` fails on a literal visible text or a key missing in either language.
-- **Next action:** A4 (Jenifer): expiry from a label photo. Then B4 (Juan), starting with browsing real food sites.
+- Step A4 in `feat/label-expiry`: `LabelReading`, port `LabelPhotoReader`, `ReadExpiryFromLabel` (proposal only; LABEL when the date is readable, sure, and possible, otherwise the ESTIMATED date with the reason); `LlmLabelPhotoReader`, `OfflineLabelPhotoReader`, `ResilientLabelPhotoReader`; agent tool `estimate_expiry` for the chef; `POST /items/expiry-from-photo`; Flyway `V25`.
+- Testcontainers runs are paused at the user's request (2026-10-09) until the end of plan v2; CI still runs them on every pull request.
+- **Next action:** B4 (Juan), starting with browsing real food sites, then B5 to B7 and C1 to C3. Run the full `mvn verify` with Docker before the release.
 - Workflow (since 2026-10-08): Claude creates the branch, implements, runs `mvn verify`, and commits locally as the user with no Claude attribution; the user pushes, opens the PR, and merges by hand.
 
 ## How to continue (agreed order)

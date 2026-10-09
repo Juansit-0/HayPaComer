@@ -70,12 +70,12 @@ flowchart LR
 |---|---|
 | `domain` | Model and business rules in plain Java: fridge composite, stocked food decorators, cold chain state, cooking session state, quantities, substitutions, planning, analytics, cold investigation |
 | `application` | Use cases (one public method each) and segregated ports |
-| `adapter-persistence` | PostgreSQL with Flyway (24 migrations, partitioned sensor events, runtime settings and translations with cache), Redis for all AI state, resilient reference data proxies |
+| `adapter-persistence` | PostgreSQL with Flyway (25 migrations, partitioned sensor events, runtime settings and translations with cache), Redis for all AI state, resilient reference data proxies |
 | `adapter-sensors` | ESP32 envelopes, factories, simulator, in-memory sessions |
 | `adapter-ai` | Offline rule engine, Gemini and OpenAI-compatible clients with strict JSON contracts, circuit breaker |
 | `adapter-notifications` | Telegram and log channels, email links |
 | `agent` | Plan-tool-observation runtime with budgets, tool registry and guardrails, memory, supervisor, copilot, proactive briefings |
-| `web` | Spring Boot: REST API (121 endpoints, RFC 7807 errors, OpenAPI at `/docs`), SSE, JWT and device keys, the web UI |
+| `web` | Spring Boot: REST API (122 endpoints, RFC 7807 errors, OpenAPI at `/docs`), SSE, JWT and device keys, the web UI |
 
 Relational data lives in PostgreSQL. AI state (memory, conversations, traces, confirmations, cache, circuit breaker, rate limits, briefings) lives in Redis. Losing Redis never loses stock, grams, or safety decisions. More in [`docs/architecture.md`](docs/architecture.md) and the decision records in [`docs/adr/`](docs/adr).
 
