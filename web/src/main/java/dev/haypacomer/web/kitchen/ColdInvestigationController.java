@@ -8,6 +8,7 @@ import dev.haypacomer.domain.coldchain.investigation.FoodVerdict;
 import dev.haypacomer.domain.coldchain.investigation.LikelyCause;
 import dev.haypacomer.domain.fridge.FridgeId;
 import dev.haypacomer.domain.household.HouseholdId;
+import dev.haypacomer.web.i18n.Localizer;
 import dev.haypacomer.web.security.CurrentUser;
 import java.math.BigDecimal;
 import java.time.Duration;
@@ -28,9 +29,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class ColdInvestigationController {
 
   private final InvestigateColdIncidents investigate;
+  private final Localizer localizer;
 
-  public ColdInvestigationController(InvestigateColdIncidents investigate) {
+  public ColdInvestigationController(InvestigateColdIncidents investigate, Localizer localizer) {
     this.investigate = investigate;
+    this.localizer = localizer;
   }
 
   @GetMapping("/cold-investigation")
@@ -47,7 +50,28 @@ public class ColdInvestigationController {
             Duration.ofHours(hours))
         .stream()
         .map(InvestigationResponse::from)
+        .map(this::localized)
         .toList();
+  }
+
+  private InvestigationResponse localized(InvestigationResponse response) {
+    return new InvestigationResponse(
+        response.fridgeId(),
+        response.from(),
+        response.to(),
+        response.readings(),
+        response.minutesAboveLimit(),
+        response.episodes(),
+        response.foods().stream()
+            .map(
+                food ->
+                    new FoodResponse(
+                        food.itemId(),
+                        food.food(),
+                        food.grams(),
+                        food.verdict(),
+                        localizer.message(food.reason())))
+            .toList());
   }
 
   record EpisodeResponse(

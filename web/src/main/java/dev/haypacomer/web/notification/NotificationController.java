@@ -8,6 +8,7 @@ import dev.haypacomer.application.notification.NotificationPreferences;
 import dev.haypacomer.application.notification.NotificationType;
 import dev.haypacomer.application.notification.UpdateNotificationPreferences;
 import dev.haypacomer.application.notification.ViewNotificationPreferences;
+import dev.haypacomer.web.i18n.Localizer;
 import dev.haypacomer.web.security.CurrentUser;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -38,17 +39,31 @@ public class NotificationController {
       ListNotifications listNotifications,
       MarkNotificationRead markNotificationRead,
       ViewNotificationPreferences viewPreferences,
-      UpdateNotificationPreferences updatePreferences) {
+      UpdateNotificationPreferences updatePreferences,
+      Localizer localizer) {
+    this.localizer = localizer;
     this.listNotifications = listNotifications;
     this.markNotificationRead = markNotificationRead;
     this.viewPreferences = viewPreferences;
     this.updatePreferences = updatePreferences;
   }
 
+  private final Localizer localizer;
+
   @GetMapping("/api/v1/notifications")
   List<NotificationResponse> notifications(@AuthenticationPrincipal Jwt jwt) {
     return listNotifications.list(CurrentUser.of(jwt)).stream()
         .map(NotificationResponse::from)
+        .map(
+            response ->
+                new NotificationResponse(
+                    response.id(),
+                    response.householdId(),
+                    response.type(),
+                    localizer.message(response.title()),
+                    localizer.message(response.body()),
+                    response.at(),
+                    response.readAt()))
         .toList();
   }
 

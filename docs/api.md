@@ -59,6 +59,9 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 | GET | `/households/{h}/settings` | guest | Household settings (door alert, safe temperature, cold chain grace, scale minimum change, at risk days, briefing hours, expiry cluster) with value, default, range, and whether it is overridden |
 | PUT | `/households/{h}/settings` | owner | Override one setting (`key`, `value`); 400 outside its range or for a global key; `value: null` resets to the default |
 | GET | `/settings/defaults` | user | Every setting with its default, range, scope (GLOBAL or HOUSEHOLD), and description |
+| GET | `/i18n` | public | Current locale for the caller (saved preference, browser, or default `es-CO`) and the available locales |
+| GET | `/i18n/{locale}` | public | Every translated text of a locale (food names, setting descriptions, UI keys) with an ETag; 404 for an unknown locale |
+| PUT | `/me/locale` | user | Save the caller's language (`es-CO` or `en`); errors, notifications, and descriptions follow it |
 
 ## Fridges, zones, and trays
 

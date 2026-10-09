@@ -103,7 +103,10 @@ HayPaComer (name confirmed in Phase 0.5) is a smart home fridge: Java applicatio
 - Step 92 (Jenifer Urbano): version 1.0.0 in every module, `build-info` for `/actuator/info`, `CHANGELOG.md`, `docs/releases/v1.0.0.md`; after the merge, tag and GitHub release `v1.0.0` from `main`.
 - 2026-10-09: v1.0.0 released. Plan v2 (version 1.1.0) approved: A1-A4 backend for Jenifer (settings, i18n, expiry logic, label photo), B1-B7 web redesign and C1-C3 Render deploy for Juan; order A1, B1, A2, B2, A3, B3, A4, B4-B7, C1-C3.
 - Step A1 in `feat/runtime-settings`: Flyway `V21` (`settings` with 17 keys, `household_settings`); ports `SettingsRepository` and `PolicySource`; `StoredPolicies`, `FixedPolicies`, `BriefingSchedule`, domain `ColdRule`; `ViewHouseholdSettings`, `ChangeHouseholdSetting`, `ListSettingDefinitions`; `PostgresSettingsRepository` with a 30 s cache dropped on writes and last copy on failure; consumers read the source instead of `DEFAULT` constants; `GET/PUT /households/{h}/settings`, `GET /settings/defaults`.
-- **Next action:** B1 (Juan): keep the web session in `localStorage` with silent refresh and cross-tab sync. Then A2 (Jenifer): translations in the database.
+- Step A1 merged (#91, Jenifer Urbano). Fixed: `ProactiveBriefingIntegrationTest` failed when CI ran at 07:00 UTC (morning briefing); it now moves the briefing hours away through the settings endpoint.
+- Step B1 merged (#92): the web session lives in `localStorage`, renews the access token before it expires, refreshes once at a time across tabs (Web Locks), and signs out every tab together.
+- Step A2 in `feat/i18n-messages`: Flyway `V22` (`locales`, `translations`, `message_templates`, `users.locale`); `MessageTranslator`, `ResolveLocale`, `ChangeUserLocale`, `ViewTranslations`, `ListLocales`, `TranslateMessages`; `Localizer` and `LocalizedProblems` in web; public `GET /i18n` and `/i18n/{locale}`, `PUT /me/locale`; Spanish catalog search.
+- **Next action:** B2 (Juan): design system v2 and bento layout. Then A3 (Jenifer): expiry logic and estimates.
 - Workflow (since 2026-10-08): Claude creates the branch, implements, runs `mvn verify`, and commits locally as the user with no Claude attribution; the user pushes, opens the PR, and merges by hand.
 
 ## How to continue (agreed order)
