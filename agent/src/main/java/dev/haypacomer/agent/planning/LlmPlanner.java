@@ -117,7 +117,7 @@ public final class LlmPlanner implements Planner {
   private Decision parse(String answer, AgentContext context) {
     JsonNode root;
     try {
-      root = JSON.readTree(answer);
+      root = JSON.readTree(unfence(answer));
     } catch (JacksonException malformed) {
       throw new PlannerUnavailableException("The model answered invalid JSON");
     }
@@ -177,6 +177,19 @@ public final class LlmPlanner implements Planner {
       }
     }
     return new Decision.FinalAnswer(text);
+  }
+
+  static String unfence(String answer) {
+    String trimmed = answer.strip();
+    if (!trimmed.startsWith("```") || !trimmed.endsWith("```") || trimmed.length() < 6) {
+      return trimmed;
+    }
+    String inner = trimmed.substring(3, trimmed.length() - 3);
+    int newline = inner.indexOf('\n');
+    if (newline >= 0 && inner.substring(0, newline).strip().matches("[A-Za-z]*")) {
+      inner = inner.substring(newline + 1);
+    }
+    return inner.strip();
   }
 
   private static String clip(String text, int max) {

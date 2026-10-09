@@ -11,7 +11,7 @@ final class JsonContract {
   static JsonNode object(String json) {
     JsonNode node;
     try {
-      node = HttpJson.JSON.readTree(json);
+      node = HttpJson.JSON.readTree(unfence(json));
     } catch (JacksonException malformed) {
       throw new InvalidAiResponseException("The answer is not valid JSON");
     }
@@ -19,6 +19,19 @@ final class JsonContract {
       throw new InvalidAiResponseException("The answer must be a JSON object");
     }
     return node;
+  }
+
+  static String unfence(String answer) {
+    String trimmed = answer.strip();
+    if (!trimmed.startsWith("```") || !trimmed.endsWith("```") || trimmed.length() < 6) {
+      return trimmed;
+    }
+    String inner = trimmed.substring(3, trimmed.length() - 3);
+    int newline = inner.indexOf('\n');
+    if (newline >= 0 && inner.substring(0, newline).strip().matches("[A-Za-z]*")) {
+      inner = inner.substring(newline + 1);
+    }
+    return inner.strip();
   }
 
   static String text(JsonNode node, String field, int maxLength) {

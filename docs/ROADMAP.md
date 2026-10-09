@@ -122,6 +122,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 73. chef, market, cold, and coach multi-agent supervisor
 - [x] 74. photo to structured, verifiable recipe
 - [x] 75. chef chat as an agent with evidence
+- [x] 76. response contract, weekly plan, and offline fallback
 
 ## F6 assignments
 
