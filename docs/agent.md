@@ -20,6 +20,11 @@ Fallback: Circuit Breaker -> rule-based planner (offline)
 - WRITE tools are never invoked by the loop: the run stops in WAITING_CONFIRMATION with a `PendingConfirmation`.
 - Unknown or failing tools become failed observations; a planner outage switches to `RuleBasedPlanner` and is audited as FALLBACK.
 
+## Registry and guardrails (step 70)
+
+- `ToolRegistry` holds each `ToolSpec` (name, kind, permission, typed parameters); `allow` narrows it per specialist.
+- `GuardrailChain`: `SchemaGuardrail` (unknown, missing, malformed arguments) -> `PermissionGuardrail` (membership and role permission); a rejection is audited and returned as a failed observation.
+
 ## Tools
 
 | Tool | Kind | Effect |

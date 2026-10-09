@@ -1,5 +1,7 @@
 package dev.haypacomer.agent.runtime;
 
+import dev.haypacomer.agent.tools.GuardrailChain;
+import dev.haypacomer.agent.tools.ToolRegistry;
 import dev.haypacomer.application.agent.AgentRun;
 import dev.haypacomer.application.agent.AiAuditEntry;
 import dev.haypacomer.application.agent.AiOutcome;
@@ -15,13 +17,12 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 public final class AgentRuntime {
 
-  private final Map<String, AgentTool> tools;
+  private final ToolRegistry tools;
+  private final GuardrailChain guardrails;
   private final Planner planner;
   private final Planner fallback;
   private final AgentRunStore runs;
@@ -30,15 +31,16 @@ public final class AgentRuntime {
   private final Clock clock;
 
   public AgentRuntime(
-      List<AgentTool> tools,
+      ToolRegistry tools,
+      GuardrailChain guardrails,
       Planner planner,
       Planner fallback,
       AgentRunStore runs,
       ConfirmationStore confirmations,
       AiAuditLog audit,
       Clock clock) {
-    this.tools =
-        tools.stream().collect(Collectors.toUnmodifiableMap(AgentTool::name, Function.identity()));
+    this.tools = tools;
+    this.guardrails = guardrails;
     this.planner = planner;
     this.fallback = fallback;
     this.runs = runs;
@@ -62,7 +64,7 @@ public final class AgentRuntime {
         return new AgentResult(finish(run, RunStatus.OUT_OF_BUDGET), null, null);
       }
       AgentContext context =
-          new AgentContext(task, tools.keySet(), history, run.stepBudget() - run.stepsUsed());
+          new AgentContext(task, tools.names(), history, run.stepBudget() - run.stepsUsed());
       Decision decision;
       try {
         decision = decide(active, context);
@@ -90,7 +92,7 @@ public final class AgentRuntime {
           trace(run, TraceKind.PLAN, call.reason());
           run = step(run);
           trace(run, TraceKind.TOOL_CALL, call.tool() + " " + call.arguments());
-          AgentTool tool = tools.get(call.tool());
+          AgentTool tool = tools.find(call.tool()).orElse(null);
           if (tool == null) {
             record(active, Duration.ZERO, AiOutcome.REJECTED);
             observe(run, history, call, Observation.failure(call.tool(), "Unknown tool"));
@@ -98,6 +100,12 @@ public final class AgentRuntime {
           }
           ToolInvocation invocation =
               new ToolInvocation(task.household(), task.user(), call.arguments());
+          Optional<String> rejection = guardrails.reject(tool.spec(), invocation);
+          if (rejection.isPresent()) {
+            record(active, Duration.ZERO, AiOutcome.REJECTED);
+            observe(run, history, call, Observation.failure(call.tool(), rejection.get()));
+            continue;
+          }
           if (tool.kind() == ToolKind.WRITE) {
             PendingConfirmation pending =
                 PendingConfirmation.propose(
