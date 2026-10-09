@@ -69,8 +69,9 @@ Fallback: Circuit Breaker -> rule-based planner (offline)
 
 ## Proactivity
 
-- Scheduled briefings (daily plan, expiring soon).
-- Event briefings: door open, temperature out of range, expiry clusters.
+- Scheduled briefings: "Today in your kitchen" from the chef at 7:00 in the household timezone, and "N foods expire soon" from the coach when 3 or more usable foods are at risk.
+- Event briefings: door left open and cold chain breaches bring a cold specialist explanation, in the background, once per type and day (`agent:briefing:*` in Redis).
+- A briefing never breaks the alert that triggered it, and losing Redis never stops alerts.
 
 ## Confirmations (step 72)
 
