@@ -87,6 +87,13 @@ window.addEventListener("hpc:live", (event) => {
   if (event.detail.kind === "alert") refreshInbox();
 });
 
+window.addEventListener("hpc:session-changed", (event) => {
+  if (event.detail && household) return;
+  disconnectLive();
+  household = null;
+  render();
+});
+
 window.addEventListener("hpc:signed-out", () => {
   disconnectLive();
   household = null;
