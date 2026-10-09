@@ -1,0 +1,29 @@
+server:
+  port: ${PORT:8080}
+  forward-headers-strategy: framework
+  shutdown: graceful
+  compression:
+    enabled: true
+    mime-types: application/json,application/problem+json,text/html,text/css,text/javascript,application/javascript,image/svg+xml
+
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT:5432}/${DB_NAME}?sslmode=${DB_SSLMODE:prefer}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:5}
+  data:
+    redis:
+      url: ${REDIS_URL}
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
+
+haypacomer:
+  mail:
+    log-links: false
+
+logging:
+  level:
+    root: INFO
+    dev.haypacomer: INFO

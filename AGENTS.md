@@ -119,7 +119,8 @@ HayPaComer (name confirmed in Phase 0.5) is a smart home fridge: Java applicatio
 - Step B6 in `feat/web-settings-screens`: Settings screen (`app/settings.js`, `#/settings`, header link): language, what you eat (diet, allergies, avoided foods), alert channels and Telegram, and the household values of A1 with steppers, defaults, and reset (owner only); Numbers and Chef as bento; Cook now results as rows with the missing foods marked (as Cookpad lists ingredients); `WebTextsTest` also checks diets, allergens, and channels; Flyway `V28` texts.
 - Step B5 merged (#99).
 - Step B7 in `feat/web-accessibility-pass`: axe-core on every screen in light and dark, keyboard, and phone; fixes in `docs/design/accessibility-pass.md` (`--color-primary-text`, paprika-700 and orange-500 attention, no background transition on buttons, no banner inside the sheet).
-- **Next action:** C1 (Juan): Dockerfile and production profile, then C2 (Render blueprint and CD) and C3 (runbook, domain, version 1.1.0). Run the full `mvn verify` with Docker before the release.
+- Step C1 in `build/docker-image`: multi-stage `Dockerfile` (Maven build, Java 25 JRE Alpine, user `haypacomer`, readiness health check, `prod` profile, `MaxRAMPercentage=75`), `.dockerignore`, `application-prod.yml` (`PORT`, forwarded headers, graceful shutdown, compression, database from `DB_*`, Redis from `REDIS_URL`, mail links off), `compose.prod.yml`, CI job `image`, `ProductionProfileTest`.
+- **Next action:** C2 (Juan): Render blueprint and continuous deployment, then C3 (runbook, domain, version 1.1.0). Build the image and run the full `mvn verify` with Docker before the release.
 - Workflow (since 2026-10-08): Claude creates the branch, implements, runs `mvn verify`, and commits locally as the user with no Claude attribution; the user pushes, opens the PR, and merges by hand.
 
 ## How to continue (agreed order)

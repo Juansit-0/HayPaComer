@@ -160,6 +160,14 @@ Then open `http://localhost:8080`. The web UI has five screens plus Settings (la
 
 The API catalog is at `/docs`.
 
+### Production image
+
+The `Dockerfile` builds the application with Maven and runs it on a Java 25 JRE as an unprivileged user with the `prod` profile. In production the database comes from `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, and `DB_SSLMODE`, Redis from `REDIS_URL` (`rediss://` for TLS), and the HTTP port from `PORT`. To try the image locally with its own database and Redis:
+
+```bash
+docker compose -f compose.prod.yml up --build
+```
+
 ## Demo
 
 Door open 40 s -> buzzer, Telegram, and a live panel. Milk 842 g -> 650 g -> 192 g consumed, tare included. Chicken 200 g required vs 80 g measured -> reduce or weigh a substitute. AI outage -> rules keep dinner working.
