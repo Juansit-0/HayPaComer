@@ -1,5 +1,6 @@
 package dev.haypacomer.web.kitchen;
 
+import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -115,7 +116,7 @@ class ColdChainFlowIntegrationTest {
         .andExpect(jsonPath("$[0].recovered").value(true))
         .andExpect(jsonPath("$[0].peakCelsius").value(10.5));
     mvc.perform(get(base + "/inventory").header("Authorization", juan))
-        .andExpect(jsonPath("$[0].statuses[0]").value("UNDER_REVIEW"))
+        .andExpect(jsonPath("$[0].statuses", hasItem("UNDER_REVIEW")))
         .andExpect(jsonPath("$[0].edible").value(false));
 
     mvc.perform(

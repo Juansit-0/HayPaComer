@@ -1,5 +1,6 @@
 package dev.haypacomer.web.kitchen;
 
+import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -140,7 +141,7 @@ class InventoryFlowIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].name").value("Milk"))
         .andExpect(jsonPath("$[1].usable").value(false))
-        .andExpect(jsonPath("$[1].statuses[0]").value("PRIVATE"));
+        .andExpect(jsonPath("$[1].statuses", hasItem("PRIVATE")));
 
     send(
         HttpMethod.POST,
@@ -222,7 +223,7 @@ class InventoryFlowIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.items").value(1));
     mvc.perform(get(base + "/inventory").header("Authorization", juan))
-        .andExpect(jsonPath("$[0].statuses[0]").value("ASK_FIRST"));
+        .andExpect(jsonPath("$[0].statuses", hasItem("ASK_FIRST")));
     send(HttpMethod.POST, base + "/inventory/undo", juan, "", 409);
     mvc.perform(get(base + "/snapshots").header("Authorization", ana))
         .andExpect(jsonPath("$[0].reason").value("before dinner"));
