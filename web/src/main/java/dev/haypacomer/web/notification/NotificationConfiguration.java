@@ -1,5 +1,6 @@
 package dev.haypacomer.web.notification;
 
+import dev.haypacomer.agent.proactive.AlertBriefings;
 import dev.haypacomer.application.live.AlertsToLive;
 import dev.haypacomer.application.live.BroadcastLiveUpdate;
 import dev.haypacomer.application.notification.ChannelDispatcher;
@@ -21,16 +22,16 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 @Configuration
 public class NotificationConfiguration {
 
   @Bean
-  NotifyHousehold notifyHousehold(
+  ChannelDispatcher channelDispatcher(
       HouseholdRepository households,
       NotificationPreferenceRepository preferences,
       PostgresNotificationInbox inbox,
-      BroadcastLiveUpdate live,
       @Value("${haypacomer.notifications.telegram.bot-token:}") String telegramToken) {
     List<NotificationChannel> channels = new ArrayList<>();
     channels.add(inbox);
@@ -40,8 +41,19 @@ public class NotificationConfiguration {
           new TelegramNotificationChannel(
               TelegramNotificationChannel.API, telegramToken, Duration.ofSeconds(5)));
     }
-    return new NotifyHousehold(
-        List.of(new ChannelDispatcher(households, preferences, channels), new AlertsToLive(live)));
+    return new ChannelDispatcher(households, preferences, channels);
+  }
+
+  @Bean
+  NotifyHousehold briefingDelivery(ChannelDispatcher dispatcher, BroadcastLiveUpdate live) {
+    return new NotifyHousehold(List.of(dispatcher, new AlertsToLive(live)));
+  }
+
+  @Bean
+  @Primary
+  NotifyHousehold notifyHousehold(
+      ChannelDispatcher dispatcher, BroadcastLiveUpdate live, AlertBriefings alertBriefings) {
+    return new NotifyHousehold(List.of(dispatcher, new AlertsToLive(live), alertBriefings));
   }
 
   @Bean

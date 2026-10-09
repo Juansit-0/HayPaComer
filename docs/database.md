@@ -450,6 +450,7 @@ erDiagram
 | `agent:trace:{runId}` | Stream | 30 d | Plan, tool call, and observation steps with arguments and results |
 | `agent:pending:{confirmationId}` | Hash | 10 min | Write proposed by the agent awaiting human confirmation |
 | `agent:pending:user:{userId}` | Set | 10 min | Index of pending confirmations per user |
+| `agent:briefing:{householdId}:{kind}:{date}` | String | 2 d | A proactive briefing of that kind already went out that day |
 | `ai:audit` | Stream (MAXLEN ~100000) | none | Provider, latency, valid or rejected, fallback used |
 | `ai:cache:{sha256}` | String (JSON) | 1 h | Validated AI response cache (Proxy) |
 | `ai:cb:{provider}` | Hash | none | Circuit breaker state and counters |

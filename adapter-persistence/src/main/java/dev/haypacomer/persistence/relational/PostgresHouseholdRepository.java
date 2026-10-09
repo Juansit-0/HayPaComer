@@ -1,5 +1,6 @@
 package dev.haypacomer.persistence.relational;
 
+import dev.haypacomer.application.port.HouseholdDirectory;
 import dev.haypacomer.application.port.HouseholdRepository;
 import dev.haypacomer.domain.household.Household;
 import dev.haypacomer.domain.household.HouseholdId;
@@ -22,7 +23,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.support.TransactionTemplate;
 
 @Repository
-public class PostgresHouseholdRepository implements HouseholdRepository {
+public class PostgresHouseholdRepository implements HouseholdRepository, HouseholdDirectory {
 
   private final JdbcClient jdbc;
   private final TransactionTemplate transaction;
@@ -50,6 +51,17 @@ public class PostgresHouseholdRepository implements HouseholdRepository {
                     row.getString("timezone")))
         .optional()
         .map(this::restore);
+  }
+
+  @Override
+  public List<HouseholdId> all() {
+    return jdbc
+        .sql("SELECT id FROM households ORDER BY created_at, id")
+        .query(UUID.class)
+        .list()
+        .stream()
+        .map(HouseholdId::new)
+        .toList();
   }
 
   @Override
