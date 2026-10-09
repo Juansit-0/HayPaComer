@@ -36,6 +36,7 @@ Guides for roadmap steps assigned to a teammate. Each guide explains the goal, t
 | 92 | [Release v1.0.0](step-92-release.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | A1 | [Runtime settings in the database with cache](step-a1-runtime-settings.md) | Jenifer Urbano (`Jenifrutica`) | v1.0.0 |
 | A2 | [Translations and localized messages in the database](step-a2-i18n.md) | Jenifer Urbano (`Jenifrutica`) | A1 |
+| A3 | [Expiry with logic, estimates, and limits](step-a3-expiry-logic.md) | Jenifer Urbano (`Jenifrutica`) | A2 |
 
 Steps 56 to 60 and the web interface steps 64 and 65 stay with the owner (Juan Camilo Lopez Diaz). Each step above gets a full guide (goal, code to reuse, scope, tests, docs) when it is about to start.
 

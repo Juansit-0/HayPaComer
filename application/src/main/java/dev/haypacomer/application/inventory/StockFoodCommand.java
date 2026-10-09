@@ -1,10 +1,14 @@
 package dev.haypacomer.application.inventory;
 
+import dev.haypacomer.domain.expiry.ExpiryEstimate;
+import dev.haypacomer.domain.expiry.ExpirySource;
 import dev.haypacomer.domain.food.FoodMetadata;
 import dev.haypacomer.domain.fridge.FoodItem;
 import dev.haypacomer.domain.fridge.Fridge;
 import dev.haypacomer.domain.fridge.FridgeId;
 import dev.haypacomer.domain.fridge.TrayId;
+import dev.haypacomer.domain.fridge.Zone;
+import dev.haypacomer.domain.fridge.ZoneKind;
 import dev.haypacomer.domain.household.HouseholdId;
 import dev.haypacomer.domain.household.Permission;
 import dev.haypacomer.domain.inventory.MovementSource;
@@ -15,6 +19,7 @@ import dev.haypacomer.domain.quantity.Grams;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 public record StockFoodCommand(
@@ -26,8 +31,34 @@ public record StockFoodCommand(
     Grams grossWeight,
     Grams tare,
     LocalDate expiresOn,
-    Visibility visibility)
+    Visibility visibility,
+    boolean opened,
+    ExpirySource expirySource)
     implements InventoryCommand {
+
+  public StockFoodCommand(
+      UUID id,
+      HouseholdId household,
+      FridgeId fridge,
+      TrayId tray,
+      String foodName,
+      Grams grossWeight,
+      Grams tare,
+      LocalDate expiresOn,
+      Visibility visibility) {
+    this(
+        id,
+        household,
+        fridge,
+        tray,
+        foodName,
+        grossWeight,
+        tare,
+        expiresOn,
+        visibility,
+        false,
+        null);
+  }
 
   public StockFoodCommand {
     Objects.requireNonNull(id, "id");
@@ -51,7 +82,8 @@ public record StockFoodCommand(
         "food", foodName,
         "grossGrams", grossWeight.value().toPlainString(),
         "tareGrams", tare.value().toPlainString(),
-        "visibility", visibility.name());
+        "visibility", visibility.name(),
+        "opened", String.valueOf(opened));
   }
 
   @Override
@@ -73,7 +105,18 @@ public record StockFoodCommand(
             .filter(candidate -> candidate.id().equals(fridge))
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException("Unknown fridge for this household"));
-    FoodItem item = FoodItem.weighed(food, grossWeight, tare, expiresOn);
+    ZoneKind zone =
+        target
+            .zoneOf(tray)
+            .map(Zone::kind)
+            .orElseThrow(() -> new IllegalArgumentException("Tray not in fridge " + tray.value()));
+    LocalDate today = LocalDate.ofInstant(workspace.now(), workspace.household().timezone());
+    Optional<ExpiryEstimate> expiry =
+        workspace.expiry().resolve(household, food, zone, opened, expiresOn, expirySource, today);
+    FoodItem item =
+        expiry
+            .map(found -> FoodItem.weighed(food, grossWeight, tare, found, opened ? today : null))
+            .orElseGet(() -> FoodItem.weighed(food, grossWeight, tare, null));
     target.place(item, tray);
     workspace.inventory().save(household, target);
     workspace

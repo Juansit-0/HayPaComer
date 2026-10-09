@@ -8,7 +8,10 @@ import dev.haypacomer.application.inventory.CommandOutcome;
 import dev.haypacomer.application.inventory.ConsumeFoodCommand;
 import dev.haypacomer.application.inventory.DiscardFoodCommand;
 import dev.haypacomer.application.inventory.ExecuteInventoryCommand;
+import dev.haypacomer.application.inventory.MarkFoodOpened;
 import dev.haypacomer.application.inventory.StockFoodCommand;
+import dev.haypacomer.domain.expiry.ExpirySource;
+import dev.haypacomer.domain.fridge.FoodItem;
 import dev.haypacomer.domain.fridge.FoodItemId;
 import dev.haypacomer.domain.fridge.FridgeId;
 import dev.haypacomer.domain.fridge.TrayId;
@@ -47,11 +50,28 @@ public class InventoryController {
 
   private final ExecuteInventoryCommand commands;
   private final ChangeFoodOwnership changeOwnership;
+  private final MarkFoodOpened markFoodOpened;
 
   public InventoryController(
-      ExecuteInventoryCommand commands, ChangeFoodOwnership changeOwnership) {
+      ExecuteInventoryCommand commands,
+      ChangeFoodOwnership changeOwnership,
+      MarkFoodOpened markFoodOpened) {
     this.commands = commands;
     this.changeOwnership = changeOwnership;
+    this.markFoodOpened = markFoodOpened;
+  }
+
+  @PostMapping("/{itemId}/open")
+  OpenedResponse open(
+      @AuthenticationPrincipal Jwt jwt, @PathVariable UUID householdId, @PathVariable UUID itemId) {
+    FoodItem item =
+        markFoodOpened.open(
+            CurrentUser.of(jwt), new HouseholdId(householdId), new FoodItemId(itemId));
+    return new OpenedResponse(
+        item.id().value(),
+        item.expiresOn().orElse(null),
+        item.expirySource().orElse(null),
+        item.openedOn().orElse(null));
   }
 
   @PostMapping
@@ -73,7 +93,9 @@ public class InventoryController {
                 Grams.of(request.grams()),
                 request.tareGrams() == null ? Grams.ZERO : Grams.of(request.tareGrams()),
                 request.expiresOn(),
-                request.visibility())));
+                request.visibility(),
+                Boolean.TRUE.equals(request.opened()),
+                request.expirySource())));
   }
 
   @PostMapping("/{itemId}/consume")
@@ -160,7 +182,12 @@ public class InventoryController {
       @NotNull @DecimalMin(value = "0", inclusive = false) BigDecimal grams,
       @DecimalMin("0") BigDecimal tareGrams,
       LocalDate expiresOn,
-      Visibility visibility) {}
+      Visibility visibility,
+      Boolean opened,
+      ExpirySource expirySource) {}
+
+  record OpenedResponse(
+      UUID itemId, LocalDate expiresOn, ExpirySource expirySource, LocalDate openedOn) {}
 
   record ConsumeRequest(@NotNull @DecimalMin(value = "0", inclusive = false) BigDecimal grams) {}
 

@@ -79,10 +79,10 @@ class SettingsIntegrationTest {
 
     mvc.perform(get("/api/v1/settings/defaults").header("Authorization", juan))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()").value(17));
+        .andExpect(jsonPath("$.length()").value(18));
     mvc.perform(get(path).header("Authorization", juan))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()").value(8))
+        .andExpect(jsonPath("$.length()").value(9))
         .andExpect(jsonPath("$[?(@.key == 'food.at-risk-days')].value").value("2"));
 
     mvc.perform(

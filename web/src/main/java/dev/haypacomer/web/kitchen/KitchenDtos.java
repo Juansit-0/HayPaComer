@@ -3,6 +3,7 @@ package dev.haypacomer.web.kitchen;
 import dev.haypacomer.application.HayPaComerFacade.KitchenSnapshot;
 import dev.haypacomer.application.fridge.FridgeLayout;
 import dev.haypacomer.application.inventory.InventoryEntry;
+import dev.haypacomer.domain.expiry.ExpirySource;
 import dev.haypacomer.domain.fridge.FoodItem;
 import dev.haypacomer.domain.fridge.Fridge;
 import dev.haypacomer.domain.fridge.FridgeNode;
@@ -53,6 +54,9 @@ final class KitchenDtos {
       String name,
       BigDecimal grams,
       LocalDate expiresOn,
+      ExpirySource expirySource,
+      Double expiryConfidence,
+      LocalDate openedOn,
       Set<FoodStatus> statuses,
       boolean edible,
       boolean usable,
@@ -67,6 +71,9 @@ final class KitchenDtos {
           item.name(),
           item.quantity().value(),
           item.expiresOn().orElse(null),
+          item.expirySource().orElse(null),
+          item.expirySource().map(ExpirySource::confidence).orElse(null),
+          item.openedOn().orElse(null),
           entry.food().statuses(),
           entry.food().isEdible(),
           entry.usable(),

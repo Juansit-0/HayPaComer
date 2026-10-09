@@ -106,7 +106,9 @@ HayPaComer (name confirmed in Phase 0.5) is a smart home fridge: Java applicatio
 - Step A1 merged (#91, Jenifer Urbano). Fixed: `ProactiveBriefingIntegrationTest` failed when CI ran at 07:00 UTC (morning briefing); it now moves the briefing hours away through the settings endpoint.
 - Step B1 merged (#92): the web session lives in `localStorage`, renews the access token before it expires, refreshes once at a time across tabs (Web Locks), and signs out every tab together.
 - Step A2 in `feat/i18n-messages`: Flyway `V22` (`locales`, `translations`, `message_templates`, `users.locale`); `MessageTranslator`, `ResolveLocale`, `ChangeUserLocale`, `ViewTranslations`, `ListLocales`, `TranslateMessages`; `Localizer` and `LocalizedProblems` in web; public `GET /i18n` and `/i18n/{locale}`, `PUT /me/locale`; Spanish catalog search.
-- **Next action:** B2 (Juan): design system v2 and bento layout. Then A3 (Jenifer): expiry logic and estimates.
+- Step A2 merged (#93, Jenifer Urbano). Step B2 merged (#94): tokens v2, bento grid, `kpi`, `numberField` steppers, `chips`, `dateField`, `openSheet`; Now as bento; wide money stepper for the budget. The user wants the B4-B7 redesign based on browsing real food sites, not generic patterns.
+- Step A3 in `feat/expiry-logic`: Flyway `V23` (shelf life by zone in `food_catalog`, `food_items.expiry_source` and `opened_on`, `food.expiry-margin-days`); domain `expiry` (`ShelfLife`, `ExpiryRules`, `ExpirySource`, `ExpiryEstimate`, `ImpossibleExpiryException`); `ExpiryDesk`, `EstimateExpiry`, `MarkFoodOpened`; 422 for impossible dates; `GET /expiry-estimate`, `POST /items/{id}/open`.
+- **Next action:** B3 (Juan): language switch and localized formats in the web UI. Then A4 (Jenifer): expiry from a label photo.
 - Workflow (since 2026-10-08): Claude creates the branch, implements, runs `mvn verify`, and commits locally as the user with no Claude attribution; the user pushes, opens the PR, and merges by hand.
 
 ## How to continue (agreed order)

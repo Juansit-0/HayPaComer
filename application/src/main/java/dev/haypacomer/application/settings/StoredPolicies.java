@@ -9,6 +9,7 @@ import static dev.haypacomer.application.settings.SettingKeys.DIGEST_HOUR;
 import static dev.haypacomer.application.settings.SettingKeys.DISCARD_AFTER_MINUTES;
 import static dev.haypacomer.application.settings.SettingKeys.DOOR_ALERT_SECONDS;
 import static dev.haypacomer.application.settings.SettingKeys.EXPIRY_CLUSTER_SIZE;
+import static dev.haypacomer.application.settings.SettingKeys.EXPIRY_MARGIN_DAYS;
 import static dev.haypacomer.application.settings.SettingKeys.LOCKOUT_MINUTES;
 import static dev.haypacomer.application.settings.SettingKeys.MAX_CELSIUS;
 import static dev.haypacomer.application.settings.SettingKeys.MAX_FAILED_LOGINS;
@@ -23,6 +24,7 @@ import dev.haypacomer.application.auth.AuthSettings;
 import dev.haypacomer.application.port.PolicySource;
 import dev.haypacomer.application.port.SettingsRepository;
 import dev.haypacomer.domain.coldchain.investigation.ColdRule;
+import dev.haypacomer.domain.expiry.ExpiryRules;
 import dev.haypacomer.domain.fridge.FridgeId;
 import dev.haypacomer.domain.household.HouseholdId;
 import dev.haypacomer.domain.inventory.FreshnessPolicy;
@@ -61,6 +63,11 @@ public record StoredPolicies(SettingsRepository settings) implements PolicySourc
   @Override
   public FreshnessPolicy freshness(HouseholdId household) {
     return new FreshnessPolicy(number(AT_RISK_DAYS, household));
+  }
+
+  @Override
+  public ExpiryRules expiryRules(HouseholdId household) {
+    return new ExpiryRules(number(EXPIRY_MARGIN_DAYS, household));
   }
 
   @Override

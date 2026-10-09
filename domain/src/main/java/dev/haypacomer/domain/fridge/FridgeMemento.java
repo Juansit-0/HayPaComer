@@ -1,5 +1,6 @@
 package dev.haypacomer.domain.fridge;
 
+import dev.haypacomer.domain.expiry.ExpirySource;
 import dev.haypacomer.domain.food.FoodMetadata;
 import dev.haypacomer.domain.quantity.Grams;
 import java.time.LocalDate;
@@ -29,7 +30,9 @@ public record FridgeMemento(FridgeId id, String name, List<ZoneState> zones) {
                       foods.apply(itemState.foodName()), "Unknown food " + itemState.foodName()),
                   itemState.quantity(),
                   itemState.tare(),
-                  itemState.expiresOn()));
+                  itemState.expiresOn(),
+                  itemState.expirySource(),
+                  itemState.openedOn()));
         }
         zone.add(tray);
       }
@@ -53,5 +56,17 @@ public record FridgeMemento(FridgeId id, String name, List<ZoneState> zones) {
   }
 
   public record ItemState(
-      FoodItemId id, String foodName, Grams quantity, Grams tare, LocalDate expiresOn) {}
+      FoodItemId id,
+      String foodName,
+      Grams quantity,
+      Grams tare,
+      LocalDate expiresOn,
+      ExpirySource expirySource,
+      LocalDate openedOn) {
+
+    public ItemState(
+        FoodItemId id, String foodName, Grams quantity, Grams tare, LocalDate expiresOn) {
+      this(id, foodName, quantity, tare, expiresOn, null, null);
+    }
+  }
 }

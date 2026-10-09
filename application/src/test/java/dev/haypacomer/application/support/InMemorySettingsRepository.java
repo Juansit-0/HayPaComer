@@ -21,6 +21,7 @@ public final class InMemorySettingsRepository implements SettingsRepository {
           household("fridge.cold-chain-grace-minutes", SettingKind.INTEGER, "20", "1", "240"),
           household("scale.minimum-change-grams", SettingKind.INTEGER, "5", "1", "100"),
           household("food.at-risk-days", SettingKind.INTEGER, "2", "0", "14"),
+          household("food.expiry-margin-days", SettingKind.INTEGER, "3", "0", "30"),
           household("briefing.morning-hour", SettingKind.INTEGER, "7", "0", "23"),
           household("briefing.digest-hour", SettingKind.INTEGER, "8", "0", "23"),
           household("briefing.expiry-cluster-size", SettingKind.INTEGER, "3", "2", "20"),
