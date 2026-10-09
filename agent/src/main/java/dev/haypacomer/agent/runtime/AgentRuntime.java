@@ -80,6 +80,22 @@ public final class AgentRuntime {
         continue;
       }
       switch (decision) {
+        case Decision.Defer defer -> {
+          if (active == fallback) {
+            trace(run, TraceKind.ANSWER, "Stopped: no planner is available");
+            return new AgentResult(finish(run, RunStatus.FAILED), null, null, evidence(history));
+          }
+          trace(
+              run,
+              TraceKind.PLAN,
+              "Planner "
+                  + active.name()
+                  + " deferred ("
+                  + defer.reason()
+                  + "), using offline rules");
+          record(active, Duration.ZERO, AiOutcome.FALLBACK);
+          active = fallback;
+        }
         case Decision.FinalAnswer answer -> {
           trace(run, TraceKind.ANSWER, answer.text());
           return new AgentResult(

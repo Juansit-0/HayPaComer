@@ -26,7 +26,7 @@
 - Per-case JSON contract with schema validation; invalid responses are rejected and audited.
 - Step budget, timeouts, and tool allowlist per request.
 - `AiAuditService` records latency, valid and rejected responses, and fallback usage.
-- Circuit Breaker falls back to the rule-based planner when the provider is down or degraded.
+- Circuit Breaker falls back to the rule-based planner when the provider is down or degraded. One circuit per provider covers suggestions, chef chat, and recipe photos; while it is open the chat defers to the offline rules through a Null Object, photos answer 503 at once, and `/api/v1/status` shows the provider as resting.
 - AI state (memory, conversations, traces, audit, pending confirmations, cache) lives in Redis; relational data in PostgreSQL is written only by use cases.
 - AI runs only in the backend; provider keys never reach the browser or the ESP32.
 

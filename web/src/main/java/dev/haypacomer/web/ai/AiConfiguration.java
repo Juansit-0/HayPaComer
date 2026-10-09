@@ -13,7 +13,11 @@ import dev.haypacomer.ai.llm.LlmSettings;
 import dev.haypacomer.ai.llm.OpenAiCompatibleClient;
 import dev.haypacomer.ai.offline.OfflineRecipePhotoReader;
 import dev.haypacomer.ai.offline.OfflineRuleEngine;
+import dev.haypacomer.ai.resilience.NullChatModel;
+import dev.haypacomer.ai.resilience.ProviderCircuit;
+import dev.haypacomer.ai.resilience.ResilientChatModel;
 import dev.haypacomer.ai.resilience.ResilientKitchenAdvisor;
+import dev.haypacomer.ai.resilience.ResilientRecipePhotoReader;
 import dev.haypacomer.application.ai.CircuitPolicy;
 import dev.haypacomer.application.ai.ReadRecipePhoto;
 import dev.haypacomer.application.port.AiAuditLog;
@@ -24,6 +28,7 @@ import dev.haypacomer.application.port.FoodCatalogRepository;
 import dev.haypacomer.application.port.HouseholdRepository;
 import dev.haypacomer.application.port.KitchenAdvisor;
 import dev.haypacomer.application.port.RecipePhotoReader;
+import dev.haypacomer.application.port.ServiceHealth;
 import dev.haypacomer.persistence.redis.RedisAiRateLimiter;
 import dev.haypacomer.persistence.redis.RedisAiResponseCache;
 import dev.haypacomer.persistence.redis.RedisCircuitBreakerStore;
@@ -53,7 +58,11 @@ public class AiConfiguration {
 
   @Bean
   KitchenAdvisor kitchenAdvisor(
-      AiProperties properties, AiResponseCache cache, CircuitBreakerStore breaker, Clock clock) {
+      AiProperties properties,
+      AiResponseCache cache,
+      CircuitBreakerStore breaker,
+      ServiceHealth health,
+      Clock clock) {
     OfflineRuleEngine offline = new OfflineRuleEngine();
     if (properties.provider() == AiProperties.Provider.OFFLINE) {
       return offline;
@@ -61,27 +70,41 @@ public class AiConfiguration {
     LlmClient client = client(properties);
     return new ResilientKitchenAdvisor(
         new LlmKitchenAdvisor(client, cache, properties.cacheTimeToLive()),
-        client.source(),
         offline,
-        breaker,
-        CircuitPolicy.DEFAULT,
-        clock);
+        circuit(client, breaker, health, clock));
   }
 
   @Bean
-  PlannerFactory agentPlanners(AiProperties properties, ToolRegistry agentTools) {
+  PlannerFactory agentPlanners(
+      AiProperties properties,
+      ToolRegistry agentTools,
+      CircuitBreakerStore breaker,
+      ServiceHealth health,
+      Clock clock) {
     if (properties.provider() == AiProperties.Provider.OFFLINE) {
       return new OfflinePlanners();
     }
-    return new LlmPlannerFactory(new LlmChatModel(client(properties)), agentTools);
+    LlmClient client = client(properties);
+    return new LlmPlannerFactory(
+        new ResilientChatModel(
+            new LlmChatModel(client), new NullChatModel(), circuit(client, breaker, health, clock)),
+        agentTools);
   }
 
   @Bean
-  RecipePhotoReader recipePhotoReader(AiProperties properties) {
+  RecipePhotoReader recipePhotoReader(
+      AiProperties properties, CircuitBreakerStore breaker, ServiceHealth health, Clock clock) {
     if (properties.provider() == AiProperties.Provider.OFFLINE) {
       return new OfflineRecipePhotoReader();
     }
-    return new LlmRecipePhotoReader(client(properties));
+    LlmClient client = client(properties);
+    return new ResilientRecipePhotoReader(
+        new LlmRecipePhotoReader(client), circuit(client, breaker, health, clock));
+  }
+
+  private static ProviderCircuit circuit(
+      LlmClient client, CircuitBreakerStore breaker, ServiceHealth health, Clock clock) {
+    return new ProviderCircuit(client.source(), breaker, CircuitPolicy.DEFAULT, health, clock);
   }
 
   @Bean

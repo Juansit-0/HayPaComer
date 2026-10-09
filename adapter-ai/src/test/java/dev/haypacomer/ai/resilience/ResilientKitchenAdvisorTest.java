@@ -115,7 +115,9 @@ class ResilientKitchenAdvisorTest {
   private final FlakyProvider provider = new FlakyProvider();
   private final ResilientKitchenAdvisor advisor =
       new ResilientKitchenAdvisor(
-          provider, AdvisorSource.GEMINI, new OfflineRuleEngine(), breaker, POLICY, clock);
+          provider,
+          new OfflineRuleEngine(),
+          new ProviderCircuit(AdvisorSource.GEMINI, breaker, POLICY, new MapHealth(), clock));
 
   private static final SuggestionRequest REQUEST =
       new SuggestionRequest(

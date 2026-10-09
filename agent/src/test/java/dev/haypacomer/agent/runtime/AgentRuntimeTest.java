@@ -211,6 +211,50 @@ class AgentRuntimeTest {
   }
 
   @Test
+  void aDeferringPlannerHandsOverToTheRulesWithoutAnError() {
+    ScriptedPlanner planner =
+        new ScriptedPlanner(context -> new Decision.Defer("No AI provider is answering"));
+
+    AgentResult result = runtime(planner).run(task, AgentBudget.DEFAULT);
+
+    assertEquals(RunStatus.DONE, result.run().status());
+    assertTrue(
+        result.answerText().orElseThrow().startsWith("Offline answer based on measured data"));
+    assertTrue(
+        stores.traceOf(result.run().id()).getFirst().detail().contains("deferred (No AI provider"));
+    assertTrue(stores.audit.stream().anyMatch(entry -> entry.outcome() == AiOutcome.FALLBACK));
+    assertEquals(2, result.evidence().size());
+  }
+
+  @Test
+  void aDeferringFallbackFailsTheRun() {
+    Planner deferring =
+        new Planner() {
+          @Override
+          public String name() {
+            return "none";
+          }
+
+          @Override
+          public Decision next(AgentContext context) {
+            return new Decision.Defer("nothing");
+          }
+        };
+    AgentRuntime runtime =
+        new AgentRuntime(
+            new ToolRegistry(List.of(inventory)),
+            guardrails,
+            deferring,
+            deferring,
+            stores,
+            stores,
+            stores,
+            new SteppingClock(START, Duration.ofMillis(10)));
+
+    assertEquals(RunStatus.FAILED, runtime.run(task, AgentBudget.DEFAULT).run().status());
+  }
+
+  @Test
   void failsWhenNoPlannerIsAvailable() {
     Planner broken =
         new Planner() {

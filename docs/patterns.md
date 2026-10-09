@@ -27,8 +27,9 @@ HayPaComer covers 23/23 GoF patterns. Honesty rule: each pattern is used in a re
 | Behavioral | Strategy | `EvaluationStrategy` with `StrictStrategy` (any shortfall is MISSING), `FlexibleStrategy` (fewer servings within a 25% cooking tolerance), and `RescueStrategy` (first `SubstitutionCatalog` rule that passes proportion, limit, stock not already reserved by the recipe, and every diner's profile; else flexible) evaluates a recipe against the usable, edible inventory; `EvaluateRecipe` picks it by `StrategyKind`. `PlanningStrategy` with `RescueFirstStrategy` fills the weekly plan (food at risk first, diners respected, no repeat on consecutive days, shopping flagged as stock runs out). Later: notification channels. Tests: `EvaluationStrategyTest`, `WeeklyPlanTest` | F5 |
 | Behavioral | Template Method | `ReportTemplate.render` is final: header, every report section, footer; `CsvReport` and `MarkdownReport` only fill in the steps. Used by `ExportHouseholdReport`. Test: `ReportsTest` | F7 |
 | Behavioral | Visitor | Sealed `ReportSection` (`Summary`, `Foods`, `Members`, `Trend`) accepts a `ReportVisitor`; each report format is a visitor, and any other visitor can walk the same sections. Test: `ReportsTest` | F7 |
+| Behavioral | Null Object | `NullChatModel` is a chat model that never fails and always answers `{"action":"defer"}`; `ResilientChatModel` uses it while the provider circuit is open, and the agent runtime treats `Decision.Defer` as a calm hand-over to the offline rules, without null checks or error paths. Test: `AiCircuitTest`, `AgentRuntimeTest` | F7 |
 
-Architecture and resilience bonus: Clean Architecture, Repository, DTO, Dependency Injection, MVC, and Circuit Breaker.
+Architecture and resilience bonus: Clean Architecture, Repository, DTO, Dependency Injection, MVC, and Circuit Breaker (`ProviderCircuit`: one state per AI provider in Redis shared by suggestions, chef chat, and recipe photos; three outages open it for a minute, then one trial call; reported in `/api/v1/status`).
 
 ## Justification format
 
