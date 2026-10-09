@@ -1,5 +1,6 @@
 package dev.haypacomer.agent.proactive;
 
+import dev.haypacomer.application.analytics.BuildWeeklyDigest;
 import dev.haypacomer.application.inventory.InventoryEntry;
 import dev.haypacomer.application.inventory.ViewInventory;
 import dev.haypacomer.application.port.BriefingLog;
@@ -9,6 +10,7 @@ import dev.haypacomer.domain.household.Household;
 import dev.haypacomer.domain.household.HouseholdId;
 import dev.haypacomer.domain.inventory.FoodStatus;
 import java.time.Clock;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 
@@ -16,12 +18,14 @@ public final class ScheduledBriefings {
 
   public static final int MORNING_HOUR = 7;
   public static final int CLUSTER_SIZE = 3;
+  public static final int DIGEST_HOUR = 8;
 
   private final HouseholdDirectory directory;
   private final HouseholdRepository households;
   private final ViewInventory inventory;
   private final BriefingLog log;
   private final Briefer briefer;
+  private final BuildWeeklyDigest digest;
   private final Clock clock;
   private int failures;
 
@@ -31,12 +35,14 @@ public final class ScheduledBriefings {
       ViewInventory inventory,
       BriefingLog log,
       Briefer briefer,
+      BuildWeeklyDigest digest,
       Clock clock) {
     this.directory = directory;
     this.households = households;
     this.inventory = inventory;
     this.log = log;
     this.briefer = briefer;
+    this.digest = digest;
     this.clock = clock;
   }
 
@@ -75,6 +81,12 @@ public final class ScheduledBriefings {
                   .isPresent()
               ? 1
               : 0;
+    }
+    if (local.getDayOfWeek() == DayOfWeek.MONDAY
+        && local.getHour() == DIGEST_HOUR
+        && log.claim(id, "weekly-digest", today)) {
+      briefer.publish(id, "Your week in the kitchen", digest.build(household.owner(), id).text());
+      sent++;
     }
     long expiring =
         inventory.view(household.owner(), id, today).stream()

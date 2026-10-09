@@ -49,8 +49,8 @@ public record Specialist(
       new Specialist(
           "coach",
           "Habits that reduce waste, based on what expires and household notes.",
-          Set.of("view_expiries", "query_inventory", "recall_memory", "remember"),
-          List.of("view_expiries", "recall_memory"));
+          Set.of("view_expiries", "waste_patterns", "query_inventory", "recall_memory", "remember"),
+          List.of("view_expiries", "waste_patterns", "recall_memory"));
 
   public static final List<Specialist> ALL = List.of(CHEF, MARKET, COLD, COACH);
 }

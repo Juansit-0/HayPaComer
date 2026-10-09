@@ -1,6 +1,8 @@
 package dev.haypacomer.web.analytics;
 
+import dev.haypacomer.application.analytics.BuildWeeklyDigest;
 import dev.haypacomer.application.analytics.ExportHouseholdReport;
+import dev.haypacomer.application.analytics.FindWastePatterns;
 import dev.haypacomer.application.analytics.HouseholdMemberNames;
 import dev.haypacomer.application.analytics.ListFoodPrices;
 import dev.haypacomer.application.analytics.SetFoodPrice;
@@ -11,6 +13,7 @@ import dev.haypacomer.application.port.HouseholdRepository;
 import dev.haypacomer.application.port.MovementHistory;
 import dev.haypacomer.application.port.UserRepository;
 import dev.haypacomer.domain.inventory.FreshnessPolicy;
+import java.time.Clock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -41,6 +44,22 @@ public class AnalyticsConfiguration {
   @Bean
   HouseholdMemberNames householdMemberNames(HouseholdRepository households, UserRepository users) {
     return new HouseholdMemberNames(households, users);
+  }
+
+  @Bean
+  BuildWeeklyDigest buildWeeklyDigest(
+      HouseholdRepository households,
+      ViewHouseholdMetrics metrics,
+      MovementHistory history,
+      HouseholdMemberNames names,
+      Clock clock) {
+    return new BuildWeeklyDigest(households, metrics, history, names, clock);
+  }
+
+  @Bean
+  FindWastePatterns findWastePatterns(
+      HouseholdRepository households, MovementHistory history, Clock clock) {
+    return new FindWastePatterns(households, history, clock);
   }
 
   @Bean

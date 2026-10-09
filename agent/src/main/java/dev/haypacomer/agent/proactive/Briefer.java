@@ -29,6 +29,18 @@ public final class Briefer {
     this.clock = clock;
   }
 
+  public Notification publish(HouseholdId household, String title, String body) {
+    Notification digest =
+        Notification.of(
+            household,
+            NotificationType.BRIEFING,
+            title,
+            body.length() > MAX_BODY ? body.substring(0, MAX_BODY) : body,
+            clock.instant());
+    delivery.publish(digest);
+    return digest;
+  }
+
   public Optional<Notification> brief(
       HouseholdId household, String specialist, String goal, String title) {
     return households

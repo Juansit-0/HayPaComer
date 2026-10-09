@@ -170,6 +170,11 @@ class AnalyticsIntegrationTest {
         dev.haypacomer.persistence.resilience.ResilientFoodCatalog.class, catalog);
     org.junit.jupiter.api.Assertions.assertInstanceOf(
         dev.haypacomer.persistence.resilience.ResilientFoodPrices.class, prices);
+    mvc.perform(get(base + "/analytics/weekly-digest").header("Authorization", juan))
+        .andExpect(status().isOk())
+        .andExpect(
+            jsonPath("$.text").value(org.hamcrest.Matchers.startsWith("This week you rescued")))
+        .andExpect(jsonPath("$.tips.length()").value(0));
     mvc.perform(get("/api/v1/status").header("Authorization", juan))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.state").value("OK"));

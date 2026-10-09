@@ -27,7 +27,7 @@ Guides for roadmap steps assigned to a teammate. Each guide explains the goal, t
 | 83 | [Reactive copilot with live scale](step-83-scale-copilot.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 84 | [Market agent with budget](step-84-market-budget.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 85 | [Cold incident investigation](step-85-cold-investigation.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
-| 86 | Anti-waste coach and weekly digest (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
+| 86 | [Anti-waste coach and weekly digest](step-86-waste-coach-digest.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 87 | Hands-free voice in the kitchen with Web Speech (frontend) (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 88 | Indexes, partitions, and inventory queries (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 89 | Full demo flow and extreme noise tests (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |

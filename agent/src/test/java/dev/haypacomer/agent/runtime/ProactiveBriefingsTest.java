@@ -72,7 +72,74 @@ class ProactiveBriefingsTest {
         kitchen.inventory,
         log,
         briefer(clock),
+        digest(clock),
         clock);
+  }
+
+  private dev.haypacomer.application.analytics.BuildWeeklyDigest digest(Clock clock) {
+    dev.haypacomer.application.port.FoodPriceRepository prices =
+        new dev.haypacomer.application.port.FoodPriceRepository() {
+          @Override
+          public java.util.Map<String, java.math.BigDecimal> pricesFor(
+              HouseholdId household, java.util.Currency currency) {
+            return java.util.Map.of();
+          }
+
+          @Override
+          public void save(HouseholdId household, String foodKey, java.math.BigDecimal price) {}
+        };
+    return new dev.haypacomer.application.analytics.BuildWeeklyDigest(
+        kitchen.households,
+        new dev.haypacomer.application.analytics.ViewHouseholdMetrics(
+            kitchen.households,
+            kitchen.stores.history,
+            prices,
+            dev.haypacomer.domain.inventory.FreshnessPolicy.DEFAULT),
+        kitchen.stores.history,
+        new dev.haypacomer.application.analytics.HouseholdMemberNames(
+            kitchen.households,
+            new dev.haypacomer.application.port.UserRepository() {
+              @Override
+              public void save(dev.haypacomer.domain.identity.User user) {}
+
+              @Override
+              public java.util.Optional<dev.haypacomer.domain.identity.User> findById(
+                  dev.haypacomer.domain.identity.UserId id) {
+                return java.util.Optional.empty();
+              }
+
+              @Override
+              public java.util.Optional<dev.haypacomer.domain.identity.User> findByEmail(
+                  dev.haypacomer.domain.identity.EmailAddress email) {
+                return java.util.Optional.empty();
+              }
+            }),
+        clock);
+  }
+
+  @Test
+  void mondayMorningBringsTheWeeklyDigestOnce() {
+    kitchen.stores.movements.record(
+        new dev.haypacomer.domain.inventory.InventoryMovement(
+            java.util.UUID.randomUUID(),
+            kitchen.home.id(),
+            dev.haypacomer.domain.fridge.FoodItemId.newId(),
+            kitchen.owner,
+            dev.haypacomer.domain.inventory.MovementType.DISCARD,
+            new java.math.BigDecimal("-250"),
+            dev.haypacomer.domain.inventory.MovementSource.MANUAL,
+            Instant.parse("2026-10-07T10:00:00Z"),
+            "yogurt",
+            null));
+    Instant mondayEight = Instant.parse("2026-10-12T08:20:00Z");
+
+    assertEquals(1, scheduled(mondayEight).run());
+    assertEquals(0, scheduled(mondayEight.plusSeconds(60)).run());
+    assertEquals(0, scheduled(Instant.parse("2026-10-13T08:20:00Z")).run());
+
+    Notification weekly = delivered.getFirst();
+    assertEquals("Your week in the kitchen", weekly.title());
+    assertTrue(weekly.body().contains("You threw away 250 g (100% of what left the fridge"));
   }
 
   @Test
@@ -164,6 +231,7 @@ class ProactiveBriefingsTest {
             kitchen.inventory,
             log,
             briefer(seven),
+            digest(seven),
             seven);
 
     assertEquals(1, briefings.run());

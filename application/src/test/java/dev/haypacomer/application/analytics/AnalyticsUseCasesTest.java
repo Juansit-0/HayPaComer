@@ -138,4 +138,53 @@ class AnalyticsUseCasesTest {
     assertThrows(
         FoodNotInCatalogException.class, () -> set.set(owner, home.id(), "caviar", BigDecimal.TEN));
   }
+
+  @Test
+  void theWeeklyDigestAndWastePatternsUseTheLastWeek() {
+    java.time.Clock monday =
+        java.time.Clock.fixed(
+            LocalDate.of(2026, 10, 12).atTime(8, 0).atZone(BOGOTA).toInstant(), BOGOTA);
+    moved(MovementType.DISCARD, 300, "rice", LocalDate.of(2026, 10, 6), null);
+    moved(MovementType.DISCARD, 200, "rice", LocalDate.of(2026, 10, 8), null);
+    ViewHouseholdMetrics metrics =
+        new ViewHouseholdMetrics(households, stores.history, prices, FreshnessPolicy.DEFAULT);
+    BuildWeeklyDigest digest =
+        new BuildWeeklyDigest(
+            households,
+            metrics,
+            stores.history,
+            new HouseholdMemberNames(
+                households,
+                new dev.haypacomer.application.port.UserRepository() {
+                  @Override
+                  public void save(dev.haypacomer.domain.identity.User user) {}
+
+                  @Override
+                  public java.util.Optional<dev.haypacomer.domain.identity.User> findById(
+                      UserId id) {
+                    return java.util.Optional.empty();
+                  }
+
+                  @Override
+                  public java.util.Optional<dev.haypacomer.domain.identity.User> findByEmail(
+                      dev.haypacomer.domain.identity.EmailAddress email) {
+                    return java.util.Optional.empty();
+                  }
+                }),
+            monday);
+
+    var weekly = digest.build(guest, home.id());
+
+    assertEquals(Grams.of(500), weekly.thisWeek().total().discarded());
+    assertEquals(LocalDate.of(2026, 10, 5), weekly.thisWeek().from());
+    assertEquals("rice", weekly.tips().getFirst().foodKey());
+    assertEquals(
+        1,
+        new FindWastePatterns(households, stores.history, monday)
+            .find(guest, home.id(), 30)
+            .size());
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> new FindWastePatterns(households, stores.history, monday).find(guest, home.id(), 0));
+  }
 }
