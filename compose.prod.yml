@@ -1,0 +1,45 @@
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-haypacomer}
+      POSTGRES_USER: ${POSTGRES_USER:-haypacomer}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+    volumes:
+      - prod-postgres:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-haypacomer}"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:8-alpine
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:?set REDIS_PASSWORD}"]
+    volumes:
+      - prod-redis:/data
+
+  app:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      DB_HOST: postgres
+      DB_NAME: ${POSTGRES_DB:-haypacomer}
+      DB_USER: ${POSTGRES_USER:-haypacomer}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_SSLMODE: disable
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8080}
+      AI_PROVIDER: ${AI_PROVIDER:-offline}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+    ports:
+      - "127.0.0.1:8080:8080"
+
+volumes:
+  prod-postgres:
+  prod-redis:

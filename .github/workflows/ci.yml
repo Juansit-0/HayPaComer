@@ -28,6 +28,18 @@ jobs:
       - name: Build and test
         run: mvn -B -ntp verify
 
+  image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Build the production image
+        run: docker build --tag haypacomer:${{ github.sha }} .
+
+      - name: Check the image runs as a non-root user
+        run: test "$(docker image inspect --format '{{.Config.User}}' haypacomer:${{ github.sha }})" = "haypacomer"
+
   firmware:
     runs-on: ubuntu-latest
     steps:

@@ -1,0 +1,15 @@
+.git
+.github
+.idea
+.vscode
+**/target
+**/node_modules
+.env
+.env.*
+!.env.example
+.demo-credentials.json
+demo.log
+*.log
+docs
+firmware
+scripts
