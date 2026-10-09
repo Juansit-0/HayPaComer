@@ -3,8 +3,11 @@ package dev.haypacomer.web;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.haypacomer.application.notification.ChannelKind;
 import dev.haypacomer.domain.cooking.RequirementVerdict;
+import dev.haypacomer.domain.food.Allergen;
 import dev.haypacomer.domain.food.FoodCategory;
+import dev.haypacomer.domain.member.Diet;
 import dev.haypacomer.domain.session.SessionPhase;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -78,6 +81,15 @@ class WebTextsTest {
     }
     for (FoodCategory category : FoodCategory.values()) {
       plain.add("category." + category.name());
+    }
+    for (Diet diet : Diet.values()) {
+      plain.add("diet." + diet.name());
+    }
+    for (Allergen allergen : Allergen.values()) {
+      plain.add("allergen." + allergen.name());
+    }
+    for (ChannelKind channel : ChannelKind.values()) {
+      plain.add("channel." + channel.name());
     }
     Map<String, Set<String>> keys = translations();
     List<String> missing = new ArrayList<>();

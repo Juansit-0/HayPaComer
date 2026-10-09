@@ -6,13 +6,25 @@ import { renderChef } from "./chef.js";
 import { renderMarket } from "./market.js";
 import { connectLive, disconnectLive } from "./live.js";
 import { renderNow } from "./now.js";
+import { renderSettings } from "./settings.js";
 import { currentLocale, loadLocale, locales, plural, t, translatePage } from "./i18n.js";
 import { errorText, esc } from "./ui.js";
 
 const main = document.getElementById("main");
 const tabs = document.querySelector(".tabs");
 const sessionBar = document.querySelector(".session");
-const views = { now: renderNow, fridge: renderFridge, market: renderMarket, numbers: renderAnalytics, chef: renderChef };
+const views = {
+  now: renderNow,
+  fridge: renderFridge,
+  market: renderMarket,
+  numbers: renderAnalytics,
+  chef: renderChef,
+  settings: (main, household) => renderSettings(main, household, () => {
+    drawLanguages();
+    translatePage();
+    render();
+  }),
+};
 let household = null;
 
 function current() {
@@ -59,7 +71,7 @@ async function render() {
   connectLive(household.id);
   document.querySelector("[data-household]").innerHTML = householdLabel(household);
   const route = current();
-  tabs.querySelectorAll("a").forEach((link) => {
+  document.querySelectorAll(".tabs a, [data-settings-link]").forEach((link) => {
     if (link.dataset.tab === route) link.setAttribute("aria-current", "page");
     else link.removeAttribute("aria-current");
   });

@@ -174,12 +174,20 @@ export async function renderNow(main, household) {
       box.innerHTML = result.suggestions.length
         ? result.suggestions
             .map(
-              (dish) => `<article class="dish">
-                <div class="item-meta"><h3>${esc(dish.recipe)}</h3><span class="data">${dish.minutes} min</span>${
+              (dish) => `<article class="dish-row">
+                <h3>${esc(dish.recipe)}</h3>
+                <div class="dish-meta"><span class="data">${dish.minutes}\u2009min</span><span>${plural("now.servings", dish.evaluation.requestedServings)}</span>${
                   dish.evaluation.verdict === "ENOUGH"
                     ? `<span class="status">${t("verdict.ENOUGH")}</span>`
                     : `<span class="status attention">${esc(t(`verdict.${dish.evaluation.verdict}`))}</span>`
                 }</div>
+                <p class="dish-foods">${dish.evaluation.requirements
+                  .map((requirement) =>
+                    requirement.verdict === "ENOUGH"
+                      ? esc(foodName(requirement.food))
+                      : `<span class="missing">${esc(t("now.missing-food", { food: foodName(requirement.food) }))}</span>`,
+                  )
+                  .join(", ")}</p>
                 <p>${esc(dish.reason)}</p>
               </article>`,
             )

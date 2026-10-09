@@ -1,6 +1,6 @@
-import { api, session } from "./api.js";
+import { api, freshAccess } from "./api.js";
 import { foodName, formatDay, formatMoney, formatNumber, t } from "./i18n.js";
-import { esc, formData, grams, showError, toast, wireFoodSearch, foodOptions } from "./ui.js";
+import { esc, foodOptions, formData, grams, kpi, moneyField, moneyValue, showError, toast, wireFoodSearch, wireSteppers } from "./ui.js";
 
 const PERIODS = [7, 30, 90];
 let chosenDays = 30;
@@ -102,7 +102,7 @@ function foods(list) {
 
 async function download(base, format, from, to) {
   const response = await fetch(`/api/v1${base}/analytics/report?format=${format}&from=${from}&to=${to}`, {
-    headers: { Authorization: `Bearer ${session.access}` },
+    headers: { Authorization: `Bearer ${await freshAccess()}` },
   });
   if (!response.ok) {
     toast(t("numbers.report-failed"));
@@ -130,59 +130,60 @@ export async function renderAnalytics(main, household) {
   const moved = Number(total.consumedGrams) + Number(total.discardedGrams);
 
   main.innerHTML = `
-    <section class="stack" aria-labelledby="numbers-title">
-      <div class="numbers-head">
-        <div>
-          <h1 id="numbers-title">${t("numbers.title")}</h1>
-          <p class="lead">${t("numbers.lead", { from: shortDay(metrics.from), to: shortDay(metrics.to) })}</p>
-        </div>
-        <div class="segmented" role="group" aria-label="${esc(t("numbers.period"))}">${PERIODS.map(
-          (days) => `<button type="button" data-days="${days}" aria-pressed="${days === chosenDays}">${t("numbers.days", { n: days })}</button>`,
-        ).join("")}</div>
+    <header class="numbers-head">
+      <div>
+        <h1 id="numbers-title">${t("numbers.title")}</h1>
+        <p class="lead">${t("numbers.lead", { from: shortDay(metrics.from), to: shortDay(metrics.to) })}</p>
       </div>
+      <div class="segmented" role="group" aria-label="${esc(t("numbers.period"))}">${PERIODS.map(
+        (days) => `<button type="button" data-days="${days}" aria-pressed="${days === chosenDays}">${t("numbers.days", { n: days })}</button>`,
+      ).join("")}</div>
+    </header>
+    <div class="bento">
       ${
         moved === 0
-          ? `<div class="empty"><h2>${t("numbers.empty-title")}</h2><p>${t("numbers.empty-lead")}</p></div>`
-          : `<div class="saved">
-              <div><span class="hero-number">${grams(total.rescuedGrams)}</span><span>${t("numbers.rescued")}</span></div>
-              <div class="totals">
-                <div><span class="data">${money(metrics.moneySaved, metrics.currency)}</span><span>${t("numbers.saved")}</span></div>
-                <div><span class="data">${grams(total.consumedGrams)}</span><span>${t("numbers.eaten")}</span></div>
-                <div><span class="data attention-text">${grams(total.discardedGrams)}</span><span>${t("numbers.wasted", { rate: percent(total.wasteRate) })}</span></div>
-                <div><span class="data">${money(metrics.moneyWasted, metrics.currency)}</span><span>${t("numbers.lost")}</span></div>
-              </div>
-            </div>
-            ${chart(metrics.days)}`
+          ? `<section class="tile w-12"><h2>${t("numbers.empty-title")}</h2><p>${t("numbers.empty-lead")}</p></section>`
+          : `<section class="tile w-8" aria-label="${esc(t("numbers.rescued"))}">
+              ${kpi(grams(total.rescuedGrams), t("numbers.rescued"), "positive")}
+              ${chart(metrics.days)}
+            </section>
+            <section class="tile w-4" aria-label="${esc(t("numbers.saved"))}">
+              ${kpi(money(metrics.moneySaved, metrics.currency), t("numbers.saved"), "positive")}
+              ${kpi(grams(total.consumedGrams), t("numbers.eaten"))}
+              ${kpi(grams(total.discardedGrams), t("numbers.wasted", { rate: percent(total.wasteRate) }), Number(total.discardedGrams) ? "attention" : "")}
+              ${kpi(money(metrics.moneyWasted, metrics.currency), t("numbers.lost"), Number(metrics.moneyWasted) ? "attention" : "")}
+            </section>`
       }
-    </section>
-    ${
-      metrics.members.length
-        ? `<section class="stack" aria-labelledby="ranking-title"><h2 id="ranking-title">${t("numbers.ranking")}</h2>${ranking(metrics.members)}</section>`
-        : ""
-    }
-    ${
-      metrics.foods.length
-        ? `<section class="stack" aria-labelledby="foods-title"><h2 id="foods-title">${t("numbers.foods")}</h2>${foods(metrics.foods)}</section>`
-        : ""
-    }
-    <section class="stack" aria-labelledby="prices-title">
-      <h2 id="prices-title">${t("numbers.prices")}</h2>
-      <p class="lead">${
-        metrics.unpriced.length
-          ? t("numbers.unpriced", { foods: metrics.unpriced.map((food) => esc(foodName(food))).join(", ") })
-          : t("numbers.reference-prices")
-      }</p>
-      <form class="row-form panel" data-price>
-        <label>${t("field.food")}<input name="food" list="price-foods" required autocomplete="off" value="${esc(metrics.unpriced[0] ?? "")}"></label>
-        <label>${t("numbers.price-per-kg")}<input class="money" name="price" type="number" min="1" step="1" required></label>
-        ${foodOptions("price-foods")}
-        <button class="primary" type="submit">${t("numbers.save-price")}</button>
-      </form>
-      <div class="row-form">
-        <button type="button" data-download="markdown">${t("numbers.download-report")}</button>
-        <button type="button" data-download="csv">${t("numbers.download-csv")}</button>
-      </div>
-    </section>`;
+      ${
+        metrics.members.length
+          ? `<section class="tile w-6" aria-labelledby="ranking-title"><h2 id="ranking-title">${t("numbers.ranking")}</h2>${ranking(metrics.members)}</section>`
+          : ""
+      }
+      ${
+        metrics.foods.length
+          ? `<section class="tile w-6" aria-labelledby="foods-title"><h2 id="foods-title">${t("numbers.foods")}</h2>${foods(metrics.foods)}</section>`
+          : ""
+      }
+      <section class="tile w-12" aria-labelledby="prices-title">
+        <h2 id="prices-title">${t("numbers.prices")}</h2>
+        <p class="hint">${
+          metrics.unpriced.length
+            ? t("numbers.unpriced", { foods: metrics.unpriced.map((food) => esc(foodName(food))).join(", ") })
+            : t("numbers.reference-prices")
+        }</p>
+        <form class="row-form" data-price>
+          <label class="grow">${t("field.food")}<input name="food" list="price-foods" required autocomplete="off" value="${esc(metrics.unpriced[0] ?? "")}"></label>
+          ${moneyField({ name: "price", label: t("numbers.price-per-kg"), currency: metrics.currency, step: 1000 })}
+          ${foodOptions("price-foods")}
+          <button class="primary" type="submit">${t("numbers.save-price")}</button>
+        </form>
+        <div class="row-form">
+          <button type="button" data-download="markdown">${t("numbers.download-report")}</button>
+          <button type="button" data-download="csv">${t("numbers.download-csv")}</button>
+        </div>
+      </section>
+    </div>`;
+  wireSteppers(main);
 
   main.querySelectorAll("[data-days]").forEach((button) =>
     button.addEventListener("click", () => {
@@ -199,7 +200,7 @@ export async function renderAnalytics(main, household) {
     event.preventDefault();
     const values = formData(price);
     try {
-      await api(`${base}/prices`, { method: "PUT", body: { food: values.food, pricePerKg: Number(values.price) } });
+      await api(`${base}/prices`, { method: "PUT", body: { food: values.food, pricePerKg: moneyValue(values.price) } });
       toast(t("numbers.toast-price", { food: foodName(values.food) }));
       renderAnalytics(main, household);
     } catch (error) {
