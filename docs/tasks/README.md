@@ -9,7 +9,7 @@ Guides for roadmap steps assigned to a teammate. Each guide explains the goal, t
 | 63 | [Plan delta into the market list](step-63-plan-delta-market.md) | Jenifer Urbano (`Jenifrutica`) | 61 |
 | 66 | [Telegram, web, and log channels (Observer, Strategy)](step-66-notifications.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 67 | [OpenAPI catalog, RFC 7807 errors, and actuator health](step-67-openapi-problems-health.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
-| 68 | Redis stores for agent memory, conversations, traces, and confirmations (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
+| 68 | [Redis stores for agent memory, conversations, traces, and confirmations](step-68-agent-redis-stores.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 69 | Plan-tool-observation agent runtime with budget (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 70 | Agent tool registry with validation and permissions (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 71 | Editable household memory (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
