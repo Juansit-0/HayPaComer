@@ -176,6 +176,8 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 | DELETE | `/households/{h}/market-list/items/{id}` | member | Remove |
 | DELETE | `/households/{h}/market-list/checked` | member | Clear bought items |
 | POST | `/households/{h}/market-list/from-plan` | member | Week total of mandatory grams from today's plan entries onward, minus usable stock, topped up on the market list (source PLAN) without repeating pending grams; returns needed, available, added, and pending per food; 404 without a current plan |
+| GET | `/households/{h}/market-budget` | guest | Monthly budget, spent this month, left, what fits in priority order, what does not, and cheaper allowed substitutes (404 before a budget is set) |
+| PUT | `/households/{h}/market-budget` | member | Set the monthly market budget |
 | POST | `/households/{h}/weekly-plans` | member | Generate a 7-day lunch and dinner plan starting today from the saved recipes: food about to expire first, only dishes every diner can eat, no repeat on consecutive days, and `needsShopping` where the fridge falls short; optional `servings` and `diners`; replaces the plan of the same week |
 | GET | `/households/{h}/weekly-plans/current` | guest | Plan that covers today with each entry's date; 404 when there is none |
 | PATCH | `/households/{h}/plan-entries/{id}` | member | Change the recipe and servings of an entry; `needsShopping` is checked again against the fridge |

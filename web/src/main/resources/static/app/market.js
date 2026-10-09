@@ -17,9 +17,50 @@ function row(item, bought) {
   </li>`;
 }
 
+function money(value, currency) {
+  return new Intl.NumberFormat(undefined, { style: "currency", currency, maximumFractionDigits: 0 }).format(Number(value));
+}
+
+function budgetPanel(budget) {
+  if (!budget) {
+    return `<form class="row-form panel" data-budget>
+      <label>Monthly budget<input class="grams" name="monthly" type="number" min="1" step="1" required></label>
+      <button type="submit">Set budget</button>
+    </form>`;
+  }
+  const over = budget.lines.filter((line) => line.estimatedCost !== null && !line.withinBudget);
+  return `<div class="panel stack budget">
+    <div class="totals">
+      <div><span class="data">${money(budget.remaining, budget.currency)}</span><span>left this month</span></div>
+      <div><span class="data">${money(budget.plannedCost, budget.currency)}</span><span>for what fits on the list</span></div>
+      <div><span class="data">${money(budget.monthly, budget.currency)}</span><span>monthly budget</span></div>
+    </div>
+    ${
+      over.length
+        ? `<ul class="list">${over
+            .map(
+              (line) => `<li><span class="item-name">${esc(line.food)} does not fit (${money(line.estimatedCost, budget.currency)})</span>${
+                line.cheaper
+                  ? `<span class="item-meta">${esc(line.cheaper.food)} ${grams(line.cheaper.grams)} costs ${money(line.cheaper.estimatedCost, budget.currency)}</span>`
+                  : ""
+              }</li>`,
+            )
+            .join("")}</ul>`
+        : `<p class="lead">Everything on the list fits in the budget.</p>`
+    }
+    <form class="row-form" data-budget>
+      <label>Monthly budget<input class="grams" name="monthly" type="number" min="1" step="1" required value="${Math.round(budget.monthly)}"></label>
+      <button type="submit">Update budget</button>
+    </form>
+  </div>`;
+}
+
 export async function renderMarket(main, household) {
   const base = `/households/${household.id}/market-list`;
-  const list = await api(base);
+  const [list, budget] = await Promise.all([
+    api(base),
+    api(`/households/${household.id}/market-budget`).catch(() => null),
+  ]);
   const pending = list.pending.reduce((sum, group) => sum + group.items.length, 0);
 
   main.innerHTML = `
@@ -32,6 +73,7 @@ export async function renderMarket(main, household) {
             : "Nothing to buy yet. Add food, or let the weekly plan fill the gaps."
         }</p>
       </div>
+      ${budgetPanel(budget)}
       <form class="row-form panel" data-add>
         <label>Food<input name="food" list="market-foods" required autocomplete="off" placeholder="Rice"></label>
         <label>Grams<input class="grams" name="grams" type="number" min="1" step="1" required></label>
@@ -56,6 +98,21 @@ export async function renderMarket(main, household) {
           </section>`
         : ""
     }`;
+
+  const budgetForm = main.querySelector("[data-budget]");
+  budgetForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    try {
+      await api(`/households/${household.id}/market-budget`, {
+        method: "PUT",
+        body: { monthly: Number(formData(budgetForm).monthly) },
+      });
+      toast("Saved the monthly budget");
+      renderMarket(main, household);
+    } catch (error) {
+      showError(budgetForm, error);
+    }
+  });
 
   const add = main.querySelector("[data-add]");
   wireFoodSearch(add.querySelector("[name=food]"), api);

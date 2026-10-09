@@ -160,4 +160,15 @@ class PostgresOwnershipAndMovementsTest extends PostgresTestSupport {
         java.util.Map.of("milk", new BigDecimal("5300.00")),
         prices.pricesFor(household.id(), java.util.Currency.getInstance("USD")));
   }
+
+  @Test
+  void marketBudgetsAreSavedPerHousehold() {
+    PostgresMarketBudgetRepository budgets = new PostgresMarketBudgetRepository(dataSource);
+
+    assertTrue(budgets.monthly(household.id()).isEmpty());
+    budgets.save(household.id(), new BigDecimal("600000.00"));
+    budgets.save(household.id(), new BigDecimal("650000.00"));
+
+    assertEquals(new BigDecimal("650000.00"), budgets.monthly(household.id()).orElseThrow());
+  }
 }

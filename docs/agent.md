@@ -39,6 +39,7 @@ Fallback: Circuit Breaker -> rule-based planner (offline)
 | register_consumption | write | Discounts measured consumption after confirmation |
 | substitute_ingredient | write | Records an accepted substitution after validation |
 | add_to_market | write | Adds missing items to the market list |
+| review_budget | read | Monthly market budget: left, what fits, what does not, cheaper substitutes |
 | create_label | write | Creates a container label |
 | notify_housemates | write | Sends a notification through a channel |
 | start_guided_cooking | write | Starts a guided cooking session |
