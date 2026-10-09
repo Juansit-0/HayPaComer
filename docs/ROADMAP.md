@@ -129,6 +129,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 77. consumption, avoided waste, and money saved
 - [x] 78. reports with template method and visitor
 - [x] 79. analytics dashboard with charts and household ranking
+- [x] 80. degraded mode with cache and retries (proxy)
 
 ## F6 assignments
 

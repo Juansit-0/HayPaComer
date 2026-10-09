@@ -21,7 +21,7 @@ Guides for roadmap steps assigned to a teammate. Each guide explains the goal, t
 | 77 | [Consumption, avoided waste, and money saved](step-77-analytics.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 78 | [Reports (Template Method, Visitor)](step-78-reports.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 79 | [Analytics dashboard with charts and household ranking (frontend)](step-79-analytics-dashboard.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
-| 80 | Degraded mode with cache and retries (Proxy) (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
+| 80 | [Degraded mode with cache and retries (Proxy)](step-80-degraded-mode.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 81 | Circuit breaker and degraded responses (Null Object) (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 82 | Proactive briefings by schedule and events (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 83 | Reactive copilot with live scale (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |

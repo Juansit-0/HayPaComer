@@ -447,3 +447,12 @@ input.grams { width: 9ch; font-family: var(--data-font); font-variant-numeric: t
   .ranking .meter { grid-column: 2 / -1; grid-row: 2; }
   .ranking .item-meta { grid-row: 3; }
 }
+
+.notice {
+  margin: 0;
+  padding: var(--space-xs) var(--space-m);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-attention);
+  color: var(--color-text);
+  font-size: var(--size-small);
+}

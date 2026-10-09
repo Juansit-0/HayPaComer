@@ -26,6 +26,18 @@ async function refreshInbox() {
   link.title = notifications[0]?.title ?? "";
 }
 
+async function refreshStatus() {
+  const status = await api("/status").catch(() => null);
+  const notice = document.querySelector("[data-degraded]");
+  if (!status || status.state === "OK") {
+    notice.hidden = true;
+    return;
+  }
+  const parts = status.degraded.map((item) => item.component).join(", ");
+  notice.textContent = `Running in saved mode: ${parts} come from the last saved copy. Measured stock is always live.`;
+  notice.hidden = false;
+}
+
 async function render() {
   if (!session.signedIn) {
     tabs.hidden = true;
@@ -52,6 +64,7 @@ async function render() {
   try {
     await views[route](main, household);
     refreshInbox();
+    refreshStatus();
   } catch (error) {
     main.innerHTML = `<section class="empty"><h1>This screen did not load</h1><p>${errorText(error)}</p><button type="button" data-retry>Try again</button></section>`;
     main.querySelector("[data-retry]").addEventListener("click", render);
