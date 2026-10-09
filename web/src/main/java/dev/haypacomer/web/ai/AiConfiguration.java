@@ -8,17 +8,22 @@ import dev.haypacomer.ai.llm.GeminiClient;
 import dev.haypacomer.ai.llm.LlmChatModel;
 import dev.haypacomer.ai.llm.LlmClient;
 import dev.haypacomer.ai.llm.LlmKitchenAdvisor;
+import dev.haypacomer.ai.llm.LlmLabelPhotoReader;
 import dev.haypacomer.ai.llm.LlmRecipePhotoReader;
 import dev.haypacomer.ai.llm.LlmSettings;
 import dev.haypacomer.ai.llm.OpenAiCompatibleClient;
+import dev.haypacomer.ai.offline.OfflineLabelPhotoReader;
 import dev.haypacomer.ai.offline.OfflineRecipePhotoReader;
 import dev.haypacomer.ai.offline.OfflineRuleEngine;
 import dev.haypacomer.ai.resilience.NullChatModel;
 import dev.haypacomer.ai.resilience.ProviderCircuit;
 import dev.haypacomer.ai.resilience.ResilientChatModel;
 import dev.haypacomer.ai.resilience.ResilientKitchenAdvisor;
+import dev.haypacomer.ai.resilience.ResilientLabelPhotoReader;
 import dev.haypacomer.ai.resilience.ResilientRecipePhotoReader;
 import dev.haypacomer.application.ai.ReadRecipePhoto;
+import dev.haypacomer.application.inventory.ExpiryDesk;
+import dev.haypacomer.application.inventory.ReadExpiryFromLabel;
 import dev.haypacomer.application.port.AiAuditLog;
 import dev.haypacomer.application.port.AiRateLimiter;
 import dev.haypacomer.application.port.AiResponseCache;
@@ -26,6 +31,7 @@ import dev.haypacomer.application.port.CircuitBreakerStore;
 import dev.haypacomer.application.port.FoodCatalogRepository;
 import dev.haypacomer.application.port.HouseholdRepository;
 import dev.haypacomer.application.port.KitchenAdvisor;
+import dev.haypacomer.application.port.LabelPhotoReader;
 import dev.haypacomer.application.port.PolicySource;
 import dev.haypacomer.application.port.RecipePhotoReader;
 import dev.haypacomer.application.port.ServiceHealth;
@@ -117,6 +123,35 @@ public class AiConfiguration {
       PolicySource policies,
       Clock clock) {
     return new ProviderCircuit(client.source(), breaker, policies::circuit, health, clock);
+  }
+
+  @Bean
+  LabelPhotoReader labelPhotoReader(
+      AiProperties properties,
+      CircuitBreakerStore breaker,
+      ServiceHealth health,
+      PolicySource policies,
+      Clock clock) {
+    if (properties.provider() == AiProperties.Provider.OFFLINE) {
+      return new OfflineLabelPhotoReader();
+    }
+    LlmClient client = client(properties);
+    return new ResilientLabelPhotoReader(
+        new LlmLabelPhotoReader(client), circuit(client, breaker, health, policies, clock));
+  }
+
+  @Bean
+  ReadExpiryFromLabel readExpiryFromLabel(
+      HouseholdRepository households,
+      LabelPhotoReader reader,
+      FoodCatalogRepository catalog,
+      ExpiryDesk expiryDesk,
+      AiRateLimiter rateLimiter,
+      AiAuditLog audit,
+      PolicySource policies,
+      Clock clock) {
+    return new ReadExpiryFromLabel(
+        households, reader, catalog, expiryDesk, rateLimiter, audit, policies, clock);
   }
 
   @Bean
