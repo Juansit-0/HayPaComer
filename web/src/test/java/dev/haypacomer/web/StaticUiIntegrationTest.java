@@ -54,7 +54,16 @@ class StaticUiIntegrationTest {
     mvc.perform(get("/app/app.css")).andExpect(status().isOk());
     mvc.perform(get("/brand/tokens.css"))
         .andExpect(status().isOk())
-        .andExpect(content().string(containsString("--color-primary")));
+        .andExpect(content().string(containsString("--color-primary")))
+        .andExpect(content().string(containsString("--control-height")))
+        .andExpect(content().string(containsString("--bento-columns")));
+    mvc.perform(get("/app/ui.js"))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("export function numberField")))
+        .andExpect(content().string(containsString("export function openSheet")));
+    mvc.perform(get("/app/app.css"))
+        .andExpect(content().string(containsString(".bento")))
+        .andExpect(content().string(containsString("input.money")));
     mvc.perform(get("/brand/logo-mark.svg")).andExpect(status().isOk());
     mvc.perform(get("/api/v1/households")).andExpect(status().isUnauthorized());
     mvc.perform(get("/app/../api/v1/me")).andExpect(status().is4xxClientError());

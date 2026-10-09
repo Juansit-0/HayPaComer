@@ -94,3 +94,88 @@ export function wireFoodSearch(input, api) {
     }, 200);
   });
 }
+
+export function kpi(value, label, tone = "") {
+  return `<div class="kpi ${tone}"><span class="value">${value}</span><span class="label">${esc(label)}</span></div>`;
+}
+
+export function numberField({ name, label, unit, value = "", min = 0, max, step = 1, bigStep, money = false, hint, required = true }) {
+  const id = `field-${name}-${Math.random().toString(36).slice(2, 8)}`;
+  return `<div class="number-field">
+    <label for="${id}">${esc(label)}</label>
+    ${hint ? `<p class="hint">${esc(hint)}</p>` : ""}
+    <div class="number-input" data-stepper>
+      <button type="button" data-step="-1" aria-label="${esc(`Less ${label.toLowerCase()}`)}">−</button>
+      <input id="${id}" class="${money ? "money" : "grams"}" name="${esc(name)}" type="number" inputmode="${step < 1 ? "decimal" : "numeric"}" min="${min}" ${max === undefined ? "" : `max="${max}"`} step="${step}" ${bigStep ? `data-big-step="${bigStep}"` : ""} value="${esc(value)}" ${required ? "required" : ""}>
+      ${unit ? `<span class="unit" aria-hidden="true">${esc(unit)}</span>` : ""}
+      <button type="button" data-step="1" aria-label="${esc(`More ${label.toLowerCase()}`)}">+</button>
+    </div>
+  </div>`;
+}
+
+export function wireSteppers(root) {
+  root.querySelectorAll("[data-stepper]").forEach((box) => {
+    const input = box.querySelector("input");
+    box.querySelectorAll("[data-step]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const step = Number(input.step) || 1;
+        const big = Number(input.dataset.bigStep) || step;
+        const current = Number(input.value) || 0;
+        const next = current + Number(button.dataset.step) * big;
+        const min = input.min === "" ? -Infinity : Number(input.min);
+        const max = input.max === "" ? Infinity : Number(input.max);
+        input.value = String(Math.min(max, Math.max(min, next)));
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+    });
+  });
+}
+
+export function chips(name, legend, options, selected) {
+  return `<fieldset class="chips"><legend>${esc(legend)}</legend>${options
+    .map(
+      ([value, text]) => `<label class="chip"><input type="radio" name="${esc(name)}" value="${esc(value)}" ${
+        value === selected ? "checked" : ""
+      }><span>${esc(text)}</span></label>`,
+    )
+    .join("")}</fieldset>`;
+}
+
+export function dateField({ name, label, value = "", unknownLabel = "I don't know" }) {
+  const id = `field-${name}-${Math.random().toString(36).slice(2, 8)}`;
+  return `<div class="date-field" data-date-field>
+    <label for="${id}">${esc(label)}</label>
+    <div class="row-form">
+      <input id="${id}" name="${esc(name)}" type="date" value="${esc(value)}">
+      <label class="check"><input type="checkbox" data-unknown>${esc(unknownLabel)}</label>
+    </div>
+  </div>`;
+}
+
+export function wireDateFields(root) {
+  root.querySelectorAll("[data-date-field]").forEach((field) => {
+    const date = field.querySelector('input[type="date"]');
+    field.querySelector("[data-unknown]").addEventListener("change", (event) => {
+      date.disabled = event.target.checked;
+      if (event.target.checked) date.value = "";
+    });
+  });
+}
+
+export function openSheet(title, body, onReady) {
+  const dialog = document.createElement("dialog");
+  dialog.className = "sheet";
+  dialog.setAttribute("aria-label", title);
+  dialog.innerHTML = `<div><header><h2>${esc(title)}</h2><button type="button" class="ghost" data-close>Close</button></header>${body}</div>`;
+  document.body.append(dialog);
+  dialog.querySelector("[data-close]").addEventListener("click", () => dialog.close());
+  dialog.addEventListener("close", () => dialog.remove());
+  dialog.addEventListener("click", (event) => {
+    if (event.target === dialog) dialog.close();
+  });
+  wireSteppers(dialog);
+  wireDateFields(dialog);
+  dialog.showModal();
+  onReady?.(dialog);
+  return dialog;
+}

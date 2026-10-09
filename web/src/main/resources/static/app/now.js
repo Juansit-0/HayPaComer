@@ -1,6 +1,6 @@
 import { api } from "./api.js";
 import { liveFeed } from "./live.js";
-import { esc, grams, showError, statusPill, toast, whenText } from "./ui.js";
+import { esc, grams, kpi, numberField, showError, statusPill, toast, whenText, wireSteppers } from "./ui.js";
 
 const URGENT = ["EXPIRED", "UNDER_REVIEW", "AT_RISK", "LEFTOVER"];
 const LABELS = { inventory: "Stock", sensor: "Sensor", alert: "Alert", copilot: "Scale" };
@@ -42,82 +42,81 @@ export async function renderNow(main, household) {
   const [first, ...rest] = urgent;
 
   main.innerHTML = `
-    <section class="stack" aria-labelledby="now-title">
-      <div>
-        <h1 id="now-title">${first ? "Use this first" : "Nothing is about to expire"}</h1>
-        <p class="lead">${
-          first
-            ? "Measured stock in your fridge, ordered by what will go bad soonest."
-            : "Everything you can use is fresh. Plan a dish or restock the market list."
-        }</p>
-      </div>
+    <header>
+      <h1 id="now-title">${first ? "Use this first" : "Nothing is about to expire"}</h1>
+      <p class="lead">${
+        first
+          ? "Measured stock in your fridge, ordered by what will go bad soonest."
+          : "Everything you can use is fresh. Plan a dish or restock the market list."
+      }</p>
+    </header>
+
+    <div class="bento">
       ${
         first
-          ? `<article class="use-first" aria-label="${esc(first.name)}">
-              <div class="stack">
-                <div class="item-meta"><span class="item-name">${esc(first.name)}</span>${statusPill(first.statuses)}</div>
-                <span class="hero-number">${grams(first.grams)}</span>
-                <span class="when">${whenText(first.expiresOn)}</span>
-              </div>
+          ? `<article class="tile alert w-8" aria-label="${esc(first.name)}">
+              <div class="item-meta"><h2>${esc(first.name)}</h2>${statusPill(first.statuses)}</div>
+              ${kpi(grams(first.grams), whenText(first.expiresOn), "attention")}
               <form class="row-form" data-consume="${esc(first.id)}">
-                <label>Grams used<input class="grams" name="grams" type="number" min="1" step="1" required value="${Math.round(first.grams)}"></label>
+                ${numberField({ name: "grams", label: "Grams used", unit: "g", value: Math.round(first.grams), min: 1, bigStep: 50 })}
                 <button class="primary" type="submit">Mark as used</button>
               </form>
             </article>`
           : ""
       }
+
+      <section class="tile ${first ? "w-4" : "w-12"}" aria-labelledby="totals-title">
+        <h2 id="totals-title">In the fridge</h2>
+        <div class="bento">
+          <div class="w-6">${kpi(grams(snapshot.totalGrams), "measured food")}</div>
+          <div class="w-6">${kpi(String(snapshot.items), "items")}</div>
+          <div class="w-6">${kpi(String(snapshot.atRisk), "expiring soon", snapshot.atRisk ? "attention" : "")}</div>
+          <div class="w-6">${kpi(String(snapshot.expired), "expired", snapshot.expired ? "attention" : "")}</div>
+        </div>
+      </section>
+
       ${
         rest.length
-          ? `<ul class="list" aria-label="Also expiring">${rest
-              .map(
-                (item) => `<li>
-                  <div class="item-meta"><span class="item-name">${esc(item.name)}</span>${statusPill(item.statuses)}<span>${whenText(item.expiresOn)}</span></div>
-                  <span class="data">${grams(item.grams)}</span>
-                </li>`,
-              )
-              .join("")}</ul>`
+          ? `<section class="tile w-6" aria-labelledby="also-title">
+              <h2 id="also-title">Also expiring</h2>
+              <ul class="list">${rest
+                .map(
+                  (item) => `<li>
+                    <div class="item-meta"><span class="item-name">${esc(item.name)}</span>${statusPill(item.statuses)}<span>${whenText(item.expiresOn)}</span></div>
+                    <span class="data">${grams(item.grams)}</span>
+                  </li>`,
+                )
+                .join("")}</ul>
+            </section>`
           : ""
       }
-    </section>
 
-    <section class="stack" aria-labelledby="totals-title">
-      <h2 id="totals-title">In the fridge</h2>
-      <div class="totals">
-        <div><span class="data">${grams(snapshot.totalGrams)}</span><span>measured food</span></div>
-        <div><span class="data">${snapshot.items}</span><span>items</span></div>
-        <div><span class="data">${snapshot.atRisk}</span><span>expiring soon</span></div>
-        <div><span class="data">${snapshot.expired}</span><span>expired</span></div>
-      </div>
-    </section>
+      <section class="tile ${rest.length ? "w-6" : "w-12"}" aria-labelledby="live-title">
+        <header><h2 id="live-title">Happening now</h2></header>
+        <p class="hint">Door, temperature, and stock changes appear here as they happen.</p>
+        <ul class="list feed" data-feed aria-live="polite"></ul>
+      </section>
 
-    <section class="stack" aria-labelledby="live-title">
-      <div>
-        <h2 id="live-title">Happening now</h2>
-        <p class="lead">Door, temperature, and stock changes appear here as they happen.</p>
-      </div>
-      <ul class="list feed" data-feed aria-live="polite"></ul>
-    </section>
-
-    <section class="stack" aria-labelledby="cook-title">
-      <div>
+      <section class="tile w-12" aria-labelledby="cook-title">
         <h2 id="cook-title">Cook now</h2>
         <p class="lead">${
           recipes.length
             ? `Checks your ${recipes.length} saved ${recipes.length === 1 ? "recipe" : "recipes"} against the grams in the fridge and the allergies at home.`
             : "Save a recipe first, then this shows what you can cook with what is really here."
         }</p>
-      </div>
-      ${
-        recipes.length
-          ? `<form class="row-form" data-suggest>
-              <label>People<input class="grams" name="servings" type="number" min="1" max="20" value="2" required></label>
-              <label>Minutes, at most<input class="grams" name="maxMinutes" type="number" min="1" placeholder="any"></label>
-              <button type="submit">Find dishes</button>
-            </form>
-            <div class="dishes" data-dishes></div>`
-          : ""
-      }
-    </section>`;
+        ${
+          recipes.length
+            ? `<form class="row-form" data-suggest>
+                ${numberField({ name: "servings", label: "People", value: 2, min: 1, max: 20 })}
+                ${numberField({ name: "maxMinutes", label: "Minutes, at most", unit: "min", min: 1, bigStep: 10, required: false })}
+                <button type="submit">Find dishes</button>
+              </form>
+              <div class="dishes" data-dishes></div>`
+            : ""
+        }
+      </section>
+    </div>`;
+  wireSteppers(main);
 
   const feed = main.querySelector("[data-feed]");
   const drawFeed = () => {
