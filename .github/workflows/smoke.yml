@@ -1,0 +1,53 @@
+name: Production smoke test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-smoke
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    if: ${{ vars.PUBLIC_URL != '' }}
+    env:
+      PUBLIC_URL: ${{ vars.PUBLIC_URL }}
+      SMOKE_EMAIL: ${{ secrets.SMOKE_EMAIL }}
+      SMOKE_PASSWORD: ${{ secrets.SMOKE_PASSWORD }}
+    steps:
+      - name: Wait until this commit is deployed and healthy
+        run: |
+          expected="${{ github.sha }}"
+          for attempt in $(seq 1 90); do
+            commit=$(curl -fsS "$PUBLIC_URL/actuator/info" | jq -r '.app.commit // empty' || true)
+            if [ "$commit" = "$expected" ] && curl -fsS "$PUBLIC_URL/actuator/health/readiness" | grep -q '"UP"'; then
+              echo "Commit $commit is live after $attempt checks"
+              exit 0
+            fi
+            sleep 20
+          done
+          echo "Commit $expected was not live and healthy within 30 minutes (last seen: ${commit:-none})"
+          exit 1
+
+      - name: Check version, interface, and translations
+        run: |
+          curl -fsS "$PUBLIC_URL/actuator/info" | tee info.json
+          grep -q '"version"' info.json
+          curl -fsS "$PUBLIC_URL/" | grep -q '/app/main.js'
+          curl -fsS "$PUBLIC_URL/api/v1/i18n/es-CO" | grep -q 'now.title'
+          test "$(curl -s -o /dev/null -w '%{http_code}' "$PUBLIC_URL/api/v1/households")" = "401"
+
+      - name: Sign in with the smoke account
+        if: ${{ env.SMOKE_EMAIL != '' && env.SMOKE_PASSWORD != '' }}
+        run: |
+          body=$(jq -n --arg email "$SMOKE_EMAIL" --arg password "$SMOKE_PASSWORD" '{email: $email, password: $password}')
+          token=$(curl -fsS -H 'Content-Type: application/json' -d "$body" "$PUBLIC_URL/api/v1/auth/login" | jq -r '.accessToken')
+          test -n "$token" && test "$token" != "null"
+          curl -fsS -H "Authorization: Bearer $token" "$PUBLIC_URL/api/v1/me" > /dev/null
