@@ -1,4 +1,4 @@
-import { session } from "./api.js";
+import { freshAccess, session } from "./api.js";
 
 const recent = [];
 let controller = null;
@@ -27,8 +27,10 @@ function parse(block) {
 }
 
 async function listen(id, signal) {
+  const access = await freshAccess();
+  if (!access) throw new Error("signed out");
   const response = await fetch(`/api/v1/households/${id}/stream`, {
-    headers: { Accept: "text/event-stream", Authorization: `Bearer ${session.access}` },
+    headers: { Accept: "text/event-stream", Authorization: `Bearer ${access}` },
     signal,
   });
   if (!response.ok || !response.body) throw new Error(`stream ${response.status}`);

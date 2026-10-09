@@ -1,6 +1,7 @@
 package dev.haypacomer.web;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
@@ -45,6 +46,11 @@ class StaticUiIntegrationTest {
     mvc.perform(get("/app/voice.js"))
         .andExpect(status().isOk())
         .andExpect(content().string(containsString("SpeechRecognition")));
+    mvc.perform(get("/app/api.js"))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("localStorage")))
+        .andExpect(content().string(containsString("navigator.locks")))
+        .andExpect(content().string(not(containsString("sessionStorage"))));
     mvc.perform(get("/app/app.css")).andExpect(status().isOk());
     mvc.perform(get("/brand/tokens.css"))
         .andExpect(status().isOk())
