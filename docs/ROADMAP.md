@@ -141,6 +141,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 89. full demo flow and extreme noise
 - [x] 90. expanded demo script
 - [x] 91. final readme with badges, architecture, and patterns
+- [x] 92. v1.0.0
 
 ## F6 assignments
 

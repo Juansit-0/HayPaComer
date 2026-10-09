@@ -33,7 +33,7 @@ Guides for roadmap steps assigned to a teammate. Each guide explains the goal, t
 | 89 | [Full demo flow and extreme noise tests](step-89-demo-flow-noise.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 90 | [Expanded demo script](step-90-demo-script.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 91 | [Final README with badges, architecture, and patterns](step-91-final-readme.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
-| 92 | Release v1.0.0 (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
+| 92 | [Release v1.0.0](step-92-release.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 
 Steps 56 to 60 and the web interface steps 64 and 65 stay with the owner (Juan Camilo Lopez Diaz). Each step above gets a full guide (goal, code to reuse, scope, tests, docs) when it is about to start.
 

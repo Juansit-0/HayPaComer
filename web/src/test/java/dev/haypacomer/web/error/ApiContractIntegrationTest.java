@@ -59,7 +59,10 @@ class ApiContractIntegrationTest {
     mvc.perform(get("/actuator/health/readiness"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.components").doesNotExist());
-    mvc.perform(get("/actuator/info")).andExpect(jsonPath("$.app.name").value("HayPaComer"));
+    mvc.perform(get("/actuator/info"))
+        .andExpect(jsonPath("$.app.name").value("HayPaComer"))
+        .andExpect(jsonPath("$.build.version").value("1.0.0"))
+        .andExpect(jsonPath("$.build.artifact").value("web"));
     mvc.perform(get("/actuator/env")).andExpect(status().isUnauthorized());
   }
 
