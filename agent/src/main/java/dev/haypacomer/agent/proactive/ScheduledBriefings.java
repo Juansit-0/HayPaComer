@@ -6,6 +6,9 @@ import dev.haypacomer.application.inventory.ViewInventory;
 import dev.haypacomer.application.port.BriefingLog;
 import dev.haypacomer.application.port.HouseholdDirectory;
 import dev.haypacomer.application.port.HouseholdRepository;
+import dev.haypacomer.application.port.PolicySource;
+import dev.haypacomer.application.settings.BriefingSchedule;
+import dev.haypacomer.application.settings.FixedPolicies;
 import dev.haypacomer.domain.household.Household;
 import dev.haypacomer.domain.household.HouseholdId;
 import dev.haypacomer.domain.inventory.FoodStatus;
@@ -16,16 +19,13 @@ import java.time.ZonedDateTime;
 
 public final class ScheduledBriefings {
 
-  public static final int MORNING_HOUR = 7;
-  public static final int CLUSTER_SIZE = 3;
-  public static final int DIGEST_HOUR = 8;
-
   private final HouseholdDirectory directory;
   private final HouseholdRepository households;
   private final ViewInventory inventory;
   private final BriefingLog log;
   private final Briefer briefer;
   private final BuildWeeklyDigest digest;
+  private final PolicySource policies;
   private final Clock clock;
   private int failures;
 
@@ -37,12 +37,25 @@ public final class ScheduledBriefings {
       Briefer briefer,
       BuildWeeklyDigest digest,
       Clock clock) {
+    this(directory, households, inventory, log, briefer, digest, FixedPolicies.DEFAULT, clock);
+  }
+
+  public ScheduledBriefings(
+      HouseholdDirectory directory,
+      HouseholdRepository households,
+      ViewInventory inventory,
+      BriefingLog log,
+      Briefer briefer,
+      BuildWeeklyDigest digest,
+      PolicySource policies,
+      Clock clock) {
     this.directory = directory;
     this.households = households;
     this.inventory = inventory;
     this.log = log;
     this.briefer = briefer;
     this.digest = digest;
+    this.policies = policies;
     this.clock = clock;
   }
 
@@ -70,7 +83,8 @@ public final class ScheduledBriefings {
     int sent = 0;
     ZonedDateTime local = clock.instant().atZone(household.timezone());
     LocalDate today = local.toLocalDate();
-    if (local.getHour() == MORNING_HOUR && log.claim(id, "daily", today)) {
+    BriefingSchedule schedule = policies.briefings(id);
+    if (local.getHour() == schedule.morningHour() && log.claim(id, "daily", today)) {
       sent +=
           briefer
                   .brief(
@@ -83,7 +97,7 @@ public final class ScheduledBriefings {
               : 0;
     }
     if (local.getDayOfWeek() == DayOfWeek.MONDAY
-        && local.getHour() == DIGEST_HOUR
+        && local.getHour() == schedule.digestHour()
         && log.claim(id, "weekly-digest", today)) {
       briefer.publish(id, "Your week in the kitchen", digest.build(household.owner(), id).text());
       sent++;
@@ -93,7 +107,7 @@ public final class ScheduledBriefings {
             .filter(InventoryEntry::usable)
             .filter(entry -> entry.food().has(FoodStatus.AT_RISK))
             .count();
-    if (expiring >= CLUSTER_SIZE && log.claim(id, "expiry-cluster", today)) {
+    if (expiring >= schedule.expiryClusterSize() && log.claim(id, "expiry-cluster", today)) {
       sent +=
           briefer
                   .brief(

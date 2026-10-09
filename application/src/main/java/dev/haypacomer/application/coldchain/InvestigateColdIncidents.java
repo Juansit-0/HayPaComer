@@ -5,7 +5,9 @@ import dev.haypacomer.application.inventory.InventoryEntry;
 import dev.haypacomer.application.inventory.ViewInventory;
 import dev.haypacomer.application.port.FridgeRepository;
 import dev.haypacomer.application.port.HouseholdRepository;
+import dev.haypacomer.application.port.PolicySource;
 import dev.haypacomer.application.port.SensorHistory;
+import dev.haypacomer.application.settings.FixedPolicies;
 import dev.haypacomer.domain.coldchain.investigation.ColdInvestigation;
 import dev.haypacomer.domain.coldchain.investigation.ColdInvestigator;
 import dev.haypacomer.domain.coldchain.investigation.FoodAssessment;
@@ -17,7 +19,6 @@ import dev.haypacomer.domain.household.Household;
 import dev.haypacomer.domain.household.HouseholdId;
 import dev.haypacomer.domain.identity.UserId;
 import dev.haypacomer.domain.quantity.Grams;
-import dev.haypacomer.domain.sensor.FridgeThresholds;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -37,7 +38,7 @@ public final class InvestigateColdIncidents {
   private final FridgeRepository fridges;
   private final SensorHistory history;
   private final ViewInventory inventory;
-  private final ColdInvestigator investigator;
+  private final PolicySource policies;
   private final Clock clock;
 
   public InvestigateColdIncidents(
@@ -46,11 +47,21 @@ public final class InvestigateColdIncidents {
       SensorHistory history,
       ViewInventory inventory,
       Clock clock) {
+    this(households, fridges, history, inventory, FixedPolicies.DEFAULT, clock);
+  }
+
+  public InvestigateColdIncidents(
+      HouseholdRepository households,
+      FridgeRepository fridges,
+      SensorHistory history,
+      ViewInventory inventory,
+      PolicySource policies,
+      Clock clock) {
     this.households = new GetHousehold(households);
     this.fridges = Objects.requireNonNull(fridges, "fridges");
     this.history = Objects.requireNonNull(history, "history");
     this.inventory = Objects.requireNonNull(inventory, "inventory");
-    this.investigator = new ColdInvestigator(FridgeThresholds.DEFAULT);
+    this.policies = Objects.requireNonNull(policies, "policies");
     this.clock = Objects.requireNonNull(clock, "clock");
   }
 
@@ -78,12 +89,13 @@ public final class InvestigateColdIncidents {
         .map(
             fridge -> {
               ColdInvestigation found =
-                  investigator.investigate(
-                      fridge.id(),
-                      from,
-                      to,
-                      history.doorAndTemperature(fridge.id(), from, to),
-                      items(fridge));
+                  new ColdInvestigator(policies.thresholds(householdId), policies.coldRule())
+                      .investigate(
+                          fridge.id(),
+                          from,
+                          to,
+                          history.doorAndTemperature(fridge.id(), from, to),
+                          items(fridge));
               return new ColdInvestigation(
                   found.fridge(),
                   found.from(),

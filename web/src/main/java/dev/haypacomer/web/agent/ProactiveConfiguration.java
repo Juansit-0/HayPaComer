@@ -10,6 +10,7 @@ import dev.haypacomer.application.notification.NotifyHousehold;
 import dev.haypacomer.application.port.BriefingLog;
 import dev.haypacomer.application.port.HouseholdDirectory;
 import dev.haypacomer.application.port.HouseholdRepository;
+import dev.haypacomer.application.port.PolicySource;
 import dev.haypacomer.persistence.redis.RedisBriefingLog;
 import java.time.Clock;
 import java.util.concurrent.ExecutorService;
@@ -59,7 +60,9 @@ public class ProactiveConfiguration {
       BriefingLog log,
       Briefer briefer,
       BuildWeeklyDigest digest,
+      PolicySource policies,
       Clock clock) {
-    return new ScheduledBriefings(directory, households, inventory, log, briefer, digest, clock);
+    return new ScheduledBriefings(
+        directory, households, inventory, log, briefer, digest, policies, clock);
   }
 }

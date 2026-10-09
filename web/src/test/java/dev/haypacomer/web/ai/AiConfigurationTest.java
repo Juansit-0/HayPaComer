@@ -50,8 +50,11 @@ class AiConfigurationTest {
 
   private static Object advisor(AiProperties properties) {
     return new AiConfiguration()
-        .kitchenAdvisor(properties, NO_CACHE, BREAKER, HEALTH, Clock.systemUTC());
+        .kitchenAdvisor(properties, NO_CACHE, BREAKER, HEALTH, POLICIES, Clock.systemUTC());
   }
+
+  private static final dev.haypacomer.application.port.PolicySource POLICIES =
+      dev.haypacomer.application.settings.FixedPolicies.DEFAULT;
 
   private static final dev.haypacomer.application.port.ServiceHealth HEALTH =
       new dev.haypacomer.persistence.resilience.InMemoryServiceHealth();
@@ -64,10 +67,10 @@ class AiConfigurationTest {
 
     assertInstanceOf(
         dev.haypacomer.ai.resilience.ResilientRecipePhotoReader.class,
-        configuration.recipePhotoReader(gemini, BREAKER, HEALTH, Clock.systemUTC()));
+        configuration.recipePhotoReader(gemini, BREAKER, HEALTH, POLICIES, Clock.systemUTC()));
     assertInstanceOf(
         dev.haypacomer.ai.offline.OfflineRecipePhotoReader.class,
-        configuration.recipePhotoReader(offline, BREAKER, HEALTH, Clock.systemUTC()));
+        configuration.recipePhotoReader(offline, BREAKER, HEALTH, POLICIES, Clock.systemUTC()));
     assertInstanceOf(
         dev.haypacomer.agent.planning.LlmPlannerFactory.class,
         configuration.agentPlanners(
@@ -75,6 +78,7 @@ class AiConfigurationTest {
             new dev.haypacomer.agent.tools.ToolRegistry(java.util.List.of()),
             BREAKER,
             HEALTH,
+            POLICIES,
             Clock.systemUTC()));
     assertInstanceOf(
         dev.haypacomer.agent.supervisor.OfflinePlanners.class,
@@ -83,6 +87,7 @@ class AiConfigurationTest {
             new dev.haypacomer.agent.tools.ToolRegistry(java.util.List.of()),
             BREAKER,
             HEALTH,
+            POLICIES,
             Clock.systemUTC()));
   }
 

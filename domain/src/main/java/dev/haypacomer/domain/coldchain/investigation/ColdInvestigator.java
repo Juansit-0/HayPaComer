@@ -16,15 +16,19 @@ import java.util.List;
 
 public final class ColdInvestigator {
 
-  public static final Duration DISCARD_AFTER = Duration.ofHours(2);
-  public static final Duration USE_TODAY_AFTER = Duration.ofMinutes(30);
   public static final Duration DOOR_LOOKBACK = Duration.ofMinutes(30);
   public static final Duration READING_GAP = Duration.ofMinutes(15);
 
   private final FridgeThresholds thresholds;
+  private final ColdRule rule;
 
   public ColdInvestigator(FridgeThresholds thresholds) {
+    this(thresholds, ColdRule.DEFAULT);
+  }
+
+  public ColdInvestigator(FridgeThresholds thresholds, ColdRule rule) {
     this.thresholds = thresholds;
+    this.rule = rule;
   }
 
   public ColdInvestigation investigate(
@@ -136,33 +140,40 @@ public final class ColdInvestigator {
     return intervals;
   }
 
-  private static FoodAssessment assess(FoodItem item, Duration above) {
+  private FoodAssessment assess(FoodItem item, Duration above) {
     long minutes = above.toMinutes();
+    String limit = "above " + thresholds.maxCelsius().stripTrailingZeros().toPlainString() + " C";
     if (!item.food().perishable()) {
       return new FoodAssessment(
           item.id(), item.name(), item.quantity(), FoodVerdict.KEEP, "Not perishable");
     }
-    if (above.compareTo(DISCARD_AFTER) >= 0) {
+    if (above.compareTo(rule.discardAfter()) >= 0) {
       return new FoodAssessment(
           item.id(),
           item.name(),
           item.quantity(),
           FoodVerdict.DISCARD,
-          "Perishable and above 5 C for " + minutes + " min in total (2 hours or more)");
+          "Perishable and "
+              + limit
+              + " for "
+              + minutes
+              + " min in total ("
+              + rule.discardAfter().toMinutes()
+              + " min or more)");
     }
-    if (above.compareTo(USE_TODAY_AFTER) >= 0) {
+    if (above.compareTo(rule.useTodayAfter()) >= 0) {
       return new FoodAssessment(
           item.id(),
           item.name(),
           item.quantity(),
           FoodVerdict.USE_TODAY,
-          "Perishable and above 5 C for " + minutes + " min; use it today");
+          "Perishable and " + limit + " for " + minutes + " min; use it today");
     }
     return new FoodAssessment(
         item.id(),
         item.name(),
         item.quantity(),
         FoodVerdict.KEEP,
-        minutes == 0 ? "No time above 5 C" : "Only " + minutes + " min above 5 C");
+        minutes == 0 ? "No time " + limit : "Only " + minutes + " min " + limit);
   }
 }

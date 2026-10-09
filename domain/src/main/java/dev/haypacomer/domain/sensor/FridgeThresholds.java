@@ -23,4 +23,8 @@ public record FridgeThresholds(
     Objects.requireNonNull(coldChainGrace, "coldChainGrace");
     Objects.requireNonNull(minimumWeightChange, "minimumWeightChange");
   }
+
+  public FridgeThresholds withMinimumWeightChange(BigDecimal grams) {
+    return new FridgeThresholds(doorAlertAfter, maxCelsius, coldChainGrace, grams);
+  }
 }

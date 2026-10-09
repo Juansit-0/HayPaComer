@@ -11,8 +11,8 @@ import dev.haypacomer.application.port.FoodCatalogRepository;
 import dev.haypacomer.application.port.FoodPriceRepository;
 import dev.haypacomer.application.port.HouseholdRepository;
 import dev.haypacomer.application.port.MovementHistory;
+import dev.haypacomer.application.port.PolicySource;
 import dev.haypacomer.application.port.UserRepository;
-import dev.haypacomer.domain.inventory.FreshnessPolicy;
 import java.time.Clock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,8 +25,8 @@ public class AnalyticsConfiguration {
       HouseholdRepository households,
       MovementHistory history,
       FoodPriceRepository prices,
-      FreshnessPolicy freshness) {
-    return new ViewHouseholdMetrics(households, history, prices, freshness);
+      PolicySource policies) {
+    return new ViewHouseholdMetrics(households, history, prices, policies);
   }
 
   @Bean

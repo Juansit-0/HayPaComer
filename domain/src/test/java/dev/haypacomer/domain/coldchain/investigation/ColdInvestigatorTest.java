@@ -165,4 +165,30 @@ class ColdInvestigatorTest {
 
     assertEquals("Only 10 min above 5 C", result.foods().getFirst().reason());
   }
+
+  @Test
+  void aStricterHouseholdRuleDiscardsSooner() {
+    ColdInvestigator strict =
+        new ColdInvestigator(
+            new FridgeThresholds(
+                Duration.ofSeconds(40),
+                new BigDecimal("4.0"),
+                Duration.ofMinutes(20),
+                BigDecimal.ONE),
+            new ColdRule(Duration.ofMinutes(60), Duration.ofMinutes(15)));
+    List<SensorEvent> events = new ArrayList<>();
+    events.add(temp(0, "3.0"));
+    for (int minute = 10; minute <= 70; minute += 10) {
+      events.add(temp(minute, "4.5"));
+    }
+
+    ColdInvestigation result =
+        strict.investigate(
+            FRIDGE, T0, T0.plus(Duration.ofMinutes(70)), events, List.of(item("Milk", true)));
+
+    assertEquals(FoodVerdict.DISCARD, result.foods().getFirst().verdict());
+    assertEquals(
+        "Perishable and above 4 C for 60 min in total (60 min or more)",
+        result.foods().getFirst().reason());
+  }
 }

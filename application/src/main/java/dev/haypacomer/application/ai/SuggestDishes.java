@@ -7,8 +7,10 @@ import dev.haypacomer.application.port.AiRateLimiter;
 import dev.haypacomer.application.port.FoodProfileRepository;
 import dev.haypacomer.application.port.HouseholdRepository;
 import dev.haypacomer.application.port.KitchenAdvisor;
+import dev.haypacomer.application.port.PolicySource;
 import dev.haypacomer.application.port.SubstitutionRuleRepository;
 import dev.haypacomer.application.profile.SelectDiners;
+import dev.haypacomer.application.settings.FixedPolicies;
 import dev.haypacomer.domain.household.HouseholdId;
 import dev.haypacomer.domain.identity.UserId;
 import dev.haypacomer.domain.recipe.Recipe;
@@ -28,6 +30,7 @@ public final class SuggestDishes {
   private final SubstitutionRuleRepository rules;
   private final KitchenAdvisor advisor;
   private final AiRateLimiter rateLimiter;
+  private final PolicySource policies;
 
   public SuggestDishes(
       HouseholdRepository households,
@@ -37,17 +40,31 @@ public final class SuggestDishes {
       KitchenAdvisor advisor,
       AiRateLimiter rateLimiter,
       Clock clock) {
+    this(
+        households, inventory, profiles, rules, advisor, rateLimiter, FixedPolicies.DEFAULT, clock);
+  }
+
+  public SuggestDishes(
+      HouseholdRepository households,
+      ViewInventory inventory,
+      FoodProfileRepository profiles,
+      SubstitutionRuleRepository rules,
+      KitchenAdvisor advisor,
+      AiRateLimiter rateLimiter,
+      PolicySource policies,
+      Clock clock) {
     this.stock = new ReadKitchenStock(households, inventory, clock);
     this.diners = new SelectDiners(households, profiles);
     this.rules = Objects.requireNonNull(rules, "rules");
     this.advisor = Objects.requireNonNull(advisor, "advisor");
     this.rateLimiter = Objects.requireNonNull(rateLimiter, "rateLimiter");
+    this.policies = Objects.requireNonNull(policies, "policies");
   }
 
   public Suggestions suggest(UserId actor, HouseholdId householdId, SuggestionQuery query) {
     KitchenStock kitchen = stock.read(actor, householdId);
     if (!rateLimiter.tryAcquire(
-        actor.value().toString(), CALLS_PER_MINUTE, Duration.ofMinutes(1))) {
+        actor.value().toString(), policies.aiCallsPerMinute(), Duration.ofMinutes(1))) {
       throw new AiRateLimitExceededException();
     }
     List<Recipe> candidates =

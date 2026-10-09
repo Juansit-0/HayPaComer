@@ -5,6 +5,8 @@ import dev.haypacomer.application.port.ColdChainRepository;
 import dev.haypacomer.application.port.FoodOwnershipRepository;
 import dev.haypacomer.application.port.FridgeRepository;
 import dev.haypacomer.application.port.HouseholdRepository;
+import dev.haypacomer.application.port.PolicySource;
+import dev.haypacomer.application.settings.FixedPolicies;
 import dev.haypacomer.domain.coldchain.ColdChain;
 import dev.haypacomer.domain.fridge.FoodItem;
 import dev.haypacomer.domain.fridge.Fridge;
@@ -33,7 +35,7 @@ public final class ViewInventory {
   private final FridgeRepository fridges;
   private final FoodOwnershipRepository ownerships;
   private final ColdChainRepository coldChains;
-  private final FreshnessPolicy freshness;
+  private final PolicySource policies;
 
   public ViewInventory(
       HouseholdRepository households,
@@ -41,29 +43,45 @@ public final class ViewInventory {
       FoodOwnershipRepository ownerships,
       ColdChainRepository coldChains,
       FreshnessPolicy freshness) {
+    this(
+        households,
+        fridges,
+        ownerships,
+        coldChains,
+        FixedPolicies.DEFAULT.withFreshness(freshness));
+  }
+
+  public ViewInventory(
+      HouseholdRepository households,
+      FridgeRepository fridges,
+      FoodOwnershipRepository ownerships,
+      ColdChainRepository coldChains,
+      PolicySource policies) {
     this.households = new GetHousehold(households);
     this.fridges = Objects.requireNonNull(fridges, "fridges");
     this.ownerships = Objects.requireNonNull(ownerships, "ownerships");
     this.coldChains = Objects.requireNonNull(coldChains, "coldChains");
-    this.freshness = Objects.requireNonNull(freshness, "freshness");
+    this.policies = Objects.requireNonNull(policies, "policies");
   }
 
   public List<InventoryEntry> view(UserId actor, HouseholdId householdId, LocalDate today) {
     MemberId viewer = households.get(actor, householdId).membershipOf(actor).orElseThrow().member();
+    FreshnessPolicy freshness = policies.freshness(householdId);
     return fridges.findByHousehold(householdId).stream()
-        .flatMap(fridge -> entries(fridge, viewer, today).stream())
+        .flatMap(fridge -> entries(fridge, viewer, today, freshness).stream())
         .sorted(RESCUE_ORDER)
         .toList();
   }
 
-  private List<InventoryEntry> entries(Fridge fridge, MemberId viewer, LocalDate today) {
+  private List<InventoryEntry> entries(
+      Fridge fridge, MemberId viewer, LocalDate today, FreshnessPolicy freshness) {
     boolean underReview = coldChains.find(fridge.id()).map(ColdChain::needsReview).orElse(false);
     return fridge
         .trays()
         .flatMap(
             tray ->
                 tray.children().stream()
-                    .map(item -> stocked(item, today, underReview))
+                    .map(item -> stocked(item, today, underReview, freshness))
                     .map(food -> PrivateFoodProxy.guard(food, viewer))
                     .map(
                         food ->
@@ -72,7 +90,8 @@ public final class ViewInventory {
         .toList();
   }
 
-  private StockedFood stocked(FoodItem item, LocalDate today, boolean underReview) {
+  private StockedFood stocked(
+      FoodItem item, LocalDate today, boolean underReview, FreshnessPolicy freshness) {
     StockedFood food =
         ownerships
             .find(item.id())

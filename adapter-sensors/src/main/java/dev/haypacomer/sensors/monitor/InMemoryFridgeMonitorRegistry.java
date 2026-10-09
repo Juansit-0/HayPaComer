@@ -14,21 +14,36 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 public final class InMemoryFridgeMonitorRegistry implements FridgeMonitorRegistry {
 
-  private final FridgeThresholds thresholds;
-  private final Map<FridgeId, FridgeMonitor> monitors = new ConcurrentHashMap<>();
+  private record Tuned(FridgeMonitor monitor, FridgeThresholds thresholds) {}
+
+  private final Function<FridgeId, FridgeThresholds> thresholds;
+  private final Map<FridgeId, Tuned> monitors = new ConcurrentHashMap<>();
   private final Map<FridgeId, DeviceId> devices = new ConcurrentHashMap<>();
   private final Set<Episode> reported = ConcurrentHashMap.newKeySet();
 
   public InMemoryFridgeMonitorRegistry(FridgeThresholds thresholds) {
+    this(fridge -> thresholds);
+  }
+
+  public InMemoryFridgeMonitorRegistry(Function<FridgeId, FridgeThresholds> thresholds) {
     this.thresholds = thresholds;
   }
 
   @Override
   public FridgeMonitor monitor(FridgeId fridge) {
-    return monitors.computeIfAbsent(fridge, id -> new FridgeMonitor(id, thresholds));
+    FridgeThresholds current = thresholds.apply(fridge);
+    return monitors
+        .compute(
+            fridge,
+            (id, tuned) ->
+                tuned != null && tuned.thresholds().equals(current)
+                    ? tuned
+                    : new Tuned(new FridgeMonitor(id, current), current))
+        .monitor();
   }
 
   @Override

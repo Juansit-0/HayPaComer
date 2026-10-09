@@ -1,0 +1,55 @@
+CREATE TABLE settings (
+    key TEXT PRIMARY KEY,
+    kind TEXT NOT NULL CHECK (kind IN ('INTEGER', 'DECIMAL')),
+    scope TEXT NOT NULL CHECK (scope IN ('GLOBAL', 'HOUSEHOLD')),
+    value TEXT NOT NULL,
+    min_value NUMERIC(12, 2) NOT NULL,
+    max_value NUMERIC(12, 2) NOT NULL,
+    description TEXT NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CHECK (min_value <= max_value)
+);
+
+CREATE TABLE household_settings (
+    household_id UUID NOT NULL REFERENCES households (id) ON DELETE CASCADE,
+    key TEXT NOT NULL REFERENCES settings (key) ON DELETE CASCADE,
+    value TEXT NOT NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (household_id, key)
+);
+
+INSERT INTO settings (key, kind, scope, value, min_value, max_value, description) VALUES
+    ('fridge.door-alert-seconds', 'INTEGER', 'HOUSEHOLD', '40', 5, 600,
+     'Seconds the door may stay open before the buzzer and an alert'),
+    ('fridge.max-celsius', 'DECIMAL', 'HOUSEHOLD', '5.0', 0, 10,
+     'Highest safe temperature inside the fridge in Celsius'),
+    ('fridge.cold-chain-grace-minutes', 'INTEGER', 'HOUSEHOLD', '20', 1, 240,
+     'Minutes above the safe temperature before the cold chain breaks'),
+    ('scale.minimum-change-grams', 'INTEGER', 'HOUSEHOLD', '5', 1, 100,
+     'Smallest stable weight change the scale counts as food used'),
+    ('food.at-risk-days', 'INTEGER', 'HOUSEHOLD', '2', 0, 14,
+     'Days before expiry when food is marked to use first'),
+    ('briefing.morning-hour', 'INTEGER', 'HOUSEHOLD', '7', 0, 23,
+     'Local hour of the morning kitchen briefing'),
+    ('briefing.digest-hour', 'INTEGER', 'HOUSEHOLD', '8', 0, 23,
+     'Local hour of the Monday weekly digest'),
+    ('briefing.expiry-cluster-size', 'INTEGER', 'HOUSEHOLD', '3', 2, 20,
+     'Foods at risk at the same time that trigger a coach briefing'),
+    ('cold.discard-after-minutes', 'INTEGER', 'GLOBAL', '120', 30, 480,
+     'Total minutes above the safe temperature after which perishables are discarded'),
+    ('cold.use-today-after-minutes', 'INTEGER', 'GLOBAL', '30', 5, 240,
+     'Total minutes above the safe temperature after which perishables must be used today'),
+    ('ai.calls-per-minute', 'INTEGER', 'GLOBAL', '20', 1, 200,
+     'AI calls each person may make per minute'),
+    ('ai.circuit-failures', 'INTEGER', 'GLOBAL', '3', 1, 20,
+     'Provider outages in a row that open the AI circuit'),
+    ('ai.circuit-open-seconds', 'INTEGER', 'GLOBAL', '60', 10, 3600,
+     'Seconds the AI circuit stays open before one trial call'),
+    ('auth.refresh-days', 'INTEGER', 'GLOBAL', '30', 1, 180,
+     'Days a session can be renewed without signing in again'),
+    ('auth.max-failed-logins', 'INTEGER', 'GLOBAL', '5', 3, 20,
+     'Failed sign-ins before the account is locked for a while'),
+    ('auth.lockout-minutes', 'INTEGER', 'GLOBAL', '15', 1, 1440,
+     'Minutes the account stays locked after too many failed sign-ins'),
+    ('auth.min-password-length', 'INTEGER', 'GLOBAL', '10', 8, 64,
+     'Shortest password accepted');

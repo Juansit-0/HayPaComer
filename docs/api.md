@@ -56,6 +56,9 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 | GET | `/households/{h}/profiles` | guest | Food profile of every member (diet, allergies, avoided foods); members without one are omnivores |
 | PUT | `/households/{h}/profile` | guest | Replace the caller's own food profile |
 | PUT | `/households/{h}/owner` | owner | Transfer ownership to another member |
+| GET | `/households/{h}/settings` | guest | Household settings (door alert, safe temperature, cold chain grace, scale minimum change, at risk days, briefing hours, expiry cluster) with value, default, range, and whether it is overridden |
+| PUT | `/households/{h}/settings` | owner | Override one setting (`key`, `value`); 400 outside its range or for a global key; `value: null` resets to the default |
+| GET | `/settings/defaults` | user | Every setting with its default, range, scope (GLOBAL or HOUSEHOLD), and description |
 
 ## Fridges, zones, and trays
 

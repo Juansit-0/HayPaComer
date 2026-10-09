@@ -1,6 +1,8 @@
 package dev.haypacomer.application.coldchain;
 
 import dev.haypacomer.application.port.ColdChainRepository;
+import dev.haypacomer.application.port.PolicySource;
+import dev.haypacomer.application.settings.FixedPolicies;
 import dev.haypacomer.domain.coldchain.ColdChain;
 import dev.haypacomer.domain.coldchain.ColdChainPhase;
 import dev.haypacomer.domain.device.Device;
@@ -11,11 +13,15 @@ import java.util.Objects;
 public final class TrackColdChain {
 
   private final ColdChainRepository chains;
-  private final FridgeThresholds thresholds;
+  private final PolicySource policies;
 
   public TrackColdChain(ColdChainRepository chains, FridgeThresholds thresholds) {
+    this(chains, FixedPolicies.DEFAULT.withThresholds(thresholds));
+  }
+
+  public TrackColdChain(ColdChainRepository chains, PolicySource policies) {
     this.chains = Objects.requireNonNull(chains, "chains");
-    this.thresholds = Objects.requireNonNull(thresholds, "thresholds");
+    this.policies = Objects.requireNonNull(policies, "policies");
   }
 
   public ColdChainPhase record(Device device, TemperatureReading reading) {
@@ -25,7 +31,9 @@ public final class TrackColdChain {
     synchronized (this) {
       ColdChain chain =
           chains.find(device.fridge()).orElseGet(() -> ColdChain.start(device.fridge()));
-      ColdChainPhase phase = chain.record(reading.celsius(), reading.occurredAt(), thresholds);
+      ColdChainPhase phase =
+          chain.record(
+              reading.celsius(), reading.occurredAt(), policies.thresholdsOf(device.fridge()));
       chains.save(chain);
       return phase;
     }
