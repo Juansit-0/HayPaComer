@@ -1,5 +1,6 @@
 package dev.haypacomer.persistence.redis;
 
+import dev.haypacomer.application.agent.AgentRunId;
 import dev.haypacomer.application.agent.PendingConfirmation;
 import dev.haypacomer.application.port.ConfirmationStore;
 import dev.haypacomer.domain.household.HouseholdId;
@@ -46,6 +47,7 @@ public final class RedisConfirmationStore implements ConfirmationStore {
       return;
     }
     Map<String, String> fields = new HashMap<>();
+    fields.put("run", confirmation.run().value().toString());
     fields.put("household", confirmation.household().value().toString());
     fields.put("user", confirmation.user().value().toString());
     fields.put("tool", confirmation.tool());
@@ -68,6 +70,7 @@ public final class RedisConfirmationStore implements ConfirmationStore {
     return Optional.of(
         new PendingConfirmation(
             id,
+            new AgentRunId(UUID.fromString((String) fields.get("run"))),
             new HouseholdId(UUID.fromString((String) fields.get("household"))),
             new UserId(UUID.fromString((String) fields.get("user"))),
             (String) fields.get("tool"),

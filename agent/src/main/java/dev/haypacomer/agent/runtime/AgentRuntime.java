@@ -110,6 +110,7 @@ public final class AgentRuntime {
           if (tool.kind() == ToolKind.WRITE) {
             PendingConfirmation pending =
                 PendingConfirmation.propose(
+                    run.id(),
                     task.household(),
                     task.user(),
                     tool.name(),
@@ -170,17 +171,7 @@ public final class AgentRuntime {
   }
 
   private AgentRun save(AgentRun run, RunStatus status, Instant finishedAt, int stepsUsed) {
-    AgentRun updated =
-        new AgentRun(
-            run.id(),
-            run.household(),
-            run.user(),
-            run.specialist(),
-            status,
-            stepsUsed,
-            run.stepBudget(),
-            run.startedAt(),
-            finishedAt);
+    AgentRun updated = run.advance(status, stepsUsed, finishedAt);
     runs.save(updated);
     return updated;
   }

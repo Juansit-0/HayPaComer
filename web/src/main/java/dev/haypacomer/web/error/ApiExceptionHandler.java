@@ -1,5 +1,9 @@
 package dev.haypacomer.web.error;
 
+import dev.haypacomer.agent.confirm.ConfirmationRefusedException;
+import dev.haypacomer.application.agent.AgentRunNotFoundException;
+import dev.haypacomer.application.agent.ConfirmationExpiredException;
+import dev.haypacomer.application.agent.ConfirmationNotFoundException;
 import dev.haypacomer.application.ai.AiRateLimitExceededException;
 import dev.haypacomer.application.auth.EmailAlreadyRegisteredException;
 import dev.haypacomer.application.auth.InvalidCredentialsException;
@@ -198,6 +202,26 @@ public class ApiExceptionHandler {
   @ExceptionHandler(SnapshotNotFoundException.class)
   ProblemDetail snapshotNotFound(SnapshotNotFoundException exception) {
     return problem(HttpStatus.NOT_FOUND, "Not found", exception.getMessage());
+  }
+
+  @ExceptionHandler(AgentRunNotFoundException.class)
+  ProblemDetail agentRunNotFound(AgentRunNotFoundException exception) {
+    return problem(HttpStatus.NOT_FOUND, "Not found", exception.getMessage());
+  }
+
+  @ExceptionHandler(ConfirmationNotFoundException.class)
+  ProblemDetail confirmationNotFound(ConfirmationNotFoundException exception) {
+    return problem(HttpStatus.NOT_FOUND, "Not found", exception.getMessage());
+  }
+
+  @ExceptionHandler(ConfirmationExpiredException.class)
+  ProblemDetail confirmationExpired(ConfirmationExpiredException exception) {
+    return problem(HttpStatus.GONE, "Confirmation expired", exception.getMessage());
+  }
+
+  @ExceptionHandler(ConfirmationRefusedException.class)
+  ProblemDetail confirmationRefused(ConfirmationRefusedException exception) {
+    return problem(HttpStatus.CONFLICT, "Confirmation refused", exception.getMessage());
   }
 
   @ExceptionHandler(PermissionRequiredException.class)

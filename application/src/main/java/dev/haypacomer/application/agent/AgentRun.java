@@ -43,6 +43,19 @@ public record AgentRun(
         null);
   }
 
+  public AgentRun advance(RunStatus newStatus, int newStepsUsed, Instant newFinishedAt) {
+    return new AgentRun(
+        id,
+        household,
+        user,
+        specialist,
+        newStatus,
+        newStepsUsed,
+        stepBudget,
+        startedAt,
+        newFinishedAt);
+  }
+
   public Optional<Instant> finished() {
     return Optional.ofNullable(finishedAt);
   }

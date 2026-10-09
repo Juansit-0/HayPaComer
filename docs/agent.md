@@ -66,6 +66,11 @@ Fallback: Circuit Breaker -> rule-based planner (offline)
 - Scheduled briefings (daily plan, expiring soon).
 - Event briefings: door open, temperature out of range, expiry clusters.
 
+## Confirmations (step 72)
+
+- A proposed write is stored with its run id; only the person who asked can approve or reject it, within 10 minutes.
+- Approval checks the guardrails again with the stored arguments, runs the tool once, and closes the run (DONE or FAILED) with a trace line; rejection and expiry close it without changes.
+
 ## Trace
 
 - Every run exposes the tool sequence, arguments, results, and confirmations.

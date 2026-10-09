@@ -13,7 +13,7 @@ Guides for roadmap steps assigned to a teammate. Each guide explains the goal, t
 | 69 | [Plan-tool-observation agent runtime with budget](step-69-agent-runtime.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 70 | [Agent tool registry with validation and permissions](step-70-agent-tool-registry.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 71 | [Editable household memory](step-71-household-memory.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
-| 72 | Trace console and human confirmations (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
+| 72 | [Trace console and human confirmations](step-72-trace-console-confirmations.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 73 | Chef, market, cold, and coach multi-agent supervisor (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 74 | Photo to structured, verifiable recipe (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 75 | Chef chat as an agent with evidence (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
