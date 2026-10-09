@@ -94,6 +94,8 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 
 | Method | Path | Access | Purpose |
 |---|---|---|---|
+| GET | `/households/{h}/expiry-estimate?food=&zone=SHELF&opened=false` | guest | Estimated expiry for a food by zone (SHELF, DOOR, DRAWER, FREEZER) and opening, with source ESTIMATED, confidence, and shelf days |
+| POST | `/households/{h}/items/{id}/open` | member | Mark food as opened; its date only moves closer (for example milk 4 days after opening) and the action is audited |
 | GET | `/households/{h}/items` | guest | Inventory, filters by zone, status, owner, expiry |
 | POST | `/households/{h}/items` | member (guest for own private items) | Stock weighed food from the catalog: gross grams, tare, tray, expiry, visibility; unknown food answers 422 |
 | GET | `/items/{id}` | guest | Item detail (respects ownership) |

@@ -13,9 +13,12 @@ import dev.haypacomer.application.fridge.SetUpFridge;
 import dev.haypacomer.application.fridge.UseFridgeSession;
 import dev.haypacomer.application.household.GetHousehold;
 import dev.haypacomer.application.inventory.ChangeFoodOwnership;
+import dev.haypacomer.application.inventory.EstimateExpiry;
 import dev.haypacomer.application.inventory.ExecuteInventoryCommand;
+import dev.haypacomer.application.inventory.ExpiryDesk;
 import dev.haypacomer.application.inventory.FoodAccessGuard;
 import dev.haypacomer.application.inventory.ListSnapshots;
+import dev.haypacomer.application.inventory.MarkFoodOpened;
 import dev.haypacomer.application.inventory.RestoreSnapshot;
 import dev.haypacomer.application.inventory.SearchFoods;
 import dev.haypacomer.application.inventory.TakeSnapshot;
@@ -40,6 +43,7 @@ import dev.haypacomer.application.port.MarketListRepository;
 import dev.haypacomer.application.port.PolicySource;
 import dev.haypacomer.application.port.ScaleSessionStore;
 import dev.haypacomer.application.port.SensorHistory;
+import dev.haypacomer.application.port.ShelfLifeCatalog;
 import dev.haypacomer.application.port.SnapshotStore;
 import dev.haypacomer.application.port.StepTimerStore;
 import dev.haypacomer.application.port.SubstitutionRuleRepository;
@@ -184,6 +188,7 @@ public class KitchenConfiguration {
       UnitOfWork unitOfWork,
       SnapshotStore snapshots,
       BroadcastLiveUpdate live,
+      ExpiryDesk expiryDesk,
       Clock clock) {
     return new ExecuteInventoryCommand(
         households,
@@ -196,7 +201,37 @@ public class KitchenConfiguration {
         unitOfWork,
         snapshots,
         live,
+        expiryDesk,
         clock);
+  }
+
+  @Bean
+  ExpiryDesk expiryDesk(ShelfLifeCatalog shelfLives, PolicySource policies) {
+    return ExpiryDesk.enforcing(shelfLives, policies);
+  }
+
+  @Bean
+  EstimateExpiry estimateExpiry(
+      HouseholdRepository households,
+      FoodCatalogRepository catalog,
+      ExpiryDesk expiryDesk,
+      Clock clock) {
+    return new EstimateExpiry(households, catalog, expiryDesk, clock);
+  }
+
+  @Bean
+  MarkFoodOpened markFoodOpened(
+      HouseholdRepository households,
+      FridgeRepository fridges,
+      FoodOwnershipRepository ownerships,
+      InventoryMovementLog movements,
+      FoodAccessGuard guard,
+      ExpiryDesk expiryDesk,
+      AuditLog audit,
+      UnitOfWork unitOfWork,
+      Clock clock) {
+    return new MarkFoodOpened(
+        households, fridges, ownerships, movements, guard, expiryDesk, audit, unitOfWork, clock);
   }
 
   @Bean

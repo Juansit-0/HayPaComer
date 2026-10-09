@@ -36,6 +36,7 @@ public final class ExecuteInventoryCommand {
   private final SnapshotStore snapshots;
   private final Clock clock;
   private final BroadcastLiveUpdate live;
+  private final ExpiryDesk expiry;
 
   public ExecuteInventoryCommand(
       HouseholdRepository households,
@@ -74,7 +75,36 @@ public final class ExecuteInventoryCommand {
       SnapshotStore snapshots,
       BroadcastLiveUpdate live,
       Clock clock) {
+    this(
+        households,
+        fridges,
+        ownerships,
+        movements,
+        catalog,
+        guard,
+        audit,
+        unitOfWork,
+        snapshots,
+        live,
+        ExpiryDesk.LENIENT,
+        clock);
+  }
+
+  public ExecuteInventoryCommand(
+      HouseholdRepository households,
+      FridgeRepository fridges,
+      FoodOwnershipRepository ownerships,
+      InventoryMovementLog movements,
+      FoodCatalogRepository catalog,
+      FoodAccessGuard guard,
+      AuditLog audit,
+      UnitOfWork unitOfWork,
+      SnapshotStore snapshots,
+      BroadcastLiveUpdate live,
+      ExpiryDesk expiry,
+      Clock clock) {
     this.live = Objects.requireNonNull(live, "live");
+    this.expiry = Objects.requireNonNull(expiry, "expiry");
     this.inventory = new HouseholdInventory(households, fridges, ownerships, movements);
     this.catalog = Objects.requireNonNull(catalog, "catalog");
     this.guard = Objects.requireNonNull(guard, "guard");
@@ -99,7 +129,8 @@ public final class ExecuteInventoryCommand {
               InventoryMemento before = caretaker.capture(command.household());
               CommandOutcome outcome =
                   command.execute(
-                      new InventoryWorkspace(actor, household, inventory, guard, catalog, now));
+                      new InventoryWorkspace(
+                          actor, household, inventory, guard, catalog, expiry, now));
               Map<String, String> detail = new HashMap<>(command.detail());
               detail.put("commandId", command.id().toString());
               detail.put("remainingGrams", outcome.remaining().value().toPlainString());

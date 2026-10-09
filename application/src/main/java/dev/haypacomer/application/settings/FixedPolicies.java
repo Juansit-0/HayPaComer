@@ -4,6 +4,7 @@ import dev.haypacomer.application.ai.CircuitPolicy;
 import dev.haypacomer.application.auth.AuthSettings;
 import dev.haypacomer.application.port.PolicySource;
 import dev.haypacomer.domain.coldchain.investigation.ColdRule;
+import dev.haypacomer.domain.expiry.ExpiryRules;
 import dev.haypacomer.domain.fridge.FridgeId;
 import dev.haypacomer.domain.household.HouseholdId;
 import dev.haypacomer.domain.inventory.FreshnessPolicy;
@@ -16,7 +17,8 @@ public record FixedPolicies(
     ColdRule coldRule,
     CircuitPolicy circuit,
     AuthSettings auth,
-    int aiCallsPerMinute)
+    int aiCallsPerMinute,
+    ExpiryRules expiryRules)
     implements PolicySource {
 
   public static final FixedPolicies DEFAULT =
@@ -27,21 +29,32 @@ public record FixedPolicies(
           ColdRule.DEFAULT,
           CircuitPolicy.DEFAULT,
           AuthSettings.DEFAULT,
-          20);
+          20,
+          ExpiryRules.DEFAULT);
 
   public FixedPolicies withFreshness(FreshnessPolicy value) {
     return new FixedPolicies(
-        value, thresholds, briefings, coldRule, circuit, auth, aiCallsPerMinute);
+        value, thresholds, briefings, coldRule, circuit, auth, aiCallsPerMinute, expiryRules);
   }
 
   public FixedPolicies withThresholds(FridgeThresholds value) {
     return new FixedPolicies(
-        freshness, value, briefings, coldRule, circuit, auth, aiCallsPerMinute);
+        freshness, value, briefings, coldRule, circuit, auth, aiCallsPerMinute, expiryRules);
+  }
+
+  public FixedPolicies withExpiryRules(ExpiryRules value) {
+    return new FixedPolicies(
+        freshness, thresholds, briefings, coldRule, circuit, auth, aiCallsPerMinute, value);
   }
 
   @Override
   public FreshnessPolicy freshness(HouseholdId household) {
     return freshness;
+  }
+
+  @Override
+  public ExpiryRules expiryRules(HouseholdId household) {
+    return expiryRules;
   }
 
   @Override

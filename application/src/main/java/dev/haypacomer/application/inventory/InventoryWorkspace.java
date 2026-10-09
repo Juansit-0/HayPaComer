@@ -11,4 +11,5 @@ record InventoryWorkspace(
     HouseholdInventory inventory,
     FoodAccessGuard guard,
     FoodCatalogRepository catalog,
+    ExpiryDesk expiry,
     Instant now) {}

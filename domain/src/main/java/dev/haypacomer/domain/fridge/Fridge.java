@@ -37,6 +37,14 @@ public final class Fridge implements FridgeNode {
     return trays().filter(tray -> tray.id().equals(trayId)).findFirst();
   }
 
+  public Optional<Zone> zoneOf(TrayId trayId) {
+    return zones.stream().filter(zone -> zone.find(trayId).isPresent()).findFirst();
+  }
+
+  public Optional<Zone> zoneHolding(FoodItemId itemId) {
+    return locate(itemId).flatMap(tray -> zoneOf(tray.id()));
+  }
+
   public Optional<Tray> locate(FoodItemId itemId) {
     return trays().filter(tray -> tray.find(itemId).isPresent()).findFirst();
   }
@@ -97,7 +105,9 @@ public final class Fridge implements FridgeNode {
                                                         item.food().name(),
                                                         item.quantity(),
                                                         item.tare(),
-                                                        item.expiresOn().orElse(null)))
+                                                        item.expiresOn().orElse(null),
+                                                        item.expirySource().orElse(null),
+                                                        item.openedOn().orElse(null)))
                                             .toList()))
                             .toList()))
             .toList());

@@ -1,6 +1,7 @@
 package dev.haypacomer.persistence.relational;
 
 import dev.haypacomer.application.inventory.InventoryMemento;
+import dev.haypacomer.domain.expiry.ExpirySource;
 import dev.haypacomer.domain.fridge.FoodItemId;
 import dev.haypacomer.domain.fridge.FridgeId;
 import dev.haypacomer.domain.fridge.FridgeMemento;
@@ -93,7 +94,14 @@ record SnapshotPayload(List<FridgeJson> fridges, List<OwnershipJson> ownerships)
     }
   }
 
-  record ItemJson(UUID id, String food, BigDecimal grams, BigDecimal tare, LocalDate expiresOn) {
+  record ItemJson(
+      UUID id,
+      String food,
+      BigDecimal grams,
+      BigDecimal tare,
+      LocalDate expiresOn,
+      ExpirySource expirySource,
+      LocalDate openedOn) {
 
     static ItemJson from(FridgeMemento.ItemState item) {
       return new ItemJson(
@@ -101,12 +109,20 @@ record SnapshotPayload(List<FridgeJson> fridges, List<OwnershipJson> ownerships)
           item.foodName(),
           item.quantity().value(),
           item.tare().value(),
-          item.expiresOn());
+          item.expiresOn(),
+          item.expirySource(),
+          item.openedOn());
     }
 
     FridgeMemento.ItemState toState() {
       return new FridgeMemento.ItemState(
-          new FoodItemId(id), food, Grams.of(grams), Grams.of(tare), expiresOn);
+          new FoodItemId(id),
+          food,
+          Grams.of(grams),
+          Grams.of(tare),
+          expiresOn,
+          expirySource,
+          openedOn);
     }
   }
 

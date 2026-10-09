@@ -31,6 +31,7 @@ import dev.haypacomer.application.scale.NoRecentSampleException;
 import dev.haypacomer.application.sensor.MalformedSensorPayloadException;
 import dev.haypacomer.application.session.CookingSessionNotFoundException;
 import dev.haypacomer.application.session.SessionAlreadyActiveException;
+import dev.haypacomer.domain.expiry.ImpossibleExpiryException;
 import dev.haypacomer.domain.fridge.FridgeBusyException;
 import dev.haypacomer.domain.household.AccessDeniedException;
 import dev.haypacomer.domain.quantity.InvalidQuantityException;
@@ -179,6 +180,12 @@ public class ApiExceptionHandler {
   @ExceptionHandler(FoodNotInCatalogException.class)
   ProblemDetail foodNotInCatalog(FoodNotInCatalogException exception) {
     return problem(HttpStatus.UNPROCESSABLE_CONTENT, "Unknown food", exception.getMessage());
+  }
+
+  @ExceptionHandler(ImpossibleExpiryException.class)
+  ProblemDetail impossibleExpiry(ImpossibleExpiryException exception) {
+    return problem(
+        HttpStatus.UNPROCESSABLE_CONTENT, "Expiry date not possible", exception.getMessage());
   }
 
   @ExceptionHandler(InvalidQuantityException.class)

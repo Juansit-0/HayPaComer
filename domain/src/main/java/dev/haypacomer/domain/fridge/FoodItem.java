@@ -1,5 +1,7 @@
 package dev.haypacomer.domain.fridge;
 
+import dev.haypacomer.domain.expiry.ExpiryEstimate;
+import dev.haypacomer.domain.expiry.ExpirySource;
 import dev.haypacomer.domain.food.FoodMetadata;
 import dev.haypacomer.domain.quantity.Grams;
 import java.time.LocalDate;
@@ -12,21 +14,49 @@ public final class FoodItem implements FridgeNode {
   private final FoodItemId id;
   private final FoodMetadata food;
   private final Grams tare;
-  private final LocalDate expiresOn;
+  private LocalDate expiresOn;
+  private ExpirySource expirySource;
+  private LocalDate openedOn;
   private Grams quantity;
 
   public FoodItem(
       FoodItemId id, FoodMetadata food, Grams quantity, Grams tare, LocalDate expiresOn) {
+    this(id, food, quantity, tare, expiresOn, null, null);
+  }
+
+  public FoodItem(
+      FoodItemId id,
+      FoodMetadata food,
+      Grams quantity,
+      Grams tare,
+      LocalDate expiresOn,
+      ExpirySource expirySource,
+      LocalDate openedOn) {
     this.id = Objects.requireNonNull(id, "id");
     this.food = Objects.requireNonNull(food, "food");
     this.quantity = Objects.requireNonNull(quantity, "quantity");
     this.tare = Objects.requireNonNull(tare, "tare");
     this.expiresOn = expiresOn;
+    this.expirySource =
+        expiresOn == null ? null : expirySource == null ? ExpirySource.USER : expirySource;
+    this.openedOn = openedOn;
   }
 
   public static FoodItem weighed(
       FoodMetadata food, Grams grossWeight, Grams tare, LocalDate expiresOn) {
     return new FoodItem(FoodItemId.newId(), food, grossWeight.minus(tare), tare, expiresOn);
+  }
+
+  public static FoodItem weighed(
+      FoodMetadata food, Grams grossWeight, Grams tare, ExpiryEstimate expiry, LocalDate openedOn) {
+    return new FoodItem(
+        FoodItemId.newId(),
+        food,
+        grossWeight.minus(tare),
+        tare,
+        expiry.date(),
+        expiry.source(),
+        openedOn);
   }
 
   public FoodItemId id() {
@@ -47,6 +77,29 @@ public final class FoodItem implements FridgeNode {
 
   public Optional<LocalDate> expiresOn() {
     return Optional.ofNullable(expiresOn);
+  }
+
+  public Optional<ExpirySource> expirySource() {
+    return Optional.ofNullable(expirySource);
+  }
+
+  public Optional<LocalDate> openedOn() {
+    return Optional.ofNullable(openedOn);
+  }
+
+  public boolean isOpened() {
+    return openedOn != null;
+  }
+
+  public void open(LocalDate today, LocalDate expiry, ExpirySource source) {
+    Objects.requireNonNull(today, "today");
+    Objects.requireNonNull(expiry, "expiry");
+    Objects.requireNonNull(source, "source");
+    if (openedOn == null) {
+      openedOn = today;
+    }
+    expiresOn = expiry;
+    expirySource = source;
   }
 
   public Grams grossWeight() {

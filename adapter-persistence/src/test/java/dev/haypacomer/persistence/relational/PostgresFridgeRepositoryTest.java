@@ -8,6 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.haypacomer.domain.expiry.ExpirySource;
+import dev.haypacomer.domain.expiry.ShelfLife;
 import dev.haypacomer.domain.food.FoodCategory;
 import dev.haypacomer.domain.food.FoodMetadata;
 import dev.haypacomer.domain.fridge.FoodItem;
@@ -31,6 +33,7 @@ import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.simple.JdbcClient;
 
 class PostgresFridgeRepositoryTest extends PostgresTestSupport {
 
@@ -89,6 +92,31 @@ class PostgresFridgeRepositoryTest extends PostgresTestSupport {
     assertEquals(LocalDate.of(2026, 10, 9), loadedMilk.expiresOn().orElseThrow());
     assertEquals(MILK, loadedMilk.food());
     assertTrue(loaded.findItem(chicken.id()).orElseThrow().expiresOn().isEmpty());
+  }
+
+  @Test
+  void keepsWhereTheDateCameFromAndWhenFoodWasOpened() {
+    milk.open(LocalDate.of(2026, 10, 3), LocalDate.of(2026, 10, 7), ExpirySource.ESTIMATED);
+    fridges.save(household.id(), fridge);
+
+    FoodItem loaded = fridges.findById(fridge.id()).orElseThrow().findItem(milk.id()).orElseThrow();
+    FoodItem undated =
+        fridges.findById(fridge.id()).orElseThrow().findItem(chicken.id()).orElseThrow();
+
+    assertEquals(ExpirySource.ESTIMATED, loaded.expirySource().orElseThrow());
+    assertEquals(LocalDate.of(2026, 10, 3), loaded.openedOn().orElseThrow());
+    assertEquals(LocalDate.of(2026, 10, 7), loaded.expiresOn().orElseThrow());
+    assertTrue(undated.expirySource().isEmpty());
+    assertTrue(undated.openedOn().isEmpty());
+
+    PostgresShelfLifeCatalog shelfLives = new PostgresShelfLifeCatalog(dataSource);
+    assertEquals(ShelfLife.of(MILK), shelfLives.shelfLife(MILK));
+    JdbcClient.create(dataSource)
+        .sql(
+            "UPDATE food_catalog SET fridge_days = 7, door_days = 5, freezer_days = 90,"
+                + " opened_days = 4 WHERE name_key = 'milk'")
+        .update();
+    assertEquals(new ShelfLife(7, 5, 90, 4), shelfLives.shelfLife(MILK));
   }
 
   @Test

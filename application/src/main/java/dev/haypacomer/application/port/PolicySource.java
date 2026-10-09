@@ -4,6 +4,7 @@ import dev.haypacomer.application.ai.CircuitPolicy;
 import dev.haypacomer.application.auth.AuthSettings;
 import dev.haypacomer.application.settings.BriefingSchedule;
 import dev.haypacomer.domain.coldchain.investigation.ColdRule;
+import dev.haypacomer.domain.expiry.ExpiryRules;
 import dev.haypacomer.domain.fridge.FridgeId;
 import dev.haypacomer.domain.household.HouseholdId;
 import dev.haypacomer.domain.inventory.FreshnessPolicy;
@@ -12,6 +13,8 @@ import dev.haypacomer.domain.sensor.FridgeThresholds;
 public interface PolicySource {
 
   FreshnessPolicy freshness(HouseholdId household);
+
+  ExpiryRules expiryRules(HouseholdId household);
 
   FridgeThresholds thresholds(HouseholdId household);
 

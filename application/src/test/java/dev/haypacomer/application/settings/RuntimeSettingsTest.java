@@ -57,6 +57,7 @@ class RuntimeSettingsTest {
     assertEquals(fixed.circuit(), policies.circuit());
     assertEquals(fixed.auth(), policies.auth());
     assertEquals(fixed.aiCallsPerMinute(), policies.aiCallsPerMinute());
+    assertEquals(fixed.expiryRules(home.id()), policies.expiryRules(home.id()));
     assertEquals(FridgeThresholds.DEFAULT, policies.thresholdsOf(FridgeId.newId()));
   }
 
@@ -85,7 +86,7 @@ class RuntimeSettingsTest {
 
     List<SettingView> shown = view.view(member, home.id());
 
-    assertEquals(8, shown.size());
+    assertEquals(9, shown.size());
     SettingView atRisk =
         shown.stream()
             .filter(setting -> setting.definition().key().equals("food.at-risk-days"))
@@ -156,7 +157,7 @@ class RuntimeSettingsTest {
 
   @Test
   void definitionsListEverySetting() {
-    assertEquals(17, new ListSettingDefinitions(settings).list().size());
+    assertEquals(18, new ListSettingDefinitions(settings).list().size());
   }
 
   @Test

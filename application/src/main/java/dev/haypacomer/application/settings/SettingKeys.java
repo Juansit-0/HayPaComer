@@ -7,6 +7,7 @@ public final class SettingKeys {
   public static final String COLD_CHAIN_GRACE_MINUTES = "fridge.cold-chain-grace-minutes";
   public static final String MINIMUM_CHANGE_GRAMS = "scale.minimum-change-grams";
   public static final String AT_RISK_DAYS = "food.at-risk-days";
+  public static final String EXPIRY_MARGIN_DAYS = "food.expiry-margin-days";
   public static final String MORNING_HOUR = "briefing.morning-hour";
   public static final String DIGEST_HOUR = "briefing.digest-hour";
   public static final String EXPIRY_CLUSTER_SIZE = "briefing.expiry-cluster-size";

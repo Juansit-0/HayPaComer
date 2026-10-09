@@ -63,7 +63,7 @@ class PostgresSettingsRepositoryTest extends PostgresTestSupport {
     PostgresSettingsRepository settings =
         new PostgresSettingsRepository(dataSource, Clock.systemUTC(), Duration.ofSeconds(30));
 
-    assertEquals(17, settings.definitions().size());
+    assertEquals(18, settings.definitions().size());
     SettingDefinition celsius =
         settings.definitions().stream()
             .filter(definition -> definition.key().equals("fridge.max-celsius"))
@@ -110,7 +110,7 @@ class PostgresSettingsRepositoryTest extends PostgresTestSupport {
     PostgresSettingsRepository settings =
         new PostgresSettingsRepository(dataSource, clock, Duration.ofSeconds(30));
     settings.override(household.id(), "food.at-risk-days", "3");
-    assertEquals(17, settings.definitions().size());
+    assertEquals(18, settings.definitions().size());
     assertEquals("3", settings.overrides(household.id()).get("food.at-risk-days"));
 
     JdbcClient.create(dataSource)
@@ -119,7 +119,7 @@ class PostgresSettingsRepositoryTest extends PostgresTestSupport {
     JdbcClient.create(dataSource).sql("ALTER TABLE settings RENAME TO settings_away").update();
     try {
       clock.now = NOW.plusSeconds(60);
-      assertEquals(17, settings.definitions().size());
+      assertEquals(18, settings.definitions().size());
       assertEquals("3", settings.overrides(household.id()).get("food.at-risk-days"));
     } finally {
       JdbcClient.create(dataSource).sql("ALTER TABLE settings_away RENAME TO settings").update();

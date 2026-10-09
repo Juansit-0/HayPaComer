@@ -1,6 +1,7 @@
 package dev.haypacomer.persistence.relational;
 
 import dev.haypacomer.application.port.FridgeRepository;
+import dev.haypacomer.domain.expiry.ExpirySource;
 import dev.haypacomer.domain.food.FoodMetadata;
 import dev.haypacomer.domain.fridge.FoodItem;
 import dev.haypacomer.domain.fridge.FoodItemId;
@@ -70,7 +71,8 @@ public class PostgresFridgeRepository implements FridgeRepository {
             SELECT f.id AS fridge_id, f.name AS fridge_name,
                    z.id AS zone_id, z.name AS zone_name, z.kind AS zone_kind,
                    t.id AS tray_id, t.name AS tray_name, t.position AS tray_position,
-                   i.id AS item_id, i.food_id, i.quantity_g, i.tare_g, i.expires_on
+                   i.id AS item_id, i.food_id, i.quantity_g, i.tare_g, i.expires_on,
+                   i.expiry_source, i.opened_on
             FROM fridges f
             LEFT JOIN zones z ON z.fridge_id = f.id
             LEFT JOIN trays t ON t.zone_id = z.id
@@ -127,7 +129,9 @@ public class PostgresFridgeRepository implements FridgeRepository {
                       row.getObject("food_id", UUID.class),
                       row.getBigDecimal("quantity_g"),
                       row.getBigDecimal("tare_g"),
-                      row.getObject("expires_on", LocalDate.class)
+                      row.getObject("expires_on", LocalDate.class),
+                      row.getString("expiry_source"),
+                      row.getObject("opened_on", LocalDate.class)
                     });
               }
             });
@@ -144,7 +148,9 @@ public class PostgresFridgeRepository implements FridgeRepository {
                     foods.get((UUID) item[2]),
                     Grams.of((BigDecimal) item[3]),
                     Grams.of((BigDecimal) item[4]),
-                    (LocalDate) item[5]));
+                    (LocalDate) item[5],
+                    item[6] == null ? null : ExpirySource.valueOf((String) item[6]),
+                    (LocalDate) item[7]));
       }
     }
     return List.copyOf(fridges.values());
@@ -211,18 +217,22 @@ public class PostgresFridgeRepository implements FridgeRepository {
             item.quantity().value(),
             item.tare().value(),
             item.expiresOn().map(java.sql.Date::valueOf).orElse(null),
-            itemPlacement.get(index)[1]
+            itemPlacement.get(index)[1],
+            item.expirySource().map(Enum::name).orElse(null),
+            item.openedOn().map(java.sql.Date::valueOf).orElse(null)
           });
     }
     batch.batchUpdate(
         """
         INSERT INTO food_items (id, household_id, tray_id, food_id, quantity_g, tare_g,
-                                expires_on, position)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                                expires_on, position, expiry_source, opened_on)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT (id) DO UPDATE SET
             tray_id = EXCLUDED.tray_id,
             quantity_g = EXCLUDED.quantity_g,
             expires_on = EXCLUDED.expires_on,
+            expiry_source = EXCLUDED.expiry_source,
+            opened_on = EXCLUDED.opened_on,
             position = EXCLUDED.position,
             version = food_items.version + 1
         """,
@@ -235,7 +245,9 @@ public class PostgresFridgeRepository implements FridgeRepository {
           Types.NUMERIC,
           Types.NUMERIC,
           Types.DATE,
-          Types.INTEGER
+          Types.INTEGER,
+          Types.VARCHAR,
+          Types.DATE
         });
     deleteMissing(
         """
