@@ -8,6 +8,7 @@ import java.util.Objects;
 public final class SearchFoods {
 
   private static final int MAX_RESULTS = 20;
+  private static final int BROWSE_RESULTS = 60;
 
   private final FoodCatalogRepository catalog;
 
@@ -17,7 +18,7 @@ public final class SearchFoods {
 
   public List<FoodMetadata> search(String text) {
     if (text == null || text.isBlank()) {
-      return List.of();
+      return catalog.search("", BROWSE_RESULTS);
     }
     return catalog.search(text, MAX_RESULTS);
   }

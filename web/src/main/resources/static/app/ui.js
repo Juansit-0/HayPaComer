@@ -29,6 +29,16 @@ export function whenText(isoDate) {
   return plural("expiry.in", days);
 }
 
+export function expiryText(item) {
+  const text = whenText(item.expiresOn);
+  if (!item.expiresOn) return text;
+  if (item.expirySource === "ESTIMATED" || item.expirySource === "AI_SUGGESTED") {
+    return `\u2248\u2009${text} (${t("expiry.estimated")})`;
+  }
+  if (item.expirySource === "LABEL") return `${text} (${t("expiry.label")})`;
+  return text;
+}
+
 const STATUS = {
   EXPIRED: ["attention", "status.expired"],
   UNDER_REVIEW: ["attention", "status.under-review"],

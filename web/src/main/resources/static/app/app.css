@@ -617,3 +617,57 @@ dialog.sheet[open] { animation: sheet-in var(--duration-slow) var(--ease-standar
 .session + .language, .tabs + .language { margin-left: 0; }
 .bar > .language:last-child { margin-left: var(--space-s); }
 .bar .tabs[hidden] ~ .language { margin-left: auto; }
+
+.fridge-bento { align-items: start; }
+.shelf-meta { display: inline-flex; align-items: center; gap: var(--space-xs); }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--badge-border);
+  color: var(--badge-fg);
+  font-family: var(--data-font);
+  font-size: var(--size-small);
+}
+
+.food-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--space-s);
+}
+.food-card {
+  display: grid;
+  gap: var(--space-xs);
+  align-content: start;
+  padding: var(--space-s);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-14);
+  background: var(--color-bg);
+}
+.food-card .value {
+  font-family: var(--data-font);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--size-h3);
+  font-weight: 600;
+  line-height: 1.1;
+}
+.food-card .item-name { font-size: var(--size-h4); }
+.card-actions { display: flex; flex-wrap: wrap; gap: var(--space-xs); align-items: center; }
+.card-actions input.grams { width: 6ch; }
+
+.add-food { display: grid; gap: var(--space-m); }
+.add-food .step { border: 0; padding: 0; margin: 0; display: grid; gap: var(--space-s); counter-increment: step; }
+.add-food { counter-reset: step; }
+.add-food .step legend { font-family: var(--font-display); font-size: var(--size-h4); font-weight: 700; padding: 0; margin-bottom: var(--space-xs); }
+.add-food .step legend::before { content: counter(step) ". "; color: var(--color-primary); }
+.food-groups { display: grid; gap: var(--space-s); max-height: 40vh; overflow-y: auto; padding-right: 4px; }
+.food-group h3 { font-size: var(--size-small); color: var(--color-text-weak); margin-bottom: var(--space-xs); }
+.expiry-preview { font-weight: 600; min-height: 1.5em; }
+.chip[hidden] { display: none; }
