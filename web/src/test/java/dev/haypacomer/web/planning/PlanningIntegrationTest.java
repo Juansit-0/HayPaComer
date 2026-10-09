@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.jayway.jsonpath.JsonPath;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,7 +81,7 @@ class PlanningIntegrationTest {
                 + "\",\"trayId\":\""
                 + top
                 + "\",\"food\":\"Chicken breast\",\"grams\":200,\"expiresOn\":\""
-                + LocalDate.now().plusDays(1)
+                + LocalDate.now(ZoneOffset.UTC).plusDays(1)
                 + "\"}")
         .andExpect(status().isCreated());
 
@@ -113,7 +114,8 @@ class PlanningIntegrationTest {
                 .andExpect(jsonPath("$.entries.length()").value(14))
                 .andExpect(jsonPath("$.entries[0].recipe").value("Chicken bowl"))
                 .andExpect(jsonPath("$.entries[0].needsShopping").value(false))
-                .andExpect(jsonPath("$.entries[0].date").value(LocalDate.now().toString())));
+                .andExpect(
+                    jsonPath("$.entries[0].date").value(LocalDate.now(ZoneOffset.UTC).toString())));
     String entry = JsonPath.read(plan, "$.entries[0].id");
     mvc.perform(
             patch(base + "/plan-entries/" + entry)
@@ -156,7 +158,7 @@ class PlanningIntegrationTest {
     mvc.perform(get(base + "/recipes").header("Authorization", juan))
         .andExpect(jsonPath("$.length()").value(3));
     String planId = JsonPath.read(plan, "$.id");
-    String nextWeek = LocalDate.now().plusWeeks(1).toString();
+    String nextWeek = LocalDate.now(ZoneOffset.UTC).plusWeeks(1).toString();
     send(base + "/weekly-plans/" + planId + "/clone", juan, "{\"weekStart\":\"" + nextWeek + "\"}")
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.clonedFrom").value(planId))
@@ -165,7 +167,7 @@ class PlanningIntegrationTest {
     send(
             base + "/weekly-plans/" + planId + "/clone",
             juan,
-            "{\"weekStart\":\"" + LocalDate.now() + "\"}")
+            "{\"weekStart\":\"" + LocalDate.now(ZoneOffset.UTC) + "\"}")
         .andExpect(status().isBadRequest());
     send(
             base + "/weekly-plans/" + UUID.randomUUID() + "/clone",
