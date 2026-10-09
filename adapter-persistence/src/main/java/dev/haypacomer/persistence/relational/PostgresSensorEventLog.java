@@ -1,9 +1,12 @@
 package dev.haypacomer.persistence.relational;
 
 import dev.haypacomer.application.port.SensorEventLog;
+import dev.haypacomer.application.port.SensorHistory;
 import dev.haypacomer.application.sensor.validation.SensorEventTypes;
 import dev.haypacomer.domain.device.DeviceId;
+import dev.haypacomer.domain.fridge.FridgeId;
 import dev.haypacomer.domain.sensor.DoorEvent;
+import dev.haypacomer.domain.sensor.DoorState;
 import dev.haypacomer.domain.sensor.SensorEvent;
 import dev.haypacomer.domain.sensor.SensorEventId;
 import dev.haypacomer.domain.sensor.TemperatureReading;
@@ -11,13 +14,15 @@ import dev.haypacomer.domain.sensor.WeightReading;
 import java.sql.Types;
 import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import javax.sql.DataSource;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class PostgresSensorEventLog implements SensorEventLog {
+public class PostgresSensorEventLog implements SensorEventLog, SensorHistory {
 
   private final JdbcClient jdbc;
 
@@ -42,6 +47,34 @@ public class PostgresSensorEventLog implements SensorEventLog {
         .query((row, rowNumber) -> row.getObject(1, OffsetDateTime.class))
         .optional()
         .map(OffsetDateTime::toInstant);
+  }
+
+  @Override
+  public List<SensorEvent> doorAndTemperature(FridgeId fridge, Instant from, Instant to) {
+    return jdbc.sql(
+            """
+            SELECT id, device_id, fridge_id, type, door_state, celsius, occurred_at
+            FROM sensor_events
+            WHERE fridge_id = :fridge AND type IN ('DOOR', 'TEMPERATURE')
+              AND occurred_at >= :from AND occurred_at < :to
+            ORDER BY occurred_at, id
+            """)
+        .param("fridge", fridge.value())
+        .param("from", Timestamps.toDatabase(from))
+        .param("to", Timestamps.toDatabase(to))
+        .query(
+            (row, number) -> {
+              SensorEventId id = new SensorEventId(row.getObject("id", UUID.class));
+              DeviceId device = new DeviceId(row.getObject("device_id", UUID.class));
+              FridgeId where = new FridgeId(row.getObject("fridge_id", UUID.class));
+              Instant at = Timestamps.read(row, "occurred_at");
+              return "DOOR".equals(row.getString("type"))
+                  ? (SensorEvent)
+                      new DoorEvent(
+                          id, device, where, at, DoorState.valueOf(row.getString("door_state")))
+                  : new TemperatureReading(id, device, where, at, row.getBigDecimal("celsius"));
+            })
+        .list();
   }
 
   @Override

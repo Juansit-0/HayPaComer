@@ -117,6 +117,7 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 | GET | `/fridges/{f}/doors` | guest | Door openings |
 | GET | `/fridges/{f}/temperatures?from=&to=` | guest | Temperature series |
 | GET | `/households/{h}/cold-chain` | guest | Cold-chain state per fridge: phase, since, peak, recovered, last reading |
+| GET | `/households/{h}/cold-investigation?fridgeId=&hours=24` | guest | Warm periods per fridge (start, end, peak, minutes above 5 C, door open time, likely cause) and a verdict for each food by the 2 hour rule |
 | POST | `/households/{h}/fridges/{f}/cold-chain/review` | member | Human review after recovery closes the incident (409 while out of range or nothing to review) |
 
 ## Scale

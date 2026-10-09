@@ -3,6 +3,7 @@ package dev.haypacomer.web.kitchen;
 import dev.haypacomer.application.HayPaComerFacade;
 import dev.haypacomer.application.ai.SuggestDishes;
 import dev.haypacomer.application.audit.ListActivity;
+import dev.haypacomer.application.coldchain.InvestigateColdIncidents;
 import dev.haypacomer.application.coldchain.ListColdChains;
 import dev.haypacomer.application.coldchain.ReviewColdChain;
 import dev.haypacomer.application.coldchain.TrackColdChain;
@@ -37,6 +38,7 @@ import dev.haypacomer.application.port.InventoryMovementLog;
 import dev.haypacomer.application.port.KitchenAdvisor;
 import dev.haypacomer.application.port.MarketListRepository;
 import dev.haypacomer.application.port.ScaleSessionStore;
+import dev.haypacomer.application.port.SensorHistory;
 import dev.haypacomer.application.port.SnapshotStore;
 import dev.haypacomer.application.port.StepTimerStore;
 import dev.haypacomer.application.port.SubstitutionRuleRepository;
@@ -155,6 +157,16 @@ public class KitchenConfiguration {
       ColdChainRepository chains,
       Clock clock) {
     return new ReviewColdChain(households, fridges, chains, clock);
+  }
+
+  @Bean
+  InvestigateColdIncidents investigateColdIncidents(
+      HouseholdRepository households,
+      FridgeRepository fridges,
+      SensorHistory history,
+      ViewInventory viewInventory,
+      Clock clock) {
+    return new InvestigateColdIncidents(households, fridges, history, viewInventory, clock);
   }
 
   @Bean

@@ -126,6 +126,14 @@ class SensorIntakeIntegrationTest {
 
     mvc.perform(get(base + "/cold-chain").header("Authorization", juan))
         .andExpect(jsonPath("$[0].phase").value("UNDER_REVIEW"));
+    mvc.perform(get(base + "/cold-investigation?hours=2").header("Authorization", juan))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].readings").value(4))
+        .andExpect(jsonPath("$[0].episodes[0].cause").value("DOOR_LEFT_OPEN"))
+        .andExpect(jsonPath("$[0].episodes[0].peakCelsius").value(11))
+        .andExpect(jsonPath("$[0].episodes[0].end").doesNotExist());
+    mvc.perform(get(base + "/cold-investigation?hours=200").header("Authorization", juan))
+        .andExpect(status().isBadRequest());
     checkFridgeAlerts.check();
     mvc.perform(get("/api/v1/device/commands").header("X-Device-Key", key))
         .andExpect(status().isOk())

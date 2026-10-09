@@ -206,4 +206,41 @@ class KitchenToolsTest {
     assertTrue(content.contains("No price yet: Saffron"));
     assertEquals("Review the market budget", tool.describe(call(Map.of())));
   }
+
+  @Test
+  void theColdToolExplainsWarmPeriodsAndFoodVerdicts() {
+    List<dev.haypacomer.domain.sensor.SensorEvent> events = new java.util.ArrayList<>();
+    InvestigateColdTool tool =
+        new InvestigateColdTool(
+            new dev.haypacomer.application.coldchain.InvestigateColdIncidents(
+                kitchen.households,
+                kitchen.fridges,
+                (fridge, from, to) -> events,
+                kitchen.inventory,
+                kitchen.clock));
+    kitchen.put("Chicken breast", 650, KitchenFixture.TODAY.plusDays(3));
+    assertEquals("No temperature readings in the last 24 h", tool.invoke(call(Map.of())).content());
+    java.util.function.BiFunction<Integer, String, dev.haypacomer.domain.sensor.SensorEvent> temp =
+        (minutesAgo, celsius) ->
+            new dev.haypacomer.domain.sensor.TemperatureReading(
+                new dev.haypacomer.domain.sensor.SensorEventId(java.util.UUID.randomUUID()),
+                dev.haypacomer.domain.device.DeviceId.newId(),
+                kitchen.fridge.id(),
+                KitchenFixture.NOW.minusSeconds(minutesAgo * 60L),
+                new BigDecimal(celsius));
+    events.add(temp.apply(300, "4.0"));
+    assertEquals(
+        "Stayed at or below 5 C for the last 6 h (1 readings)",
+        tool.invoke(call(Map.of("hours", "6"))).content());
+    events.add(temp.apply(90, "6.0"));
+    events.add(temp.apply(80, "6.5"));
+    events.add(temp.apply(40, "4.0"));
+
+    String content = tool.invoke(call(Map.of())).content();
+
+    assertTrue(content.startsWith("Warm periods: from "));
+    assertTrue(content.contains("peak 6.5 C, 50 min above 5 C, likely readings missing"));
+    assertTrue(content.endsWith("Food: Chicken breast USE_TODAY."));
+    assertEquals("Investigate cold incidents", tool.describe(call(Map.of())));
+  }
 }
