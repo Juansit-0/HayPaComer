@@ -114,7 +114,8 @@ HayPaComer (name confirmed in Phase 0.5) is a smart home fridge: Java applicatio
 - Testcontainers runs are paused at the user's request (2026-10-09) until the end of plan v2; CI still runs them on every pull request.
 - Step A4 merged (#97, Jenifer Urbano); Jenifer's plan v2 steps are complete.
 - Step B4 in `feat/web-fridge-add-food`: research of real food sites in `docs/design/food-sites-research.md` (SuperCook, Rappi, Cookpad, Éxito); Fridge as a bento with the cabinet map and food cards (grams first, expiry with "≈ estimated", Use, Opened, Throw away); add food sheet in four steps (food chips by category with search, grams stepper, shelf and opened, expiry by estimate, date, or label photo); `SearchFoods` with an empty query browses the catalog; zones expose `kind`; Flyway `V26` texts.
-- **Next action:** B5 (Juan): market and budget redesign, then B6, B7, and C1 to C3. Run the full `mvn verify` with Docker before the release.
+- Step B5 in `feat/web-market-budget`: Market as a bento; budget tile with what is left as a KPI, a spent and planned bar, figures, cheaper allowed foods, and a money stepper with thousands separators (`moneyField`, 10,000 per step); list by aisle with large rows, cost, and price per kilo (as Éxito shows unit prices); cart tile; Flyway `V27` texts.
+- **Next action:** B6 (Juan): Numbers, Chef, and a Settings screen, then B7 and C1 to C3. Run the full `mvn verify` with Docker before the release.
 - Workflow (since 2026-10-08): Claude creates the branch, implements, runs `mvn verify`, and commits locally as the user with no Claude attribution; the user pushes, opens the PR, and merges by hand.
 
 ## How to continue (agreed order)

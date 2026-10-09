@@ -671,3 +671,36 @@ dialog.sheet[open] { animation: sheet-in var(--duration-slow) var(--ease-standar
 .food-group h3 { font-size: var(--size-small); color: var(--color-text-weak); margin-bottom: var(--space-xs); }
 .expiry-preview { font-weight: 600; min-height: 1.5em; }
 .chip[hidden] { display: none; }
+
+.grow { flex: 1 1 14rem; display: grid; }
+.list > li.market-row { grid-template-columns: minmax(0, 1fr) auto auto; min-height: 64px; padding: var(--space-xs) 0; }
+.market-row .check { min-height: 56px; font-size: var(--size-h4); }
+.market-amount { display: grid; justify-items: end; gap: 2px; }
+.market-amount .data { font-size: var(--size-h4); font-weight: 600; }
+.market-group + .market-group { margin-top: var(--space-s); }
+
+.budget-bar {
+  display: flex;
+  height: 16px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-strong);
+  overflow: hidden;
+}
+.budget-bar .spent { background: var(--color-text-weak); }
+.budget-bar .planned { background: var(--color-primary); }
+.budget-figures { display: grid; gap: var(--space-xs); margin: 0; }
+.budget-figures div { display: flex; justify-content: space-between; gap: var(--space-s); }
+.budget-figures dt { color: var(--color-text-weak); display: inline-flex; align-items: center; gap: var(--space-xs); }
+.budget-figures dd { margin: 0; font-weight: 600; }
+.budget-figures .key { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.budget-figures .key.spent { background: var(--color-text-weak); }
+.budget-figures .key.planned { background: var(--color-primary); }
+.budget-tile details summary { cursor: pointer; min-height: 48px; display: flex; align-items: center; font-weight: 600; color: var(--color-primary); }
+.cheaper-list > li { grid-template-columns: 1fr; }
+
+@media (max-width: 760px) {
+  .list > li.market-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .list > li.market-row .item-actions { grid-column: 1 / -1; justify-content: start; }
+}
+.tile > button { justify-self: start; }

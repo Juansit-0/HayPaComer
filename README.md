@@ -70,7 +70,7 @@ flowchart LR
 |---|---|
 | `domain` | Model and business rules in plain Java: fridge composite, stocked food decorators, cold chain state, cooking session state, quantities, substitutions, planning, analytics, cold investigation |
 | `application` | Use cases (one public method each) and segregated ports |
-| `adapter-persistence` | PostgreSQL with Flyway (26 migrations, partitioned sensor events, runtime settings and translations with cache), Redis for all AI state, resilient reference data proxies |
+| `adapter-persistence` | PostgreSQL with Flyway (27 migrations, partitioned sensor events, runtime settings and translations with cache), Redis for all AI state, resilient reference data proxies |
 | `adapter-sensors` | ESP32 envelopes, factories, simulator, in-memory sessions |
 | `adapter-ai` | Offline rule engine, Gemini and OpenAI-compatible clients with strict JSON contracts, circuit breaker |
 | `adapter-notifications` | Telegram and log channels, email links |

@@ -1,16 +1,39 @@
 import { api } from "./api.js";
 import { foodName, formatMoney, plural, t } from "./i18n.js";
-import { esc, foodOptions, formData, grams, numberField, showError, toast, wireFoodSearch, wireSteppers } from "./ui.js";
+import {
+  esc,
+  foodOptions,
+  formData,
+  grams,
+  kpi,
+  moneyField,
+  moneyValue,
+  numberField,
+  showError,
+  toast,
+  wireFoodSearch,
+  wireSteppers,
+} from "./ui.js";
 
-const CATEGORY = (category) => t(`category.${category}`);
+function perKilo(line, currency) {
+  if (line?.estimatedCost === null || line?.estimatedCost === undefined || !Number(line.grams)) return "";
+  return t("market.per-kilo", {
+    price: formatMoney((Number(line.estimatedCost) / Number(line.grams)) * 1000, currency),
+  });
+}
 
-function row(item, bought) {
-  return `<li class="${bought ? "bought" : ""}">
+function row(item, bought, line, currency) {
+  return `<li class="market-row ${bought ? "bought" : ""}">
     <label class="check">
       <input type="checkbox" data-check="${esc(item.id)}" ${bought ? "checked" : ""}>
       <span class="item-name">${esc(foodName(item.food))}</span>
     </label>
-    <span class="item-meta"><span class="data">${grams(item.grams)}</span>${
+    <span class="market-amount"><span class="data">${grams(item.grams)}</span>${
+      line?.estimatedCost !== null && line?.estimatedCost !== undefined
+        ? `<span class="hint">${formatMoney(line.estimatedCost, currency)}</span><span class="hint">${perKilo(line, currency)}</span>`
+        : ""
+    }</span>
+    <span class="item-actions">${
       item.source === "PLAN" || item.source === "RECIPE"
         ? `<span class="status quiet">${item.source === "PLAN" ? t("market.from-plan") : t("market.from-recipe")}</span>`
         : ""
@@ -18,42 +41,65 @@ function row(item, bought) {
   </li>`;
 }
 
-function money(value, currency) {
-  return formatMoney(value, currency);
-}
-
-function budgetPanel(budget, currency) {
+function budgetTile(budget, currency) {
   if (!budget) {
-    return `<form class="row-form panel" data-budget>
-      ${numberField({ name: "monthly", label: t("market.budget"), unit: currency, min: 1, bigStep: 10000, money: true })}
-      <button type="submit">${t("market.set-budget")}</button>
-    </form>`;
+    return `<section class="tile w-5" aria-labelledby="budget-title">
+      <h2 id="budget-title">${t("market.budget")}</h2>
+      <p class="hint">${t("market.budget-hint")}</p>
+      <form class="stack" data-budget>
+        ${moneyField({ name: "monthly", label: t("market.budget"), currency })}
+        <button class="primary" type="submit">${t("market.set-budget")}</button>
+      </form>
+    </section>`;
   }
+  const monthly = Number(budget.monthly);
+  const spent = Number(budget.spent);
+  const planned = Number(budget.plannedCost);
+  const remaining = Number(budget.remaining);
+  const share = (value) => (monthly > 0 ? Math.min(100, Math.max(0, (value / monthly) * 100)) : 0);
   const over = budget.lines.filter((line) => line.estimatedCost !== null && !line.withinBudget);
-  return `<div class="panel stack budget">
-    <div class="totals">
-      <div><span class="data">${money(budget.remaining, budget.currency)}</span><span>${t("market.left")}</span></div>
-      <div><span class="data">${money(budget.plannedCost, budget.currency)}</span><span>${t("market.planned")}</span></div>
-      <div><span class="data">${money(budget.monthly, budget.currency)}</span><span>${t("market.monthly")}</span></div>
+  return `<section class="tile w-5 budget-tile" aria-labelledby="budget-title">
+    <h2 id="budget-title">${t("market.budget")}</h2>
+    ${kpi(formatMoney(remaining, budget.currency), t("market.left"), remaining > 0 ? "positive" : "attention")}
+    <div class="budget-bar" role="img" aria-label="${esc(
+      t("market.bar-label", {
+        spent: formatMoney(spent, budget.currency),
+        planned: formatMoney(planned, budget.currency),
+        monthly: formatMoney(monthly, budget.currency),
+      }),
+    )}">
+      <span class="spent" style="width:${share(spent).toFixed(1)}%"></span>
+      <span class="planned" style="width:${share(planned).toFixed(1)}%"></span>
     </div>
+    <dl class="budget-figures">
+      <div><dt><span class="key spent"></span>${t("market.spent")}</dt><dd class="data">${formatMoney(spent, budget.currency)}</dd></div>
+      <div><dt><span class="key planned"></span>${t("market.planned")}</dt><dd class="data">${formatMoney(planned, budget.currency)}</dd></div>
+      <div><dt>${t("market.monthly")}</dt><dd class="data">${formatMoney(monthly, budget.currency)}</dd></div>
+    </dl>
     ${
       over.length
-        ? `<ul class="list">${over
+        ? `<ul class="list cheaper-list">${over
             .map(
-              (line) => `<li><span class="item-name">${esc(t("market.does-not-fit", { food: foodName(line.food), cost: money(line.estimatedCost, budget.currency) }))}</span>${
-                line.cheaper
-                  ? `<span class="item-meta">${esc(t("market.cheaper", { food: foodName(line.cheaper.food), grams: grams(line.cheaper.grams), cost: money(line.cheaper.estimatedCost, budget.currency) }))}</span>`
-                  : ""
-              }</li>`,
+              (line) => `<li>
+                <span class="item-name">${esc(t("market.does-not-fit", { food: foodName(line.food), cost: formatMoney(line.estimatedCost, budget.currency) }))}</span>
+                ${
+                  line.cheaper
+                    ? `<span class="status">${esc(t("market.cheaper", { food: foodName(line.cheaper.food), grams: grams(line.cheaper.grams), cost: formatMoney(line.cheaper.estimatedCost, budget.currency) }))}</span>`
+                    : ""
+                }
+              </li>`,
             )
             .join("")}</ul>`
-        : `<p class="lead">${t("market.fits")}</p>`
+        : `<p class="hint">${t("market.fits")}</p>`
     }
-    <form class="row-form" data-budget>
-      ${numberField({ name: "monthly", label: t("market.budget"), unit: budget.currency, value: Math.round(budget.monthly), min: 1, bigStep: 10000, money: true })}
-      <button type="submit">${t("market.update-budget")}</button>
-    </form>
-  </div>`;
+    <details>
+      <summary>${t("market.change-budget")}</summary>
+      <form class="stack" data-budget>
+        ${moneyField({ name: "monthly", label: t("market.budget"), currency: budget.currency, value: Math.round(monthly) })}
+        <button type="submit">${t("market.update-budget")}</button>
+      </form>
+    </details>
+  </section>`;
 }
 
 export async function renderMarket(main, household) {
@@ -63,58 +109,69 @@ export async function renderMarket(main, household) {
     api(`/households/${household.id}/market-budget`).catch(() => null),
   ]);
   const pending = list.pending.reduce((sum, group) => sum + group.items.length, 0);
+  const currency = budget?.currency ?? household.currency ?? "COP";
+  const lines = new Map((budget?.lines ?? []).map((line) => [line.itemId, line]));
 
   main.innerHTML = `
-    <section class="stack" aria-labelledby="market-title">
-      <div>
-        <h1 id="market-title">${t("market.title")}</h1>
-        <p class="lead">${
-          pending
-            ? plural("market.pending", pending)
-            : t("market.empty")
-        }</p>
-      </div>
-      ${budgetPanel(budget, household.currency ?? "")}
-      <form class="row-form panel" data-add>
-        <label>${t("field.food")}<input name="food" list="market-foods" required autocomplete="off" placeholder="${esc(t("market.food-example"))}"></label>
-        <label>${t("field.grams")}<input class="grams" name="grams" type="number" min="1" step="1" required></label>
-        ${foodOptions("market-foods")}
-        <button class="primary" type="submit">${t("market.add")}</button>
+    <header>
+      <h1 id="market-title">${t("market.title")}</h1>
+      <p class="lead">${pending ? plural("market.pending", pending) : t("market.empty")}</p>
+    </header>
+    <div class="bento">
+      ${budgetTile(budget, currency)}
+      <section class="tile w-7" aria-labelledby="add-title">
+        <h2 id="add-title">${t("market.add-title")}</h2>
+        <form class="row-form" data-add>
+          <label class="grow">${t("field.food")}<input name="food" list="market-foods" required autocomplete="off" placeholder="${esc(t("market.food-example"))}"></label>
+          ${numberField({ name: "grams", label: t("field.grams"), unit: "g", min: 1, bigStep: 250, value: 500 })}
+          ${foodOptions("market-foods")}
+          <button class="primary" type="submit">${t("market.add")}</button>
+        </form>
         <button type="button" data-plan>${t("market.add-plan")}</button>
-      </form>
-      ${list.pending
-        .map(
-          (group) => `<div class="market-group">
-            <h3>${CATEGORY(group.category)}</h3>
-            <ul class="list">${group.items.map((item) => row(item, false)).join("")}</ul>
-          </div>`,
-        )
-        .join("")}
-    </section>
-    ${
-      list.checked.length
-        ? `<section class="stack" aria-labelledby="bought-title">
-            <div class="item-meta"><h2 id="bought-title">${t("market.cart")}</h2><button class="ghost" type="button" data-clear>${t("market.clear")}</button></div>
-            <ul class="list">${list.checked.map((item) => row(item, true)).join("")}</ul>
-          </section>`
-        : ""
-    }`;
+      </section>
+      <section class="tile ${list.checked.length ? "w-7" : "w-12"}" aria-labelledby="aisles-title">
+        <h2 id="aisles-title">${t("market.aisles")}</h2>
+        ${
+          list.pending.length
+            ? list.pending
+                .map(
+                  (group) => `<div class="market-group">
+                    <h3>${t(`category.${group.category}`)}</h3>
+                    <ul class="list">${group.items.map((item) => row(item, false, lines.get(item.id), currency)).join("")}</ul>
+                  </div>`,
+                )
+                .join("")
+            : `<p class="hint">${t("market.empty")}</p>`
+        }
+      </section>
+      ${
+        list.checked.length
+          ? `<section class="tile w-5" aria-labelledby="bought-title">
+              <header><h2 id="bought-title">${t("market.cart")}</h2><button class="ghost" type="button" data-clear>${t("market.clear")}</button></header>
+              <ul class="list">${list.checked.map((item) => row(item, true, lines.get(item.id), currency)).join("")}</ul>
+            </section>`
+          : ""
+      }
+    </div>`;
 
   wireSteppers(main);
-  const budgetForm = main.querySelector("[data-budget]");
-  budgetForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    try {
-      await api(`/households/${household.id}/market-budget`, {
-        method: "PUT",
-        body: { monthly: Number(formData(budgetForm).monthly) },
-      });
-      toast(t("market.toast-budget"));
-      renderMarket(main, household);
-    } catch (error) {
-      showError(budgetForm, error);
-    }
-  });
+  main.querySelectorAll("[data-budget]").forEach((budgetForm) =>
+    budgetForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const monthly = moneyValue(formData(budgetForm).monthly);
+      if (!monthly) {
+        showError(budgetForm, { message: t("market.budget-missing") });
+        return;
+      }
+      try {
+        await api(`/households/${household.id}/market-budget`, { method: "PUT", body: { monthly } });
+        toast(t("market.toast-budget"));
+        renderMarket(main, household);
+      } catch (error) {
+        showError(budgetForm, error);
+      }
+    }),
+  );
 
   const add = main.querySelector("[data-add]");
   wireFoodSearch(add.querySelector("[name=food]"), api);

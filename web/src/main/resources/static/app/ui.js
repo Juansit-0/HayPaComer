@@ -127,18 +127,46 @@ export function numberField({ name, label, unit, value = "", min = 0, max, step 
   </div>`;
 }
 
+export function moneyField({ name, label, currency, value = "", step = 10000, hint }) {
+  const id = `field-${name}-${Math.random().toString(36).slice(2, 8)}`;
+  const shown = value === "" ? "" : formatNumber(value);
+  return `<div class="number-field">
+    <label for="${id}">${esc(label)}</label>
+    ${hint ? `<p class="hint">${esc(hint)}</p>` : ""}
+    <div class="number-input" data-stepper>
+      <button type="button" data-step="-1" aria-label="${esc(t("stepper.less", { label }))}">\u2212</button>
+      <input id="${id}" class="money" name="${esc(name)}" type="text" inputmode="numeric" autocomplete="off" data-money data-big-step="${step}" value="${esc(shown)}" required>
+      <span class="unit" aria-hidden="true">${esc(currency)}</span>
+      <button type="button" data-step="1" aria-label="${esc(t("stepper.more", { label }))}">+</button>
+    </div>
+  </div>`;
+}
+
+export function moneyValue(text) {
+  const digits = String(text ?? "").replace(/\D/g, "");
+  return digits ? Number(digits) : 0;
+}
+
 export function wireSteppers(root) {
   root.querySelectorAll("[data-stepper]").forEach((box) => {
     const input = box.querySelector("input");
+    const money = input.hasAttribute("data-money");
+    if (money) {
+      input.addEventListener("input", () => {
+        const amount = moneyValue(input.value);
+        input.value = amount ? formatNumber(amount) : "";
+      });
+    }
     box.querySelectorAll("[data-step]").forEach((button) => {
       button.addEventListener("click", () => {
         const step = Number(input.step) || 1;
         const big = Number(input.dataset.bigStep) || step;
-        const current = Number(input.value) || 0;
+        const current = money ? moneyValue(input.value) : Number(input.value) || 0;
         const next = current + Number(button.dataset.step) * big;
         const min = input.min === "" ? -Infinity : Number(input.min);
         const max = input.max === "" ? Infinity : Number(input.max);
-        input.value = String(Math.min(max, Math.max(min, next)));
+        const bounded = Math.min(max, Math.max(min, next));
+        input.value = money ? formatNumber(Math.max(0, bounded)) : String(bounded);
         input.dispatchEvent(new Event("input", { bubbles: true }));
       });
     });
