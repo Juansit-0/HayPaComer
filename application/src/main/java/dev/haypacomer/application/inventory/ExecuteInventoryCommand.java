@@ -88,7 +88,8 @@ public final class ExecuteInventoryCommand {
   public CommandOutcome execute(UserId actor, InventoryCommand command) {
     Household household = inventory.household(actor, command.household());
     CommandOutcome result =
-        unitOfWork.run(
+        unitOfWork.runFor(
+            command.household(),
             () -> {
               Optional<InventoryMovement> previous = inventory.movement(command.id());
               if (previous.isPresent()) {

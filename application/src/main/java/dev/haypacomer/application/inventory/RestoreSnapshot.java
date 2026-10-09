@@ -43,7 +43,8 @@ public final class RestoreSnapshot {
 
   public InventorySnapshot restore(UserId actor, HouseholdId household, UUID snapshotId) {
     services.household(actor, household).requirePermission(actor, Permission.MANAGE_HOUSEHOLD);
-    return services.unitOfWork.run(
+    return services.unitOfWork.runFor(
+        household,
         () -> {
           InventorySnapshot snapshot =
               services
