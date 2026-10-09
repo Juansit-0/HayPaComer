@@ -1,3 +1,5 @@
+import { foodName, formatNumber, plural, t } from "./i18n.js";
+
 const ESCAPES = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
 
 export function esc(value) {
@@ -6,8 +8,8 @@ export function esc(value) {
 
 export function grams(value) {
   const number = Number(value);
-  if (number >= 1000) return `${(number / 1000).toFixed(number % 1000 === 0 ? 0 : 2)} kg`;
-  return `${Math.round(number)} g`;
+  if (number >= 1000) return `${formatNumber(number / 1000, number % 1000 === 0 ? 0 : 2)} kg`;
+  return `${formatNumber(Math.round(number))} g`;
 }
 
 export function daysLeft(isoDate) {
@@ -20,29 +22,29 @@ export function daysLeft(isoDate) {
 
 export function whenText(isoDate) {
   const days = daysLeft(isoDate);
-  if (days === null) return "No expiry date";
-  if (days < 0) return days === -1 ? "Expired yesterday" : `Expired ${-days} days ago`;
-  if (days === 0) return "Expires today";
-  if (days === 1) return "Expires tomorrow";
-  return `Expires in ${days} days`;
+  if (days === null) return t("expiry.none");
+  if (days < 0) return days === -1 ? t("expiry.yesterday") : plural("expiry.ago", -days);
+  if (days === 0) return t("expiry.today");
+  if (days === 1) return t("expiry.tomorrow");
+  return plural("expiry.in", days);
 }
 
 const STATUS = {
-  EXPIRED: ["attention", "Expired"],
-  UNDER_REVIEW: ["attention", "Under review"],
-  AT_RISK: ["attention", "Expiring"],
-  LEFTOVER: ["attention", "Leftover"],
-  PRIVATE: ["quiet", "Private"],
-  ASK_FIRST: ["quiet", "Ask first"],
+  EXPIRED: ["attention", "status.expired"],
+  UNDER_REVIEW: ["attention", "status.under-review"],
+  AT_RISK: ["attention", "status.at-risk"],
+  LEFTOVER: ["attention", "status.leftover"],
+  PRIVATE: ["quiet", "status.private"],
+  ASK_FIRST: ["quiet", "status.ask-first"],
 };
 
 const ORDER = ["EXPIRED", "UNDER_REVIEW", "AT_RISK", "LEFTOVER", "PRIVATE", "ASK_FIRST"];
 
 export function statusPill(statuses = []) {
   const key = ORDER.find((status) => statuses.includes(status));
-  if (!key) return `<span class="status">Fresh</span>`;
+  if (!key) return `<span class="status">${t("status.fresh")}</span>`;
   const [tone, label] = STATUS[key];
-  return `<span class="status ${tone}">${label}</span>`;
+  return `<span class="status ${tone}">${t(label)}</span>`;
 }
 
 export function toast(message) {
@@ -63,7 +65,7 @@ export function errorText(error) {
       .map(([field, message]) => `${field} ${message}`)
       .join(". ");
   }
-  return error?.message || "Something went wrong. Try again.";
+  return error?.message || t("error.generic");
 }
 
 export function showError(form, error) {
@@ -90,7 +92,9 @@ export function wireFoodSearch(input, api) {
     if (query.length < 2) return;
     timer = setTimeout(async () => {
       const foods = await api(`/foods?q=${encodeURIComponent(query)}`);
-      list.innerHTML = foods.map((food) => `<option value="${esc(food.name)}"></option>`).join("");
+      list.innerHTML = foods
+        .map((food) => `<option value="${esc(food.name)}" label="${esc(foodName(food.name))}"></option>`)
+        .join("");
     }, 200);
   });
 }
@@ -105,10 +109,10 @@ export function numberField({ name, label, unit, value = "", min = 0, max, step 
     <label for="${id}">${esc(label)}</label>
     ${hint ? `<p class="hint">${esc(hint)}</p>` : ""}
     <div class="number-input" data-stepper>
-      <button type="button" data-step="-1" aria-label="${esc(`Less ${label.toLowerCase()}`)}">−</button>
+      <button type="button" data-step="-1" aria-label="${esc(t("stepper.less", { label }))}">−</button>
       <input id="${id}" class="${money ? "money" : "grams"}" name="${esc(name)}" type="number" inputmode="${step < 1 ? "decimal" : "numeric"}" min="${min}" ${max === undefined ? "" : `max="${max}"`} step="${step}" ${bigStep ? `data-big-step="${bigStep}"` : ""} value="${esc(value)}" ${required ? "required" : ""}>
       ${unit ? `<span class="unit" aria-hidden="true">${esc(unit)}</span>` : ""}
-      <button type="button" data-step="1" aria-label="${esc(`More ${label.toLowerCase()}`)}">+</button>
+      <button type="button" data-step="1" aria-label="${esc(t("stepper.more", { label }))}">+</button>
     </div>
   </div>`;
 }
@@ -141,7 +145,7 @@ export function chips(name, legend, options, selected) {
     .join("")}</fieldset>`;
 }
 
-export function dateField({ name, label, value = "", unknownLabel = "I don't know" }) {
+export function dateField({ name, label, value = "", unknownLabel = t("field.unknown-date") }) {
   const id = `field-${name}-${Math.random().toString(36).slice(2, 8)}`;
   return `<div class="date-field" data-date-field>
     <label for="${id}">${esc(label)}</label>
@@ -166,7 +170,7 @@ export function openSheet(title, body, onReady) {
   const dialog = document.createElement("dialog");
   dialog.className = "sheet";
   dialog.setAttribute("aria-label", title);
-  dialog.innerHTML = `<div><header><h2>${esc(title)}</h2><button type="button" class="ghost" data-close>Close</button></header>${body}</div>`;
+  dialog.innerHTML = `<div><header><h2>${esc(title)}</h2><button type="button" class="ghost" data-close>${t("action.close")}</button></header>${body}</div>`;
   document.body.append(dialog);
   dialog.querySelector("[data-close]").addEventListener("click", () => dialog.close());
   dialog.addEventListener("close", () => dialog.remove());

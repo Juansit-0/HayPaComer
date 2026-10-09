@@ -108,7 +108,9 @@ HayPaComer (name confirmed in Phase 0.5) is a smart home fridge: Java applicatio
 - Step A2 in `feat/i18n-messages`: Flyway `V22` (`locales`, `translations`, `message_templates`, `users.locale`); `MessageTranslator`, `ResolveLocale`, `ChangeUserLocale`, `ViewTranslations`, `ListLocales`, `TranslateMessages`; `Localizer` and `LocalizedProblems` in web; public `GET /i18n` and `/i18n/{locale}`, `PUT /me/locale`; Spanish catalog search.
 - Step A2 merged (#93, Jenifer Urbano). Step B2 merged (#94): tokens v2, bento grid, `kpi`, `numberField` steppers, `chips`, `dateField`, `openSheet`; Now as bento; wide money stepper for the budget. The user wants the B4-B7 redesign based on browsing real food sites, not generic patterns.
 - Step A3 in `feat/expiry-logic`: Flyway `V23` (shelf life by zone in `food_catalog`, `food_items.expiry_source` and `opened_on`, `food.expiry-margin-days`); domain `expiry` (`ShelfLife`, `ExpiryRules`, `ExpirySource`, `ExpiryEstimate`, `ImpossibleExpiryException`); `ExpiryDesk`, `EstimateExpiry`, `MarkFoodOpened`; 422 for impossible dates; `GET /expiry-estimate`, `POST /items/{id}/open`.
-- **Next action:** B3 (Juan): language switch and localized formats in the web UI. Then A4 (Jenifer): expiry from a label photo.
+- Step A3 merged (#95, Jenifer Urbano).
+- Step B3 in `feat/web-language-switch`: `app/i18n.js` (`t`, `plural` with `Intl.PluralRules`, `foodName`, `placeName`, `Intl` numbers, money, days, and times; texts cached in `localStorage` with the ETag); every visible text in `static/app/*.js` and `index.html` is a key; Flyway `V24` seeds them in Spanish and English; language select in the header saves `PUT /me/locale`; `WebTextsTest` fails on a literal visible text or a key missing in either language.
+- **Next action:** A4 (Jenifer): expiry from a label photo. Then B4 (Juan), starting with browsing real food sites.
 - Workflow (since 2026-10-08): Claude creates the branch, implements, runs `mvn verify`, and commits locally as the user with no Claude attribution; the user pushes, opens the PR, and merges by hand.
 
 ## How to continue (agreed order)

@@ -1,4 +1,5 @@
 import { api, session } from "./api.js";
+import { currentLocale, t } from "./i18n.js";
 import { esc, formData, showError } from "./ui.js";
 
 export function renderSignIn(main, onDone) {
@@ -8,29 +9,29 @@ export function renderSignIn(main, onDone) {
     main.innerHTML = `
       <section class="auth stack" aria-labelledby="auth-title">
         <div>
-          <h1 id="auth-title">${creating ? "Create your account" : "What can you cook right now?"}</h1>
+          <h1 id="auth-title">${creating ? t("auth.create-title") : t("auth.signin-title")}</h1>
           <p class="lead">${
             creating
-              ? "One account per person. You can share a fridge with your household after this."
-              : "Sign in to see what is in your fridge, in grams, and what to use first."
+              ? t("auth.create-lead")
+              : t("auth.signin-lead")
           }</p>
         </div>
         <form novalidate>
           ${
             creating
-              ? `<label>Name<input name="displayName" autocomplete="name" required maxlength="80"></label>`
+              ? `<label>${t("auth.name")}<input name="displayName" autocomplete="name" required maxlength="80"></label>`
               : ""
           }
-          <label>Email<input name="email" type="email" autocomplete="email" required></label>
-          <label>Password${creating ? " (at least 10 characters)" : ""}
+          <label>${t("auth.email")}<input name="email" type="email" autocomplete="email" required></label>
+          <label>${creating ? t("auth.password-new") : t("auth.password")}
             <input name="password" type="password" autocomplete="${
               creating ? "new-password" : "current-password"
             }" required minlength="${creating ? 10 : 1}">
           </label>
-          <button class="primary" type="submit">${creating ? "Create account" : "Sign in"}</button>
+          <button class="primary" type="submit">${creating ? t("auth.create") : t("auth.signin")}</button>
         </form>
         <button class="ghost" type="button" data-switch>${
-          creating ? "I already have an account" : "Create an account"
+          creating ? t("auth.have-account") : t("auth.create-account")
         }</button>
       </section>`;
     main.querySelector("[data-switch]").addEventListener("click", () => {
@@ -51,6 +52,7 @@ export function renderSignIn(main, onDone) {
             auth: false,
           }),
         );
+        await api("/me/locale", { method: "PUT", body: { locale: currentLocale() } }).catch(() => null);
         onDone();
       } catch (error) {
         showError(event.target, error);
@@ -72,13 +74,13 @@ export async function chooseHousehold(main, onDone) {
   main.innerHTML = `
     <section class="auth stack" aria-labelledby="home-title">
       <div>
-        <h1 id="home-title">Name your home</h1>
-        <p class="lead">Your household shares one fridge, one market list, and the same alerts.</p>
+        <h1 id="home-title">${t("home.title")}</h1>
+        <p class="lead">${t("home.lead")}</p>
       </div>
       <form>
-        <label>Household name<input name="name" required maxlength="60" placeholder="Apartment 402"></label>
-        <label>Currency<input name="currency" required value="COP" maxlength="3" class="grams"></label>
-        <button class="primary" type="submit">Create household</button>
+        <label>${t("home.name")}<input name="name" required maxlength="60" placeholder="${esc(t("home.name-example"))}"></label>
+        <label>${t("home.currency")}<input name="currency" required value="COP" maxlength="3" class="grams"></label>
+        <button class="primary" type="submit">${t("home.create")}</button>
       </form>
     </section>`;
   main.querySelector("form").addEventListener("submit", async (event) => {

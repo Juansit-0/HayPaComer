@@ -37,7 +37,7 @@ class StaticUiIntegrationTest {
     mvc.perform(get("/app/main.js")).andExpect(status().isOk());
     mvc.perform(get("/app/analytics.js"))
         .andExpect(status().isOk())
-        .andExpect(content().string(containsString("Who rescued the most")));
+        .andExpect(content().string(containsString("numbers.ranking")));
     mvc.perform(get("/index.html")).andExpect(content().string(containsString("#/numbers")));
     mvc.perform(get("/index.html")).andExpect(content().string(containsString("#/chef")));
     mvc.perform(get("/app/chef.js"))
@@ -51,6 +51,11 @@ class StaticUiIntegrationTest {
         .andExpect(content().string(containsString("localStorage")))
         .andExpect(content().string(containsString("navigator.locks")))
         .andExpect(content().string(not(containsString("sessionStorage"))));
+    mvc.perform(get("/app/i18n.js"))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("/api/v1/i18n")))
+        .andExpect(content().string(containsString("Intl.PluralRules")));
+    mvc.perform(get("/index.html")).andExpect(content().string(containsString("data-language")));
     mvc.perform(get("/app/app.css")).andExpect(status().isOk());
     mvc.perform(get("/brand/tokens.css"))
         .andExpect(status().isOk())

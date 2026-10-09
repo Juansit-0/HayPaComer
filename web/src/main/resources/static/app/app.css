@@ -611,3 +611,9 @@ dialog.sheet[open] { animation: sheet-in var(--duration-slow) var(--ease-standar
 }
 
 .row-form > button { min-height: var(--control-height-large); }
+
+.language { display: inline-flex; }
+.language select { min-height: 44px; font-size: var(--size-body); padding: 0 var(--space-xs); }
+.session + .language, .tabs + .language { margin-left: 0; }
+.bar > .language:last-child { margin-left: var(--space-s); }
+.bar .tabs[hidden] ~ .language { margin-left: auto; }

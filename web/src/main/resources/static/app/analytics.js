@@ -1,4 +1,5 @@
 import { api, session } from "./api.js";
+import { foodName, formatDay, formatMoney, formatNumber, t } from "./i18n.js";
 import { esc, formData, grams, showError, toast, wireFoodSearch, foodOptions } from "./ui.js";
 
 const PERIODS = [7, 30, 90];
@@ -6,11 +7,11 @@ let chosenDays = 30;
 let me = null;
 
 function money(value, currency) {
-  return new Intl.NumberFormat(undefined, { style: "currency", currency, maximumFractionDigits: 0 }).format(Number(value));
+  return formatMoney(value, currency);
 }
 
 function percent(rate) {
-  return `${(rate * 100).toFixed(rate > 0 && rate < 0.1 ? 1 : 0)}%`;
+  return `${formatNumber(rate * 100, 0 < rate && rate < 0.1 ? 1 : 0)}\u2009%`;
 }
 
 function isoDay(date) {
@@ -19,7 +20,7 @@ function isoDay(date) {
 }
 
 function shortDay(iso) {
-  return new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, { day: "numeric", month: "short" });
+  return formatDay(iso);
 }
 
 function chart(days) {
@@ -53,13 +54,13 @@ function chart(days) {
     </svg>
     <div class="chart-scale"><span>${shortDay(days[0].day)}</span><span>${shortDay(days[days.length - 1].day)}</span></div>
     <figcaption id="chart-caption">
-      <span class="key rescued">Rescued before expiring</span>
-      <span class="key eaten">Eaten</span>
-      <span class="key wasted">Thrown away, below the line</span>
+      <span class="key rescued">${t("numbers.key.rescued")}</span>
+      <span class="key eaten">${t("numbers.key.eaten")}</span>
+      <span class="key wasted">${t("numbers.key.wasted")}</span>
     </figcaption>
     <table class="visually-hidden">
-      <caption>Grams per day</caption>
-      <thead><tr><th>Day</th><th>Eaten</th><th>Rescued</th><th>Thrown away</th></tr></thead>
+      <caption>${t("numbers.table.caption")}</caption>
+      <thead><tr><th>${t("numbers.table.day")}</th><th>${t("numbers.table.eaten")}</th><th>${t("numbers.table.rescued")}</th><th>${t("numbers.table.wasted")}</th></tr></thead>
       <tbody>${active
         .map(
           (day) => `<tr><td>${day.day}</td><td>${grams(day.tally.consumedGrams)}</td><td>${grams(day.tally.rescuedGrams)}</td><td>${grams(day.tally.discardedGrams)}</td></tr>`,
@@ -74,10 +75,10 @@ function ranking(members) {
   return `<ol class="ranking">${members
     .map(
       (member) => `<li>
-        <span class="item-name">${esc(member.name)}${member.userId === me ? ` <span class="status quiet">You</span>` : ""}</span>
+        <span class="item-name">${esc(member.name)}${member.userId === me ? ` <span class="status quiet">${t("numbers.you")}</span>` : ""}</span>
         <span class="meter" aria-hidden="true"><span style="width:${((Number(member.tally.rescuedGrams) / best) * 100).toFixed(0)}%"></span></span>
-        <span class="data">${grams(member.tally.rescuedGrams)} rescued</span>
-        <span class="item-meta">${grams(member.tally.consumedGrams)} eaten, ${grams(member.tally.discardedGrams)} thrown away</span>
+        <span class="data">${t("numbers.rescued-grams", { grams: grams(member.tally.rescuedGrams) })}</span>
+        <span class="item-meta">${t("numbers.member-detail", { eaten: grams(member.tally.consumedGrams), wasted: grams(member.tally.discardedGrams) })}</span>
       </li>`,
     )
     .join("")}</ol>`;
@@ -88,11 +89,11 @@ function foods(list) {
     .slice(0, 8)
     .map(
       (food) => `<li>
-        <span class="item-name">${food.foodKey === "unknown" ? "Not recorded (older moves)" : esc(food.foodKey.charAt(0).toUpperCase() + food.foodKey.slice(1))}</span>
+        <span class="item-name">${food.foodKey === "unknown" ? t("numbers.unknown-food") : esc(foodName(food.foodKey) === food.foodKey ? food.foodKey.charAt(0).toUpperCase() + food.foodKey.slice(1) : foodName(food.foodKey))}</span>
         <span class="item-meta">${
-          Number(food.tally.consumedGrams) ? `<span class="data">${grams(food.tally.consumedGrams)}</span> eaten` : ""
+          Number(food.tally.consumedGrams) ? t("numbers.eaten-grams", { grams: `<span class="data">${grams(food.tally.consumedGrams)}</span>` }) : ""
         }${
-          Number(food.tally.discardedGrams) ? `<span class="status attention">${grams(food.tally.discardedGrams)} thrown away</span>` : ""
+          Number(food.tally.discardedGrams) ? `<span class="status attention">${t("numbers.wasted-grams", { grams: grams(food.tally.discardedGrams) })}</span>` : ""
         }</span>
       </li>`,
     )
@@ -104,7 +105,7 @@ async function download(base, format, from, to) {
     headers: { Authorization: `Bearer ${session.access}` },
   });
   if (!response.ok) {
-    toast("The report did not download. Try again.");
+    toast(t("numbers.report-failed"));
     return;
   }
   const name = /filename="([^"]+)"/.exec(response.headers.get("Content-Disposition") ?? "")?.[1] ?? `report.${format}`;
@@ -132,23 +133,23 @@ export async function renderAnalytics(main, household) {
     <section class="stack" aria-labelledby="numbers-title">
       <div class="numbers-head">
         <div>
-          <h1 id="numbers-title">What your fridge saved</h1>
-          <p class="lead">Measured on the scale and the inventory, ${shortDay(metrics.from)} to ${shortDay(metrics.to)}.</p>
+          <h1 id="numbers-title">${t("numbers.title")}</h1>
+          <p class="lead">${t("numbers.lead", { from: shortDay(metrics.from), to: shortDay(metrics.to) })}</p>
         </div>
-        <div class="segmented" role="group" aria-label="Period">${PERIODS.map(
-          (days) => `<button type="button" data-days="${days}" aria-pressed="${days === chosenDays}">${days} days</button>`,
+        <div class="segmented" role="group" aria-label="${esc(t("numbers.period"))}">${PERIODS.map(
+          (days) => `<button type="button" data-days="${days}" aria-pressed="${days === chosenDays}">${t("numbers.days", { n: days })}</button>`,
         ).join("")}</div>
       </div>
       ${
         moved === 0
-          ? `<div class="empty"><h2>No food has left the fridge in this period</h2><p>Use or throw away food from the Fridge screen, or weigh it on the scale, and the numbers start here.</p></div>`
+          ? `<div class="empty"><h2>${t("numbers.empty-title")}</h2><p>${t("numbers.empty-lead")}</p></div>`
           : `<div class="saved">
-              <div><span class="hero-number">${grams(total.rescuedGrams)}</span><span>rescued before expiring</span></div>
+              <div><span class="hero-number">${grams(total.rescuedGrams)}</span><span>${t("numbers.rescued")}</span></div>
               <div class="totals">
-                <div><span class="data">${money(metrics.moneySaved, metrics.currency)}</span><span>saved</span></div>
-                <div><span class="data">${grams(total.consumedGrams)}</span><span>eaten</span></div>
-                <div><span class="data attention-text">${grams(total.discardedGrams)}</span><span>thrown away, ${percent(total.wasteRate)} of what left the fridge</span></div>
-                <div><span class="data">${money(metrics.moneyWasted, metrics.currency)}</span><span>lost to waste</span></div>
+                <div><span class="data">${money(metrics.moneySaved, metrics.currency)}</span><span>${t("numbers.saved")}</span></div>
+                <div><span class="data">${grams(total.consumedGrams)}</span><span>${t("numbers.eaten")}</span></div>
+                <div><span class="data attention-text">${grams(total.discardedGrams)}</span><span>${t("numbers.wasted", { rate: percent(total.wasteRate) })}</span></div>
+                <div><span class="data">${money(metrics.moneyWasted, metrics.currency)}</span><span>${t("numbers.lost")}</span></div>
               </div>
             </div>
             ${chart(metrics.days)}`
@@ -156,30 +157,30 @@ export async function renderAnalytics(main, household) {
     </section>
     ${
       metrics.members.length
-        ? `<section class="stack" aria-labelledby="ranking-title"><h2 id="ranking-title">Who rescued the most</h2>${ranking(metrics.members)}</section>`
+        ? `<section class="stack" aria-labelledby="ranking-title"><h2 id="ranking-title">${t("numbers.ranking")}</h2>${ranking(metrics.members)}</section>`
         : ""
     }
     ${
       metrics.foods.length
-        ? `<section class="stack" aria-labelledby="foods-title"><h2 id="foods-title">Foods</h2>${foods(metrics.foods)}</section>`
+        ? `<section class="stack" aria-labelledby="foods-title"><h2 id="foods-title">${t("numbers.foods")}</h2>${foods(metrics.foods)}</section>`
         : ""
     }
     <section class="stack" aria-labelledby="prices-title">
-      <h2 id="prices-title">Prices</h2>
+      <h2 id="prices-title">${t("numbers.prices")}</h2>
       <p class="lead">${
         metrics.unpriced.length
-          ? `Money leaves out ${metrics.unpriced.map(esc).join(", ")} until they have a price per kilogram.`
-          : "Money uses reference prices per kilogram. Set your own to match your market."
+          ? t("numbers.unpriced", { foods: metrics.unpriced.map((food) => esc(foodName(food))).join(", ") })
+          : t("numbers.reference-prices")
       }</p>
       <form class="row-form panel" data-price>
-        <label>Food<input name="food" list="price-foods" required autocomplete="off" value="${esc(metrics.unpriced[0] ?? "")}"></label>
-        <label>Price per kg<input class="grams" name="price" type="number" min="1" step="1" required></label>
+        <label>${t("field.food")}<input name="food" list="price-foods" required autocomplete="off" value="${esc(metrics.unpriced[0] ?? "")}"></label>
+        <label>${t("numbers.price-per-kg")}<input class="money" name="price" type="number" min="1" step="1" required></label>
         ${foodOptions("price-foods")}
-        <button class="primary" type="submit">Save price</button>
+        <button class="primary" type="submit">${t("numbers.save-price")}</button>
       </form>
       <div class="row-form">
-        <button type="button" data-download="markdown">Download report</button>
-        <button type="button" data-download="csv">Download CSV</button>
+        <button type="button" data-download="markdown">${t("numbers.download-report")}</button>
+        <button type="button" data-download="csv">${t("numbers.download-csv")}</button>
       </div>
     </section>`;
 
@@ -199,7 +200,7 @@ export async function renderAnalytics(main, household) {
     const values = formData(price);
     try {
       await api(`${base}/prices`, { method: "PUT", body: { food: values.food, pricePerKg: Number(values.price) } });
-      toast(`Saved the price of ${values.food}`);
+      toast(t("numbers.toast-price", { food: foodName(values.food) }));
       renderAnalytics(main, household);
     } catch (error) {
       showError(price, error);

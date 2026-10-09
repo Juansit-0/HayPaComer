@@ -1,13 +1,14 @@
 import { api } from "./api.js";
 import { liveFeed } from "./live.js";
+import { foodName, formatTime, plural, t } from "./i18n.js";
 import { esc, grams, kpi, numberField, showError, statusPill, toast, whenText, wireSteppers } from "./ui.js";
 
 const URGENT = ["EXPIRED", "UNDER_REVIEW", "AT_RISK", "LEFTOVER"];
-const LABELS = { inventory: "Stock", sensor: "Sensor", alert: "Alert", copilot: "Scale" };
-const ACTIONS = { STOCK_FOOD: "Food added", CONSUME_FOOD: "Food used", DISCARD_FOOD: "Food thrown away" };
+const LABELS = { inventory: "live.kind.inventory", sensor: "live.kind.sensor", alert: "live.kind.alert", copilot: "live.kind.copilot" };
+const ACTIONS = { STOCK_FOOD: "live.action.stock", CONSUME_FOOD: "live.action.consume", DISCARD_FOOD: "live.action.discard" };
 const sentence = (text) => {
   const stock = text.match(/^([A-Z_]+) ([\d.]+) g left$/);
-  if (stock) return `${ACTIONS[stock[1]] ?? "Stock changed"}, ${grams(stock[2])} left`;
+  if (stock) return t("live.stock-left", { action: t(ACTIONS[stock[1]] ?? "live.action.other"), grams: grams(stock[2]) });
   return text.charAt(0).toUpperCase() + text.slice(1).replace(/ C$/, "\u2009°C");
 };
 
@@ -43,46 +44,46 @@ export async function renderNow(main, household) {
 
   main.innerHTML = `
     <header>
-      <h1 id="now-title">${first ? "Use this first" : "Nothing is about to expire"}</h1>
+      <h1 id="now-title">${first ? t("now.title") : t("now.title-fresh")}</h1>
       <p class="lead">${
         first
-          ? "Measured stock in your fridge, ordered by what will go bad soonest."
-          : "Everything you can use is fresh. Plan a dish or restock the market list."
+          ? t("now.lead")
+          : t("now.lead-fresh")
       }</p>
     </header>
 
     <div class="bento">
       ${
         first
-          ? `<article class="tile alert w-8" aria-label="${esc(first.name)}">
-              <div class="item-meta"><h2>${esc(first.name)}</h2>${statusPill(first.statuses)}</div>
+          ? `<article class="tile alert w-8" aria-label="${esc(foodName(first.name))}">
+              <div class="item-meta"><h2>${esc(foodName(first.name))}</h2>${statusPill(first.statuses)}</div>
               ${kpi(grams(first.grams), whenText(first.expiresOn), "attention")}
               <form class="row-form" data-consume="${esc(first.id)}">
-                ${numberField({ name: "grams", label: "Grams used", unit: "g", value: Math.round(first.grams), min: 1, bigStep: 50 })}
-                <button class="primary" type="submit">Mark as used</button>
+                ${numberField({ name: "grams", label: t("now.grams-used"), unit: "g", value: Math.round(first.grams), min: 1, bigStep: 50 })}
+                <button class="primary" type="submit">${t("now.mark-used")}</button>
               </form>
             </article>`
           : ""
       }
 
       <section class="tile ${first ? "w-4" : "w-12"}" aria-labelledby="totals-title">
-        <h2 id="totals-title">In the fridge</h2>
+        <h2 id="totals-title">${t("now.in-fridge")}</h2>
         <div class="bento">
-          <div class="w-6">${kpi(grams(snapshot.totalGrams), "measured food")}</div>
-          <div class="w-6">${kpi(String(snapshot.items), "items")}</div>
-          <div class="w-6">${kpi(String(snapshot.atRisk), "expiring soon", snapshot.atRisk ? "attention" : "")}</div>
-          <div class="w-6">${kpi(String(snapshot.expired), "expired", snapshot.expired ? "attention" : "")}</div>
+          <div class="w-6">${kpi(grams(snapshot.totalGrams), t("now.kpi.measured"))}</div>
+          <div class="w-6">${kpi(String(snapshot.items), t("now.kpi.items"))}</div>
+          <div class="w-6">${kpi(String(snapshot.atRisk), t("now.kpi.at-risk"), snapshot.atRisk ? "attention" : "")}</div>
+          <div class="w-6">${kpi(String(snapshot.expired), t("now.kpi.expired"), snapshot.expired ? "attention" : "")}</div>
         </div>
       </section>
 
       ${
         rest.length
           ? `<section class="tile w-6" aria-labelledby="also-title">
-              <h2 id="also-title">Also expiring</h2>
+              <h2 id="also-title">${t("now.also")}</h2>
               <ul class="list">${rest
                 .map(
                   (item) => `<li>
-                    <div class="item-meta"><span class="item-name">${esc(item.name)}</span>${statusPill(item.statuses)}<span>${whenText(item.expiresOn)}</span></div>
+                    <div class="item-meta"><span class="item-name">${esc(foodName(item.name))}</span>${statusPill(item.statuses)}<span>${whenText(item.expiresOn)}</span></div>
                     <span class="data">${grams(item.grams)}</span>
                   </li>`,
                 )
@@ -92,24 +93,24 @@ export async function renderNow(main, household) {
       }
 
       <section class="tile ${rest.length ? "w-6" : "w-12"}" aria-labelledby="live-title">
-        <header><h2 id="live-title">Happening now</h2></header>
-        <p class="hint">Door, temperature, and stock changes appear here as they happen.</p>
+        <header><h2 id="live-title">${t("now.live")}</h2></header>
+        <p class="hint">${t("now.live-hint")}</p>
         <ul class="list feed" data-feed aria-live="polite"></ul>
       </section>
 
       <section class="tile w-12" aria-labelledby="cook-title">
-        <h2 id="cook-title">Cook now</h2>
+        <h2 id="cook-title">${t("now.cook")}</h2>
         <p class="lead">${
           recipes.length
-            ? `Checks your ${recipes.length} saved ${recipes.length === 1 ? "recipe" : "recipes"} against the grams in the fridge and the allergies at home.`
-            : "Save a recipe first, then this shows what you can cook with what is really here."
+            ? plural("now.cook-lead", recipes.length)
+            : t("now.cook-empty")
         }</p>
         ${
           recipes.length
             ? `<form class="row-form" data-suggest>
-                ${numberField({ name: "servings", label: "People", value: 2, min: 1, max: 20 })}
-                ${numberField({ name: "maxMinutes", label: "Minutes, at most", unit: "min", min: 1, bigStep: 10, required: false })}
-                <button type="submit">Find dishes</button>
+                ${numberField({ name: "servings", label: t("now.people"), value: 2, min: 1, max: 20 })}
+                ${numberField({ name: "maxMinutes", label: t("now.max-minutes"), unit: "min", min: 1, bigStep: 10, required: false })}
+                <button type="submit">${t("now.find")}</button>
               </form>
               <div class="dishes" data-dishes></div>`
             : ""
@@ -125,12 +126,12 @@ export async function renderNow(main, household) {
       ? events
           .map(
             (event) => `<li>
-              <div class="item-meta"><span class="status ${event.kind === "alert" ? "attention" : "quiet"}">${esc(LABELS[event.kind] ?? event.kind)}</span><span>${esc(sentence(event.detail))}</span></div>
-              <time class="data" datetime="${esc(event.at)}">${new Date(event.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</time>
+              <div class="item-meta"><span class="status ${event.kind === "alert" ? "attention" : "quiet"}">${esc(LABELS[event.kind] ? t(LABELS[event.kind]) : event.kind)}</span><span>${esc(sentence(event.detail))}</span></div>
+              <time class="data" datetime="${esc(event.at)}">${formatTime(event.at)}</time>
             </li>`,
           )
           .join("")
-      : `<li><span class="lead">Quiet for now. Open the fridge door or use some food to see it here.</span></li>`;
+      : `<li><span class="lead">${t("now.live-empty")}</span></li>`;
   };
   drawFeed();
   const onLive = () => {
@@ -150,7 +151,7 @@ export async function renderNow(main, household) {
         method: "POST",
         body: { grams: amount },
       });
-      toast(`Marked ${grams(amount)} of ${first.name} as used`);
+      toast(t("now.toast-used", { grams: grams(amount), food: foodName(first.name) }));
       renderNow(main, household);
     } catch (error) {
       showError(event.target, error);
@@ -176,14 +177,14 @@ export async function renderNow(main, household) {
               (dish) => `<article class="dish">
                 <div class="item-meta"><h3>${esc(dish.recipe)}</h3><span class="data">${dish.minutes} min</span>${
                   dish.evaluation.verdict === "ENOUGH"
-                    ? `<span class="status">Enough at home</span>`
-                    : `<span class="status attention">${esc(dish.evaluation.verdict.toLowerCase())}</span>`
+                    ? `<span class="status">${t("verdict.ENOUGH")}</span>`
+                    : `<span class="status attention">${esc(t(`verdict.${dish.evaluation.verdict}`))}</span>`
                 }</div>
                 <p>${esc(dish.reason)}</p>
               </article>`,
             )
             .join("")
-        : `<p class="lead">No saved recipe fits right now. Try more minutes, fewer people, or check the market list.</p>`;
+        : `<p class="lead">${t("now.no-dish")}</p>`;
     } catch (error) {
       showError(event.target, error);
     }
