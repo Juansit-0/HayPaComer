@@ -243,4 +243,39 @@ class KitchenToolsTest {
     assertTrue(content.endsWith("Food: Chicken breast USE_TODAY."));
     assertEquals("Investigate cold incidents", tool.describe(call(Map.of())));
   }
+
+  @Test
+  void theCoachSeesFoodsThrownAwayTwice() {
+    WastePatternsTool tool =
+        new WastePatternsTool(
+            new dev.haypacomer.application.analytics.FindWastePatterns(
+                kitchen.households, kitchen.stores.history, kitchen.clock));
+    assertEquals(
+        "No food was thrown away twice in the last 30 days", tool.invoke(call(Map.of())).content());
+    for (int day = 1; day <= 2; day++) {
+      kitchen.stores.movements.record(
+          new dev.haypacomer.domain.inventory.InventoryMovement(
+              java.util.UUID.randomUUID(),
+              kitchen.home.id(),
+              dev.haypacomer.domain.fridge.FoodItemId.newId(),
+              kitchen.owner,
+              dev.haypacomer.domain.inventory.MovementType.DISCARD,
+              new BigDecimal("-200"),
+              dev.haypacomer.domain.inventory.MovementSource.MANUAL,
+              KitchenFixture.NOW.minusSeconds(day * 86_400L),
+              "bread",
+              null));
+    }
+
+    assertEquals(
+        "You threw away bread 2 times (400 g). Buy about 90% less, or plan a dish for it earlier.",
+        tool.invoke(call(Map.of("days", "7"))).content());
+    assertEquals("Look for waste patterns", tool.describe(call(Map.of())));
+    org.junit.jupiter.api.Assertions.assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            new dev.haypacomer.application.analytics.FindWastePatterns(
+                    kitchen.households, kitchen.stores.history, kitchen.clock)
+                .find(kitchen.owner, kitchen.home.id(), 91));
+  }
 }

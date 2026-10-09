@@ -135,6 +135,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 83. reactive copilot with live scale
 - [x] 84. market agent with budget
 - [x] 85. cold incident investigation
+- [x] 86. anti-waste coach and weekly digest
 
 ## F6 assignments
 

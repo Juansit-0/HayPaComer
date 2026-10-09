@@ -4,6 +4,7 @@ import dev.haypacomer.agent.proactive.AlertBriefings;
 import dev.haypacomer.agent.proactive.Briefer;
 import dev.haypacomer.agent.proactive.ScheduledBriefings;
 import dev.haypacomer.agent.supervisor.Supervisor;
+import dev.haypacomer.application.analytics.BuildWeeklyDigest;
 import dev.haypacomer.application.inventory.ViewInventory;
 import dev.haypacomer.application.notification.NotifyHousehold;
 import dev.haypacomer.application.port.BriefingLog;
@@ -57,7 +58,8 @@ public class ProactiveConfiguration {
       ViewInventory inventory,
       BriefingLog log,
       Briefer briefer,
+      BuildWeeklyDigest digest,
       Clock clock) {
-    return new ScheduledBriefings(directory, households, inventory, log, briefer, clock);
+    return new ScheduledBriefings(directory, households, inventory, log, briefer, digest, clock);
   }
 }

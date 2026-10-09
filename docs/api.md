@@ -194,6 +194,7 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 | GET | `/households/{h}/prices` | guest | Price per kilogram for each food (COP reference prices plus household overrides) |
 | PUT | `/households/{h}/prices` | member | Set a household price per kilogram for a catalog food |
 | GET | `/households/{h}/analytics/report?format=csv\|markdown&from=&to=` | guest | Download the period report as CSV or Markdown (attachment) |
+| GET | `/households/{h}/analytics/weekly-digest` | guest | Last 7 days against the 7 before: rescued, money, waste rate change, top rescuer, and buy-less tips for foods thrown away twice |
 | GET | `/households/{h}/analytics/summary?month=` | guest | Kg saved, money avoided, waste |
 | GET | `/households/{h}/analytics/ranking?month=` | guest | Per-member ranking |
 | GET | `/households/{h}/analytics/trend?months=` | guest | Monthly trend |

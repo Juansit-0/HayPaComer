@@ -1,5 +1,6 @@
 package dev.haypacomer.web.analytics;
 
+import dev.haypacomer.application.analytics.BuildWeeklyDigest;
 import dev.haypacomer.application.analytics.ExportHouseholdReport;
 import dev.haypacomer.application.analytics.ExportedReport;
 import dev.haypacomer.application.analytics.HouseholdMemberNames;
@@ -14,6 +15,7 @@ import dev.haypacomer.domain.analytics.FoodTally;
 import dev.haypacomer.domain.analytics.HouseholdMetrics;
 import dev.haypacomer.domain.analytics.MemberTally;
 import dev.haypacomer.domain.analytics.Tally;
+import dev.haypacomer.domain.analytics.WeeklyDigest;
 import dev.haypacomer.domain.food.FoodMetadata;
 import dev.haypacomer.domain.household.Household;
 import dev.haypacomer.domain.household.HouseholdId;
@@ -56,6 +58,7 @@ public class AnalyticsController {
   private final ListFoodPrices listFoodPrices;
   private final ExportHouseholdReport exportReport;
   private final HouseholdMemberNames memberNames;
+  private final BuildWeeklyDigest buildWeeklyDigest;
   private final GetHousehold getHousehold;
   private final Clock clock;
 
@@ -65,6 +68,7 @@ public class AnalyticsController {
       ListFoodPrices listFoodPrices,
       ExportHouseholdReport exportReport,
       HouseholdMemberNames memberNames,
+      BuildWeeklyDigest buildWeeklyDigest,
       GetHousehold getHousehold,
       Clock clock) {
     this.viewMetrics = viewMetrics;
@@ -72,6 +76,7 @@ public class AnalyticsController {
     this.listFoodPrices = listFoodPrices;
     this.exportReport = exportReport;
     this.memberNames = memberNames;
+    this.buildWeeklyDigest = buildWeeklyDigest;
     this.getHousehold = getHousehold;
     this.clock = clock;
   }
@@ -121,6 +126,26 @@ public class AnalyticsController {
     LocalDate start = from != null ? from : end.minusDays(DEFAULT_DAYS - 1L);
     return new LocalDate[] {start, end};
   }
+
+  @GetMapping("/analytics/weekly-digest")
+  DigestResponse weeklyDigest(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID householdId) {
+    WeeklyDigest digest =
+        buildWeeklyDigest.build(CurrentUser.of(jwt), new HouseholdId(householdId));
+    return new DigestResponse(
+        digest.thisWeek().from(),
+        digest.thisWeek().to(),
+        digest.text(),
+        digest.tips().stream()
+            .map(
+                tip ->
+                    new TipResponse(
+                        tip.foodKey(), tip.times(), tip.discarded().value(), tip.buyLessPercent()))
+            .toList());
+  }
+
+  record TipResponse(String foodKey, int times, BigDecimal discardedGrams, int buyLessPercent) {}
+
+  record DigestResponse(LocalDate from, LocalDate to, String text, List<TipResponse> tips) {}
 
   @GetMapping("/prices")
   Map<String, BigDecimal> prices(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID householdId) {

@@ -39,6 +39,7 @@ Fallback: Circuit Breaker -> rule-based planner (offline)
 | register_consumption | write | Discounts measured consumption after confirmation |
 | substitute_ingredient | write | Records an accepted substitution after validation |
 | add_to_market | write | Adds missing items to the market list |
+| waste_patterns | read | Foods thrown away at least twice with how much less to buy |
 | investigate_cold | read | Warm periods, likely cause, and food verdicts by the 2 hour rule |
 | review_budget | read | Monthly market budget: left, what fits, what does not, cheaper substitutes |
 | create_label | write | Creates a container label |
@@ -78,6 +79,7 @@ Fallback: Circuit Breaker -> rule-based planner (offline)
 - Scheduled briefings: "Today in your kitchen" from the chef at 7:00 in the household timezone, and "N foods expire soon" from the coach when 3 or more usable foods are at risk.
 - Event briefings: door left open and cold chain breaches bring a cold specialist explanation, in the background, once per type and day (`agent:briefing:*` in Redis).
 - A briefing never breaks the alert that triggered it, and losing Redis never stops alerts.
+- Weekly digest: "Your week in the kitchen" every Monday at 8:00 local time, computed from measured movements.
 
 ## Confirmations (step 72)
 
