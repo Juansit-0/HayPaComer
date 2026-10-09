@@ -127,6 +127,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 ## F7 detail
 
 - [x] 77. consumption, avoided waste, and money saved
+- [x] 78. reports with template method and visitor
 
 ## F6 assignments
 
