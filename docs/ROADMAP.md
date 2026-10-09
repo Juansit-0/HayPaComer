@@ -140,6 +140,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 88. indexes, partitions, and inventory queries
 - [x] 89. full demo flow and extreme noise
 - [x] 90. expanded demo script
+- [x] 91. final readme with badges, architecture, and patterns
 
 ## F6 assignments
 
