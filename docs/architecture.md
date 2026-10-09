@@ -19,7 +19,7 @@ HayPaComer is a smart home fridge: a Java backend, an ESP32 module (door, temper
 
 Rules:
 
-- No frameworks in `domain` and `application` (enforced by maven-enforcer).
+- No frameworks in `domain`, `application`, and `agent` (enforced by maven-enforcer).
 - Adapters are isolated from each other; nobody depends on `web` (ArchUnit).
 - Framework annotations only in `web` and adapters.
 - One use case per class with a single public method; ports segregated by interface.
