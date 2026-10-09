@@ -26,7 +26,7 @@ h2 { font-size: var(--size-h3); line-height: var(--leading-h3); font-family: var
 h3 { font-size: var(--size-h4); line-height: var(--leading-h4); margin: 0; font-weight: 600; }
 p { margin: 0; max-width: 65ch; }
 
-a { color: var(--color-primary); }
+a { color: var(--color-primary-text); }
 
 :focus-visible {
   outline: 2px solid var(--color-focus);
@@ -143,7 +143,6 @@ button, .button {
   background: var(--button-secondary-bg);
   color: var(--button-secondary-fg);
   cursor: pointer;
-  transition: background var(--duration-fast) var(--ease-standard);
 }
 
 button:hover { background: var(--button-secondary-bg-hover); }
@@ -594,7 +593,7 @@ dialog.sheet {
 }
 dialog.sheet::backdrop { background: var(--scrim); }
 dialog.sheet > form, dialog.sheet > div { display: grid; gap: var(--space-m); padding: var(--space-m); }
-dialog.sheet header { display: flex; justify-content: space-between; align-items: center; gap: var(--space-s); }
+dialog.sheet .sheet-head { display: flex; justify-content: space-between; align-items: center; gap: var(--space-s); }
 dialog.sheet[open] { animation: sheet-in var(--duration-slow) var(--ease-standard); }
 @keyframes sheet-in { from { transform: translateY(24px); opacity: 0; } }
 
@@ -666,7 +665,7 @@ dialog.sheet[open] { animation: sheet-in var(--duration-slow) var(--ease-standar
 .add-food .step { border: 0; padding: 0; margin: 0; display: grid; gap: var(--space-s); counter-increment: step; }
 .add-food { counter-reset: step; }
 .add-food .step legend { font-family: var(--font-display); font-size: var(--size-h4); font-weight: 700; padding: 0; margin-bottom: var(--space-xs); }
-.add-food .step legend::before { content: counter(step) ". "; color: var(--color-primary); }
+.add-food .step legend::before { content: counter(step) ". "; color: var(--color-primary-text); }
 .food-groups { display: grid; gap: var(--space-s); max-height: 40vh; overflow-y: auto; padding-right: 4px; }
 .food-group h3 { font-size: var(--size-small); color: var(--color-text-weak); margin-bottom: var(--space-xs); }
 .expiry-preview { font-weight: 600; min-height: 1.5em; }
@@ -696,7 +695,7 @@ dialog.sheet[open] { animation: sheet-in var(--duration-slow) var(--ease-standar
 .budget-figures .key { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
 .budget-figures .key.spent { background: var(--color-text-weak); }
 .budget-figures .key.planned { background: var(--color-primary); }
-.budget-tile details summary { cursor: pointer; min-height: 48px; display: flex; align-items: center; font-weight: 600; color: var(--color-primary); }
+.budget-tile details summary { cursor: pointer; min-height: 48px; display: flex; align-items: center; font-weight: 600; color: var(--color-primary-text); }
 .cheaper-list > li { grid-template-columns: 1fr; }
 
 @media (max-width: 760px) {

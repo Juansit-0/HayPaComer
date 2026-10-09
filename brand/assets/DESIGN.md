@@ -28,11 +28,13 @@ Single source of truth for the visual language of HayPaComer. Built from `brand/
 | `--color-copper-600` | `#b45309` | `oklch(55.5% 0.146 49.0)` | Primary (light theme) |
 | `--color-copper-700` | `#9a3412` | `oklch(47.0% 0.143 37.3)` | Primary hover |
 | `--color-copper-800` | `#7c2d12` | `oklch(40.8% 0.116 38.2)` | Primary active |
-| `--color-paprika-600` | `#c2410c` | `oklch(55.3% 0.174 38.4)` | Attention (light theme) |
+| `--color-paprika-700` | `#b23a0b` | `oklch(52% 0.17 38)` | Attention (light theme); 5.15:1 on the surface where tiles sit |
+| `--color-paprika-600` | `#c2410c` | `oklch(55.3% 0.174 38.4)` | Former light attention; 4.45:1 on the surface, kept as a primitive |
 | `--color-olive-600` | `#4d7c0f` | `oklch(53.2% 0.141 131.6)` | Positive (light theme) |
 | `--color-olive-700` | `#3f6212` | `oklch(45.3% 0.113 130.9)` | Positive pressed |
 | `--color-amber-500` | `#f59e0b` | `oklch(76.9% 0.165 70.1)` | Primary (dark theme) |
-| `--color-orange-600` | `#ea580c` | `oklch(64.6% 0.194 41.1)` | Attention (dark theme) |
+| `--color-orange-600` | `#ea580c` | `oklch(64.6% 0.194 41.1)` | Former dark attention; 4.26:1 on the dark surface, kept as a primitive |
+| `--color-orange-500` | `#f97316` | `oklch(70.5% 0.187 47.6)` | Attention (dark theme); passes 4.5:1 for small text on the dark surface |
 | `--color-lime-500` | `#84cc16` | `oklch(76.8% 0.204 130.8)` | Positive (dark theme) |
 | `--color-ink-950` | `#1c1917` | `oklch(21.6% 0.006 56.0)` | Dark background |
 | `--color-ink-900` | `#292524` | `oklch(26.8% 0.006 34.3)` | Text (light), dark surface |
@@ -57,7 +59,8 @@ Single source of truth for the visual language of HayPaComer. Built from `brand/
 | `--color-border-strong` | ink-500 | ink-400 |
 | `--color-primary` | copper-600 | amber-500 |
 | `--color-primary-fg` | white | ink-950 |
-| `--color-attention` | paprika-600 | orange-600 |
+| `--color-attention` | paprika-700 | orange-500 |
+| `--color-primary-text` | copper-700 | amber-500 |
 | `--color-attention-fg` | white | ink-950 |
 | `--color-positive` | olive-600 | lime-500 |
 | `--color-positive-fg` | white | ink-950 |

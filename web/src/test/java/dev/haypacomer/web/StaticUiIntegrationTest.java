@@ -61,7 +61,8 @@ class StaticUiIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(content().string(containsString("--color-primary")))
         .andExpect(content().string(containsString("--control-height")))
-        .andExpect(content().string(containsString("--bento-columns")));
+        .andExpect(content().string(containsString("--bento-columns")))
+        .andExpect(content().string(containsString("--color-primary-text")));
     mvc.perform(get("/app/ui.js"))
         .andExpect(status().isOk())
         .andExpect(content().string(containsString("export function numberField")))

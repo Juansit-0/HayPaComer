@@ -6,9 +6,11 @@
   --color-copper-700: #9a3412;
   --color-copper-800: #7c2d12;
   --color-paprika-600: #c2410c;
+  --color-paprika-700: #b23a0b;
   --color-olive-600: #4d7c0f;
   --color-olive-700: #3f6212;
   --color-amber-500: #f59e0b;
+  --color-orange-500: #f97316;
   --color-orange-600: #ea580c;
   --color-lime-500: #84cc16;
   --color-ink-950: #1c1917;
@@ -70,6 +72,7 @@
   --color-border-strong: light-dark(var(--color-ink-500), var(--color-ink-400));
   --color-primary: light-dark(var(--color-copper-600), var(--color-amber-500));
   --color-primary-fg: light-dark(var(--color-white), var(--color-ink-950));
+  --color-primary-text: light-dark(var(--color-copper-700), var(--color-amber-500));
   --color-primary-hover: light-dark(
     var(--color-copper-700),
     color-mix(in oklab, var(--color-amber-500), white 14%)
@@ -78,7 +81,7 @@
     var(--color-copper-800),
     color-mix(in oklab, var(--color-amber-500), black 12%)
   );
-  --color-attention: light-dark(var(--color-paprika-600), var(--color-orange-600));
+  --color-attention: light-dark(var(--color-paprika-700), var(--color-orange-500));
   --color-attention-fg: light-dark(var(--color-white), var(--color-ink-950));
   --color-positive: light-dark(var(--color-olive-600), var(--color-lime-500));
   --color-positive-fg: light-dark(var(--color-white), var(--color-ink-950));
@@ -92,7 +95,7 @@
   --button-secondary-fg: var(--color-text);
   --button-secondary-border: var(--color-border-strong);
   --button-secondary-bg-hover: var(--color-surface);
-  --button-ghost-fg: var(--color-primary);
+  --button-ghost-fg: var(--color-primary-text);
   --button-radius: var(--radius-10);
 
   --input-bg: var(--color-surface);
