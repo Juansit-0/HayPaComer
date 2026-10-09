@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.haypacomer.agent.confirm.ApproveConfirmation;
 import dev.haypacomer.agent.confirm.ConfirmationRefusedException;
-import dev.haypacomer.agent.confirm.StartAgentRun;
 import dev.haypacomer.agent.tools.GuardrailChain;
 import dev.haypacomer.agent.tools.ParameterSpec;
 import dev.haypacomer.agent.tools.ParameterType;
@@ -18,13 +17,11 @@ import dev.haypacomer.application.agent.AgentRun;
 import dev.haypacomer.application.agent.ConfirmationDesk;
 import dev.haypacomer.application.agent.PendingConfirmation;
 import dev.haypacomer.application.agent.RunStatus;
-import dev.haypacomer.application.household.HouseholdNotFoundException;
 import dev.haypacomer.domain.household.Household;
 import dev.haypacomer.domain.household.Permission;
 import dev.haypacomer.domain.household.Role;
 import dev.haypacomer.domain.identity.UserId;
 import java.time.Clock;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Currency;
@@ -107,27 +104,5 @@ class ApproveConfirmationTest {
     assertEquals(
         "Approved but failed: scale offline", stores.traceOf(failing.run()).getLast().detail());
     assertEquals(RunStatus.FAILED, stores.runs.get(failing.run()).status());
-  }
-
-  @Test
-  void runsStartOnlyForMembers() {
-    AgentRuntime runtime =
-        new AgentRuntime(
-            tools,
-            guardrails,
-            new RuleBasedPlanner(List.of()),
-            new RuleBasedPlanner(List.of()),
-            stores,
-            stores,
-            stores,
-            new SteppingClock(NOW, Duration.ofMillis(5)));
-    StartAgentRun start = new StartAgentRun(households, runtime);
-
-    AgentResult result = start.start(new AgentTask(home.id(), owner, "chef", "Hi"));
-
-    assertEquals(RunStatus.DONE, result.run().status());
-    assertThrows(
-        HouseholdNotFoundException.class,
-        () -> start.start(new AgentTask(home.id(), UserId.newId(), "chef", "Hi")));
   }
 }

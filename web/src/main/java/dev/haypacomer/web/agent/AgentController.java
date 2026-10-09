@@ -1,9 +1,8 @@
 package dev.haypacomer.web.agent;
 
 import dev.haypacomer.agent.confirm.ApproveConfirmation;
-import dev.haypacomer.agent.confirm.StartAgentRun;
-import dev.haypacomer.agent.runtime.AgentResult;
-import dev.haypacomer.agent.runtime.AgentTask;
+import dev.haypacomer.agent.supervisor.Supervisor;
+import dev.haypacomer.agent.supervisor.SupervisorAnswer;
 import dev.haypacomer.application.agent.AgentRun;
 import dev.haypacomer.application.agent.AgentRunId;
 import dev.haypacomer.application.agent.ListPendingConfirmations;
@@ -23,6 +22,7 @@ import jakarta.validation.constraints.Size;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -39,19 +39,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1")
 public class AgentController {
 
-  private final StartAgentRun startAgentRun;
+  private final Supervisor supervisor;
   private final ViewAgentRun viewAgentRun;
   private final ListPendingConfirmations listPendingConfirmations;
   private final ApproveConfirmation approveConfirmation;
   private final RejectConfirmation rejectConfirmation;
 
   public AgentController(
-      StartAgentRun startAgentRun,
+      Supervisor supervisor,
       ViewAgentRun viewAgentRun,
       ListPendingConfirmations listPendingConfirmations,
       ApproveConfirmation approveConfirmation,
       RejectConfirmation rejectConfirmation) {
-    this.startAgentRun = startAgentRun;
+    this.supervisor = supervisor;
     this.viewAgentRun = viewAgentRun;
     this.listPendingConfirmations = listPendingConfirmations;
     this.approveConfirmation = approveConfirmation;
@@ -64,17 +64,16 @@ public class AgentController {
       @AuthenticationPrincipal Jwt jwt,
       @PathVariable UUID householdId,
       @Valid @RequestBody RunRequest request) {
-    AgentResult result =
-        startAgentRun.start(
-            new AgentTask(
-                new HouseholdId(householdId),
-                CurrentUser.of(jwt),
-                request.specialist() == null ? "chef" : request.specialist(),
-                request.goal()));
+    SupervisorAnswer answer =
+        supervisor.handle(
+            new HouseholdId(householdId),
+            CurrentUser.of(jwt),
+            request.goal(),
+            Optional.ofNullable(request.specialist()));
     return new RunResponse(
-        RunSummary.from(result.run()),
-        result.answer(),
-        result.pending().map(ConfirmationResponse::from).orElse(null));
+        answer.parts().stream().map(part -> RunSummary.from(part.run())).toList(),
+        answer.answer(),
+        answer.pending().map(ConfirmationResponse::from).orElse(null));
   }
 
   @GetMapping("/agent/runs/{runId}/trace")
@@ -130,7 +129,7 @@ public class AgentController {
     }
   }
 
-  record RunResponse(RunSummary run, String answer, ConfirmationResponse confirmation) {}
+  record RunResponse(List<RunSummary> runs, String answer, ConfirmationResponse confirmation) {}
 
   record StepResponse(TraceKind kind, String detail, Instant at) {
 

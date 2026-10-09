@@ -119,6 +119,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 70. tool registry with validation and permissions
 - [x] 71. editable household memory
 - [x] 72. trace console and human confirmations
+- [x] 73. chef, market, cold, and coach multi-agent supervisor
 
 ## F6 assignments
 

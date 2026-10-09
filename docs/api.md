@@ -198,7 +198,7 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 | POST | `/agent/chat` | guest | Chef chat; streams answer, trace, and confirmation requests over SSE |
 | GET | `/agent/conversations` | user | Caller conversations |
 | GET | `/agent/conversations/{id}` | user | Conversation messages |
-| POST | `/households/{h}/agent/runs` | guest | Run the agent on a goal (`specialist`: chef, market, cold, coach); answer, or a confirmation when it proposes a write |
+| POST | `/households/{h}/agent/runs` | guest | Ask the supervisor (`goal`, optional `specialist`: chef, market, cold, coach); answers `runs` (one per specialist), the merged `answer`, and a `confirmation` when a write is proposed |
 | GET | `/agent/runs/{id}/trace` | user (member of the run's household) | Visible trace: plan, tool calls with arguments, observations, answer |
 | GET | `/agent/confirmations` | user | Pending writes the agent proposed to the caller (10 minutes) |
 | POST | `/agent/confirmations/{id}/approve` | author of the request | Approve; permissions are checked again and the real use case runs once (410 expired, 409 refused) |

@@ -20,6 +20,13 @@
       <artifactId>application</artifactId>
     </dependency>
     <dependency>
+      <groupId>dev.haypacomer</groupId>
+      <artifactId>application</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>

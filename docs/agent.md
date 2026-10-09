@@ -58,8 +58,9 @@ Fallback: Circuit Breaker -> rule-based planner (offline)
 
 ## Supervisor
 
-- Routes work to lightweight specialists: Chef, Market, Cold, and Coach.
-- Specialists share tools and memory; the supervisor merges results into one answer with evidence.
+- Routes work to lightweight specialists: Chef, Market, Cold, and Coach (`KeywordRouter`, English and Spanish, at most two per question, Chef by default).
+- Each specialist runs with its own tool allowlist: Chef (memory, inventory, expiries, plan, remember), Market (market list, plan, inventory, memory, add to market), Cold (cold chain, expiries), Coach (expiries, inventory, memory, remember).
+- Specialists share tools and memory; the supervisor stops at the first proposed write and merges results into one answer with evidence.
 
 ## Proactivity
 

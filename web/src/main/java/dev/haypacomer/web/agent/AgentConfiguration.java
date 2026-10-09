@@ -1,11 +1,18 @@
 package dev.haypacomer.web.agent;
 
 import dev.haypacomer.agent.confirm.ApproveConfirmation;
-import dev.haypacomer.agent.confirm.StartAgentRun;
+import dev.haypacomer.agent.kitchen.AddToMarketTool;
+import dev.haypacomer.agent.kitchen.KitchenToday;
+import dev.haypacomer.agent.kitchen.QueryInventoryTool;
+import dev.haypacomer.agent.kitchen.ViewColdChainTool;
+import dev.haypacomer.agent.kitchen.ViewExpiriesTool;
+import dev.haypacomer.agent.kitchen.ViewMarketListTool;
+import dev.haypacomer.agent.kitchen.ViewWeeklyPlanTool;
 import dev.haypacomer.agent.memory.RecallMemoryTool;
 import dev.haypacomer.agent.memory.RememberTool;
-import dev.haypacomer.agent.runtime.AgentRuntime;
-import dev.haypacomer.agent.runtime.RuleBasedPlanner;
+import dev.haypacomer.agent.supervisor.KeywordRouter;
+import dev.haypacomer.agent.supervisor.OfflinePlanners;
+import dev.haypacomer.agent.supervisor.Supervisor;
 import dev.haypacomer.agent.tools.GuardrailChain;
 import dev.haypacomer.agent.tools.PermissionGuardrail;
 import dev.haypacomer.agent.tools.SchemaGuardrail;
@@ -16,9 +23,15 @@ import dev.haypacomer.application.agent.RejectConfirmation;
 import dev.haypacomer.application.agent.RememberForHousehold;
 import dev.haypacomer.application.agent.ViewAgentRun;
 import dev.haypacomer.application.agent.ViewHouseholdMemory;
+import dev.haypacomer.application.coldchain.ListColdChains;
+import dev.haypacomer.application.inventory.ViewInventory;
+import dev.haypacomer.application.market.AddToMarketList;
+import dev.haypacomer.application.market.ViewMarketList;
+import dev.haypacomer.application.planning.ViewCurrentPlan;
 import dev.haypacomer.application.port.AgentRunStore;
 import dev.haypacomer.application.port.AiAuditLog;
 import dev.haypacomer.application.port.ConfirmationStore;
+import dev.haypacomer.application.port.FoodCatalogRepository;
 import dev.haypacomer.application.port.HouseholdRepository;
 import java.time.Clock;
 import java.util.List;
@@ -29,8 +42,28 @@ import org.springframework.context.annotation.Configuration;
 public class AgentConfiguration {
 
   @Bean
-  ToolRegistry agentTools(ViewHouseholdMemory viewMemory, RememberForHousehold remember) {
-    return new ToolRegistry(List.of(new RecallMemoryTool(viewMemory), new RememberTool(remember)));
+  ToolRegistry agentTools(
+      ViewHouseholdMemory viewMemory,
+      RememberForHousehold remember,
+      ViewInventory inventory,
+      ViewMarketList market,
+      AddToMarketList addToMarket,
+      FoodCatalogRepository catalog,
+      ListColdChains coldChains,
+      ViewCurrentPlan plans,
+      HouseholdRepository households,
+      Clock clock) {
+    KitchenToday today = new KitchenToday(households, clock);
+    return new ToolRegistry(
+        List.of(
+            new RecallMemoryTool(viewMemory),
+            new RememberTool(remember),
+            new QueryInventoryTool(inventory, today),
+            new ViewExpiriesTool(inventory, today),
+            new ViewMarketListTool(market),
+            new AddToMarketTool(addToMarket, catalog),
+            new ViewColdChainTool(coldChains),
+            new ViewWeeklyPlanTool(plans)));
   }
 
   @Bean
@@ -39,20 +72,24 @@ public class AgentConfiguration {
   }
 
   @Bean
-  AgentRuntime agentRuntime(
+  Supervisor supervisor(
+      HouseholdRepository households,
       ToolRegistry tools,
       GuardrailChain guardrails,
       AgentRunStore runs,
       ConfirmationStore confirmations,
       AiAuditLog audit,
       Clock clock) {
-    RuleBasedPlanner offline = new RuleBasedPlanner(List.of(RecallMemoryTool.SPEC.name()));
-    return new AgentRuntime(tools, guardrails, offline, offline, runs, confirmations, audit, clock);
-  }
-
-  @Bean
-  StartAgentRun startAgentRun(HouseholdRepository households, AgentRuntime runtime) {
-    return new StartAgentRun(households, runtime);
+    return new Supervisor(
+        households,
+        tools,
+        guardrails,
+        new KeywordRouter(),
+        new OfflinePlanners(),
+        runs,
+        confirmations,
+        audit,
+        clock);
   }
 
   @Bean
