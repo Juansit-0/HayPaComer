@@ -221,6 +221,7 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 |---|---|---|---|
 | GET | `/households/{h}/stream` | guest | SSE with events `inventory`, `sensor`, and `alert` (`kind`, `fridgeId`, `detail`, `at`), a `ready` event on connect, and a comment heartbeat every 25 s; send the JWT in the `Authorization` header (the web UI reads it with `fetch`, never with a token in the URL) |
 | GET | `/households/{h}/fridges/{f}/twin` | guest | Digital twin: last door state and since when, last temperature and when; empty fields while the fridge has not reported since the server started |
+| GET | `/status` | user | `OK` or `DEGRADED` with the reference data components served from the last saved copy; an unreachable database answers 503 with `Retry-After` |
 | GET | `/actuator/health` | public | Overall health without details; `/actuator/health/liveness` and `/actuator/health/readiness` for probes |
 | GET | `/actuator/info` | public | Application name and description |
 | GET | `/v3/api-docs` | public | OpenAPI document |

@@ -39,6 +39,8 @@ class AnalyticsIntegrationTest {
       new GenericContainer<>("redis:8-alpine").withExposedPorts(6379);
 
   @Autowired private MockMvc mvc;
+  @Autowired private dev.haypacomer.application.port.FoodCatalogRepository catalog;
+  @Autowired private dev.haypacomer.application.port.FoodPriceRepository prices;
 
   private ResultActions send(String path, String bearer, String body) throws Exception {
     var request = post(path).contentType(MediaType.APPLICATION_JSON).content(body);
@@ -163,5 +165,13 @@ class AnalyticsIntegrationTest {
         .andExpect(status().isBadRequest());
     mvc.perform(get(base + "/analytics/report").header("Authorization", stranger))
         .andExpect(status().isNotFound());
+
+    org.junit.jupiter.api.Assertions.assertInstanceOf(
+        dev.haypacomer.persistence.resilience.ResilientFoodCatalog.class, catalog);
+    org.junit.jupiter.api.Assertions.assertInstanceOf(
+        dev.haypacomer.persistence.resilience.ResilientFoodPrices.class, prices);
+    mvc.perform(get("/api/v1/status").header("Authorization", juan))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.state").value("OK"));
   }
 }
