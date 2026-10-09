@@ -32,11 +32,14 @@ function candidate(recipe) {
 
 export async function renderNow(main, household) {
   const base = `/households/${household.id}`;
-  const [snapshot, inventory, recipes] = await Promise.all([
+  const [snapshot, inventory, saved, templates] = await Promise.all([
     api(`${base}/kitchen`),
     api(`${base}/inventory?rescueFirst=true`),
     api(`${base}/recipes`),
+    api("/recipe-templates").catch(() => []),
   ]);
+  const known = new Set(saved.map((recipe) => recipe.name.trim().toLowerCase()));
+  const recipes = [...saved, ...templates.filter((recipe) => !known.has(recipe.name.trim().toLowerCase()))];
   const urgent = inventory.filter(
     (item) => item.usable && item.statuses.some((status) => URGENT.includes(status)),
   );
