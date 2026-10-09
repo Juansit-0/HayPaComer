@@ -102,17 +102,28 @@ class AgentConsoleIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"goal\":\"How much rice do we cook?\"}"))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.run.status").value("DONE"))
-                .andExpect(jsonPath("$.run.stepsUsed").value(1)));
-    String runId = JsonPath.read(run, "$.run.id");
+                .andExpect(jsonPath("$.runs.length()").value(1))
+                .andExpect(jsonPath("$.runs[0].specialist").value("chef"))
+                .andExpect(jsonPath("$.runs[0].status").value("DONE"))
+                .andExpect(jsonPath("$.runs[0].stepsUsed").value(3)));
+    String runId = JsonPath.read(run, "$.runs[0].id");
     String answer = JsonPath.read(run, "$.answer");
     org.junit.jupiter.api.Assertions.assertTrue(answer.contains("USUAL_QUANTITY rice: 150 g"));
+    org.junit.jupiter.api.Assertions.assertTrue(answer.contains("query_inventory: No food found"));
 
     mvc.perform(get("/api/v1/agent/runs/" + runId + "/trace").header("Authorization", juan))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.steps.length()").value(4))
+        .andExpect(jsonPath("$.steps.length()").value(10))
         .andExpect(jsonPath("$.steps[1].kind").value("TOOL_CALL"))
-        .andExpect(jsonPath("$.steps[3].kind").value("ANSWER"));
+        .andExpect(jsonPath("$.steps[9].kind").value("ANSWER"));
+    mvc.perform(
+            post(base + "/agent/runs")
+                .header("Authorization", juan)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"goal\":\"La nevera esta caliente, que compro?\"}"))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.runs[0].specialist").value("cold"))
+        .andExpect(jsonPath("$.runs[1].specialist").value("market"));
     mvc.perform(get("/api/v1/agent/runs/" + runId + "/trace").header("Authorization", stranger))
         .andExpect(status().isNotFound());
     mvc.perform(
