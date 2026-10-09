@@ -1,7 +1,7 @@
 import { api } from "./api.js";
 import { liveFeed } from "./live.js";
 import { foodName, formatTime, plural, t } from "./i18n.js";
-import { esc, grams, kpi, numberField, showError, statusPill, toast, whenText, wireSteppers } from "./ui.js";
+import { esc, expiryText, grams, kpi, numberField, showError, statusPill, toast, wireSteppers } from "./ui.js";
 
 const URGENT = ["EXPIRED", "UNDER_REVIEW", "AT_RISK", "LEFTOVER"];
 const LABELS = { inventory: "live.kind.inventory", sensor: "live.kind.sensor", alert: "live.kind.alert", copilot: "live.kind.copilot" };
@@ -57,7 +57,7 @@ export async function renderNow(main, household) {
         first
           ? `<article class="tile alert w-8" aria-label="${esc(foodName(first.name))}">
               <div class="item-meta"><h2>${esc(foodName(first.name))}</h2>${statusPill(first.statuses)}</div>
-              ${kpi(grams(first.grams), whenText(first.expiresOn), "attention")}
+              ${kpi(grams(first.grams), expiryText(first), "attention")}
               <form class="row-form" data-consume="${esc(first.id)}">
                 ${numberField({ name: "grams", label: t("now.grams-used"), unit: "g", value: Math.round(first.grams), min: 1, bigStep: 50 })}
                 <button class="primary" type="submit">${t("now.mark-used")}</button>
@@ -83,7 +83,7 @@ export async function renderNow(main, household) {
               <ul class="list">${rest
                 .map(
                   (item) => `<li>
-                    <div class="item-meta"><span class="item-name">${esc(foodName(item.name))}</span>${statusPill(item.statuses)}<span>${whenText(item.expiresOn)}</span></div>
+                    <div class="item-meta"><span class="item-name">${esc(foodName(item.name))}</span>${statusPill(item.statuses)}<span>${expiryText(item)}</span></div>
                     <span class="data">${grams(item.grams)}</span>
                   </li>`,
                 )

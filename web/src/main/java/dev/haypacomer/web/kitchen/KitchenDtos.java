@@ -25,12 +25,19 @@ final class KitchenDtos {
   record SetUpFridgeRequest(@NotBlank @Size(max = 60) String name, FridgeLayout layout) {}
 
   record NodeResponse(
-      UUID id, String type, String name, BigDecimal grams, int items, List<NodeResponse> children) {
+      UUID id,
+      String type,
+      String kind,
+      String name,
+      BigDecimal grams,
+      int items,
+      List<NodeResponse> children) {
 
     static NodeResponse from(FridgeNode node) {
       return new NodeResponse(
           id(node),
           node.getClass().getSimpleName().toUpperCase(),
+          node instanceof Zone zone ? zone.kind().name() : null,
           node.name(),
           node.totalGrams().value(),
           node.itemCount(),

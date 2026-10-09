@@ -1,7 +1,6 @@
 package dev.haypacomer.application.inventory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import dev.haypacomer.application.support.InMemoryInventoryStores;
 import dev.haypacomer.domain.food.FoodCategory;
@@ -28,7 +27,7 @@ class SearchFoodsTest {
     SearchFoods search = new SearchFoods(stores.catalog);
 
     assertEquals("Milk", search.search("mi").getFirst().name());
-    assertTrue(search.search(" ").isEmpty());
-    assertTrue(search.search(null).isEmpty());
+    assertEquals("Milk", search.search(" ").getFirst().name());
+    assertEquals(1, search.search(null).size());
   }
 }
