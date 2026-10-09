@@ -3,6 +3,8 @@ package dev.haypacomer.web.analytics;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -138,6 +140,27 @@ class AnalyticsIntegrationTest {
             get(base + "/analytics?from=2026-01-10&to=2026-01-01").header("Authorization", juan))
         .andExpect(status().isBadRequest());
     mvc.perform(get(base + "/analytics").header("Authorization", stranger))
+        .andExpect(status().isNotFound());
+
+    mvc.perform(get(base + "/analytics/report?format=csv").header("Authorization", juan))
+        .andExpect(status().isOk())
+        .andExpect(header().string("Content-Type", "text/csv;charset=UTF-8"))
+        .andExpect(
+            header()
+                .string(
+                    "Content-Disposition",
+                    org.hamcrest.Matchers.startsWith("attachment; filename=\"haypacomer-")))
+        .andExpect(
+            content()
+                .string(
+                    org.hamcrest.Matchers.containsString("food,chicken breast,250,250,0,0.000")));
+    mvc.perform(get(base + "/analytics/report").header("Authorization", juan))
+        .andExpect(status().isOk())
+        .andExpect(
+            content().string(org.hamcrest.Matchers.startsWith("# Apartment kitchen report")));
+    mvc.perform(get(base + "/analytics/report?format=pdf").header("Authorization", juan))
+        .andExpect(status().isBadRequest());
+    mvc.perform(get(base + "/analytics/report").header("Authorization", stranger))
         .andExpect(status().isNotFound());
   }
 }

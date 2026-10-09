@@ -1,7 +1,10 @@
 package dev.haypacomer.web.analytics;
 
+import dev.haypacomer.application.analytics.ExportHouseholdReport;
+import dev.haypacomer.application.analytics.ExportedReport;
 import dev.haypacomer.application.analytics.ListFoodPrices;
 import dev.haypacomer.application.analytics.MetricsReport;
+import dev.haypacomer.application.analytics.ReportFormat;
 import dev.haypacomer.application.analytics.SetFoodPrice;
 import dev.haypacomer.application.analytics.ViewHouseholdMetrics;
 import dev.haypacomer.application.household.GetHousehold;
@@ -22,10 +25,15 @@ import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,6 +53,7 @@ public class AnalyticsController {
   private final ViewHouseholdMetrics viewMetrics;
   private final SetFoodPrice setFoodPrice;
   private final ListFoodPrices listFoodPrices;
+  private final ExportHouseholdReport exportReport;
   private final GetHousehold getHousehold;
   private final Clock clock;
 
@@ -52,11 +61,13 @@ public class AnalyticsController {
       ViewHouseholdMetrics viewMetrics,
       SetFoodPrice setFoodPrice,
       ListFoodPrices listFoodPrices,
+      ExportHouseholdReport exportReport,
       GetHousehold getHousehold,
       Clock clock) {
     this.viewMetrics = viewMetrics;
     this.setFoodPrice = setFoodPrice;
     this.listFoodPrices = listFoodPrices;
+    this.exportReport = exportReport;
     this.getHousehold = getHousehold;
     this.clock = clock;
   }
@@ -69,10 +80,40 @@ public class AnalyticsController {
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
     UserId actor = CurrentUser.of(jwt);
     HouseholdId household = new HouseholdId(householdId);
+    LocalDate[] period = period(actor, household, from, to);
+    return MetricsResponse.from(viewMetrics.view(actor, household, period[0], period[1]));
+  }
+
+  @GetMapping("/analytics/report")
+  ResponseEntity<String> report(
+      @AuthenticationPrincipal Jwt jwt,
+      @PathVariable UUID householdId,
+      @RequestParam(defaultValue = "markdown") String format,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+    UserId actor = CurrentUser.of(jwt);
+    HouseholdId household = new HouseholdId(householdId);
+    ReportFormat chosen =
+        switch (format.toLowerCase(Locale.ROOT)) {
+          case "csv" -> ReportFormat.CSV;
+          case "markdown", "md" -> ReportFormat.MARKDOWN;
+          default -> throw new IllegalArgumentException("Choose format csv or markdown");
+        };
+    LocalDate[] period = period(actor, household, from, to);
+    ExportedReport report = exportReport.export(actor, household, period[0], period[1], chosen);
+    return ResponseEntity.ok()
+        .contentType(MediaType.parseMediaType(report.mediaType() + ";charset=UTF-8"))
+        .header(
+            HttpHeaders.CONTENT_DISPOSITION,
+            ContentDisposition.attachment().filename(report.fileName()).build().toString())
+        .body(report.content());
+  }
+
+  private LocalDate[] period(UserId actor, HouseholdId household, LocalDate from, LocalDate to) {
     Household found = getHousehold.get(actor, household);
     LocalDate end = to != null ? to : LocalDate.ofInstant(clock.instant(), found.timezone());
     LocalDate start = from != null ? from : end.minusDays(DEFAULT_DAYS - 1L);
-    return MetricsResponse.from(viewMetrics.view(actor, household, start, end));
+    return new LocalDate[] {start, end};
   }
 
   @GetMapping("/prices")
