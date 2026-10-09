@@ -129,6 +129,20 @@ class LlmPlannerTest {
   }
 
   @Test
+  void fencedAnswersAreReadButProseIsNot() {
+    assertEquals(
+        new Decision.CallTool("query_inventory", Map.of(), "Model chose query_inventory"),
+        planner("```json\n{\"action\":\"call\",\"tool\":\"query_inventory\"}\n```").next(fresh()));
+    assertEquals(
+        new Decision.CallTool("query_inventory", Map.of(), "Model chose query_inventory"),
+        planner("```{\"action\":\"call\",\"tool\":\"query_inventory\"}```").next(fresh()));
+    assertThrows(
+        PlannerUnavailableException.class,
+        () -> planner("Sure! {\"action\":\"call\",\"tool\":\"query_inventory\"}").next(fresh()));
+    assertEquals("``", LlmPlanner.unfence(" `` "));
+  }
+
+  @Test
   void anythingElseMakesThePlannerUnavailable() {
     for (String answer :
         List.of(
