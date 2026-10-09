@@ -208,7 +208,7 @@ export function openSheet(title, body, onReady) {
   const dialog = document.createElement("dialog");
   dialog.className = "sheet";
   dialog.setAttribute("aria-label", title);
-  dialog.innerHTML = `<div><header><h2>${esc(title)}</h2><button type="button" class="ghost" data-close>${t("action.close")}</button></header>${body}</div>`;
+  dialog.innerHTML = `<div><div class="sheet-head"><h2>${esc(title)}</h2><button type="button" class="ghost" data-close>${t("action.close")}</button></div>${body}</div>`;
   document.body.append(dialog);
   dialog.querySelector("[data-close]").addEventListener("click", () => dialog.close());
   dialog.addEventListener("close", () => dialog.remove());
