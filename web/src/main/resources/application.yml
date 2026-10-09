@@ -15,6 +15,10 @@ spring:
   mvc:
     problemdetails:
       enabled: true
+  servlet:
+    multipart:
+      max-file-size: 4MB
+      max-request-size: 5MB
 
 springdoc:
   api-docs:

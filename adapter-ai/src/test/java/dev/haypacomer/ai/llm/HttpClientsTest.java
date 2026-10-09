@@ -95,6 +95,26 @@ class HttpClientsTest {
   }
 
   @Test
+  void imagesTravelInlineForBothProviders() {
+    LlmPrompt prompt = new LlmPrompt("rules", "read", LlmImage.of("image/png", new byte[] {1, 2}));
+    responseBody = "{\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"{}\"}]}}]}";
+    new GeminiClient(settings(Duration.ofSeconds(2))).completeJson(prompt);
+    assertTrue(
+        requestBody
+                .get()
+                .contains("\"inline_data\":{\"mime_type\":\"image/png\",\"data\":\"AQI=\"}")
+            || requestBody
+                .get()
+                .contains("\"inline_data\":{\"data\":\"AQI=\",\"mime_type\":\"image/png\"}"));
+
+    responseBody = "{\"choices\":[{\"message\":{\"content\":\"{}\"}}]}";
+    new OpenAiCompatibleClient(settings(Duration.ofSeconds(2))).completeJson(prompt);
+    assertTrue(requestBody.get().contains("data:image/png;base64,AQI="));
+    assertTrue(requestBody.get().contains("\"image_url\""));
+    assertEquals("LlmImage[image/png]", prompt.image().toString());
+  }
+
+  @Test
   void providerFailuresAreReportedAsUnavailable() {
     GeminiClient gemini = new GeminiClient(settings(Duration.ofSeconds(2)));
     LlmPrompt prompt = new LlmPrompt("rules", "question");

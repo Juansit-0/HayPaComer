@@ -15,7 +15,7 @@ Guides for roadmap steps assigned to a teammate. Each guide explains the goal, t
 | 71 | [Editable household memory](step-71-household-memory.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 72 | [Trace console and human confirmations](step-72-trace-console-confirmations.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 73 | [Chef, market, cold, and coach multi-agent supervisor](step-73-multi-agent-supervisor.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
-| 74 | Photo to structured, verifiable recipe (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
+| 74 | [Photo to structured, verifiable recipe](step-74-photo-recipe.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 75 | Chef chat as an agent with evidence (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 76 | Response contract, weekly plan, and offline fallback tests (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 77 | Consumption, avoided waste, and money saved (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
