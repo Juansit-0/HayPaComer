@@ -10,7 +10,7 @@ A 12 minute walk through what HayPaComer does, following the acceptance criteria
    cp .env.example .env
    docker compose up -d
    mvn -q package -DskipTests
-   MAIL_LOG_LINKS=true java -jar web/target/web-0.1.0-SNAPSHOT.jar > demo.log 2>&1 &
+   MAIL_LOG_LINKS=true java -jar web/target/web-1.0.0.jar > demo.log 2>&1 &
    ```
 
    Set a real `JWT_SECRET` in `.env`. Leave `AI_PROVIDER=offline` unless a provider key is set, because scene 8 shows the offline path anyway. Optionally set `TELEGRAM_BOT_TOKEN`.

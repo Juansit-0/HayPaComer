@@ -15,6 +15,8 @@
 
 Smart home fridge that answers a daily question: **what can I cook right now with what is actually at home?** A Java backend, an ESP32 module, and a kitchen scale keep a live inventory in grams, with expiry dates, food ownership, door openings, and the cold chain. Camera apps guess; HayPaComer measures. Premium fridges cost thousands; HayPaComer upgrades a normal one.
 
+Version **1.0.0**. Changes are in [`CHANGELOG.md`](CHANGELOG.md).
+
 ## What it does
 
 - **Live inventory in grams:**

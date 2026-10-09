@@ -7,7 +7,7 @@
   <parent>
     <groupId>dev.haypacomer</groupId>
     <artifactId>haypacomer</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
   </parent>
 
   <artifactId>web</artifactId>
@@ -138,6 +138,7 @@
         <executions>
           <execution>
             <goals>
+              <goal>build-info</goal>
               <goal>repackage</goal>
             </goals>
           </execution>
