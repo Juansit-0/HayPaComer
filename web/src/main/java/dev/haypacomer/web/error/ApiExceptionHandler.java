@@ -5,6 +5,7 @@ import dev.haypacomer.application.agent.AgentRunNotFoundException;
 import dev.haypacomer.application.agent.ConfirmationExpiredException;
 import dev.haypacomer.application.agent.ConfirmationNotFoundException;
 import dev.haypacomer.application.ai.AiRateLimitExceededException;
+import dev.haypacomer.application.ai.PhotoReadingUnavailableException;
 import dev.haypacomer.application.auth.EmailAlreadyRegisteredException;
 import dev.haypacomer.application.auth.InvalidCredentialsException;
 import dev.haypacomer.application.auth.InvalidPasswordException;
@@ -43,6 +44,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 @RestControllerAdvice
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -202,6 +204,17 @@ public class ApiExceptionHandler {
   @ExceptionHandler(SnapshotNotFoundException.class)
   ProblemDetail snapshotNotFound(SnapshotNotFoundException exception) {
     return problem(HttpStatus.NOT_FOUND, "Not found", exception.getMessage());
+  }
+
+  @ExceptionHandler(PhotoReadingUnavailableException.class)
+  ProblemDetail photoUnavailable(PhotoReadingUnavailableException exception) {
+    return problem(
+        HttpStatus.SERVICE_UNAVAILABLE, "Photo reading unavailable", exception.getMessage());
+  }
+
+  @ExceptionHandler(MaxUploadSizeExceededException.class)
+  ProblemDetail tooLarge(MaxUploadSizeExceededException exception) {
+    return problem(HttpStatus.CONTENT_TOO_LARGE, "Photo too large", "Send a photo of at most 4 MB");
   }
 
   @ExceptionHandler(AgentRunNotFoundException.class)

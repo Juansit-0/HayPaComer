@@ -3,15 +3,22 @@ package dev.haypacomer.web.ai;
 import dev.haypacomer.ai.llm.GeminiClient;
 import dev.haypacomer.ai.llm.LlmClient;
 import dev.haypacomer.ai.llm.LlmKitchenAdvisor;
+import dev.haypacomer.ai.llm.LlmRecipePhotoReader;
 import dev.haypacomer.ai.llm.LlmSettings;
 import dev.haypacomer.ai.llm.OpenAiCompatibleClient;
+import dev.haypacomer.ai.offline.OfflineRecipePhotoReader;
 import dev.haypacomer.ai.offline.OfflineRuleEngine;
 import dev.haypacomer.ai.resilience.ResilientKitchenAdvisor;
 import dev.haypacomer.application.ai.CircuitPolicy;
+import dev.haypacomer.application.ai.ReadRecipePhoto;
+import dev.haypacomer.application.port.AiAuditLog;
 import dev.haypacomer.application.port.AiRateLimiter;
 import dev.haypacomer.application.port.AiResponseCache;
 import dev.haypacomer.application.port.CircuitBreakerStore;
+import dev.haypacomer.application.port.FoodCatalogRepository;
+import dev.haypacomer.application.port.HouseholdRepository;
 import dev.haypacomer.application.port.KitchenAdvisor;
+import dev.haypacomer.application.port.RecipePhotoReader;
 import dev.haypacomer.persistence.redis.RedisAiRateLimiter;
 import dev.haypacomer.persistence.redis.RedisAiResponseCache;
 import dev.haypacomer.persistence.redis.RedisCircuitBreakerStore;
@@ -54,6 +61,25 @@ public class AiConfiguration {
         breaker,
         CircuitPolicy.DEFAULT,
         clock);
+  }
+
+  @Bean
+  RecipePhotoReader recipePhotoReader(AiProperties properties) {
+    if (properties.provider() == AiProperties.Provider.OFFLINE) {
+      return new OfflineRecipePhotoReader();
+    }
+    return new LlmRecipePhotoReader(client(properties));
+  }
+
+  @Bean
+  ReadRecipePhoto readRecipePhoto(
+      HouseholdRepository households,
+      RecipePhotoReader reader,
+      FoodCatalogRepository catalog,
+      AiRateLimiter rateLimiter,
+      AiAuditLog audit,
+      Clock clock) {
+    return new ReadRecipePhoto(households, reader, catalog, rateLimiter, audit, clock);
   }
 
   static LlmClient client(AiProperties properties) {

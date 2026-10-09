@@ -208,7 +208,7 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 | DELETE | `/households/{h}/agent/memory` | owner | Clear memory |
 | POST | `/ai/intent` | member | Text -> structured command preview |
 | POST | `/ai/label-reader` | member | Photo of label or receipt -> item preview (multipart) |
-| POST | `/ai/photo-recipe` | member | Photo -> verifiable recipe preview (multipart) |
+| POST | `/households/{h}/recipes/from-photo` | guest | Recipe photo (multipart `photo`, JPEG, PNG, or WebP up to 4 MB) -> draft with each ingredient matched to the catalog and converted to grams, or the reason it could not be; never saved (413 too large, 503 without an AI provider) |
 | GET | `/households/{h}/ai/audit` | owner | AI latency, valid and rejected responses, fallback usage |
 
 ## Realtime and operations

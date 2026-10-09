@@ -37,11 +37,26 @@ public final class OpenAiCompatibleClient implements LlmClient {
                 "messages",
                 List.of(
                     Map.of("role", "system", "content", prompt.system()),
-                    Map.of("role", "user", "content", prompt.user()))));
+                    Map.of("role", "user", "content", content(prompt)))));
     JsonNode content = answer.path("choices").path(0).path("message").path("content");
     if (!content.isString()) {
       throw new InvalidAiResponseException("The provider answered without content");
     }
     return content.asString();
+  }
+
+  private static Object content(LlmPrompt prompt) {
+    return prompt
+        .attachedImage()
+        .<Object>map(
+            image ->
+                List.of(
+                    Map.of("type", "text", "text", prompt.user()),
+                    Map.of(
+                        "type",
+                        "image_url",
+                        "image_url",
+                        Map.of("url", "data:" + image.mimeType() + ";base64," + image.base64()))))
+        .orElse(prompt.user());
   }
 }

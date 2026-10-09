@@ -2,6 +2,7 @@ package dev.haypacomer.ai.llm;
 
 import dev.haypacomer.application.ai.AdvisorSource;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -35,7 +36,7 @@ public final class GeminiClient implements LlmClient {
                 "systemInstruction",
                 Map.of("parts", List.of(Map.of("text", prompt.system()))),
                 "contents",
-                List.of(Map.of("role", "user", "parts", List.of(Map.of("text", prompt.user())))),
+                List.of(Map.of("role", "user", "parts", parts(prompt))),
                 "generationConfig",
                 Map.of("responseMimeType", "application/json", "temperature", 0.2)));
     JsonNode text =
@@ -44,5 +45,19 @@ public final class GeminiClient implements LlmClient {
       throw new InvalidAiResponseException("Gemini answered without text");
     }
     return text.asString();
+  }
+
+  private static List<Map<String, Object>> parts(LlmPrompt prompt) {
+    List<Map<String, Object>> parts = new ArrayList<>();
+    parts.add(Map.of("text", prompt.user()));
+    prompt
+        .attachedImage()
+        .ifPresent(
+            image ->
+                parts.add(
+                    Map.of(
+                        "inline_data",
+                        Map.of("mime_type", image.mimeType(), "data", image.base64()))));
+    return parts;
   }
 }
