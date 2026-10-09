@@ -82,5 +82,12 @@ class PostgresSensorEventLogTest extends PostgresTestSupport {
     assertEquals(NOW, log.lastAccepted(device.id(), "DOOR").orElseThrow());
     assertEquals(NOW.plusSeconds(30), log.lastAccepted(device.id(), "TEMPERATURE").orElseThrow());
     assertEquals(NOW.plusSeconds(60), log.lastAccepted(device.id(), "WEIGHT").orElseThrow());
+
+    var history = log.doorAndTemperature(fridge.id(), NOW.minusSeconds(1), NOW.plusSeconds(120));
+    assertEquals(2, history.size());
+    assertEquals(open, history.getFirst());
+    assertEquals(new BigDecimal("4.50"), ((TemperatureReading) history.get(1)).celsius());
+    assertTrue(
+        log.doorAndTemperature(fridge.id(), NOW.plusSeconds(31), NOW.plusSeconds(120)).isEmpty());
   }
 }

@@ -18,6 +18,7 @@
 | Label and receipt reader | Multimodal extraction: name, quantity, date, confidence | Preview first; never saves on its own |
 | Recipe photo reader | Photo of a recipe -> name, servings, ingredients as written, steps, confidence | Strict JSON contract; Java matches each food to the catalog and converts quantities to grams; draft only, never saved |
 | Substitution advisor | Proposes a substitute from the allowed catalog | Java validates proportion, grams, and allergies |
+| Cold investigator | Explains warm periods and what to do with each food | Episodes, causes, and verdicts are computed in Java from measured events (2 hour rule); the agent only words them |
 | Status explainer | Writes "consume today" or "review this product" | Risk level comes from the cold-chain rule |
 | Chef chat | Converses and acts through tools on the real inventory | Refuses to invent grams or safety; cites real items |
 

@@ -134,6 +134,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 82. proactive briefings by schedule and events
 - [x] 83. reactive copilot with live scale
 - [x] 84. market agent with budget
+- [x] 85. cold incident investigation
 
 ## F6 assignments
 

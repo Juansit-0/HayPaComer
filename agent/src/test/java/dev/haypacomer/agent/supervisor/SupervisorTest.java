@@ -211,7 +211,7 @@ class SupervisorTest {
             .handle(kitchen.home.id(), kitchen.owner, "anything", Optional.of("cold"));
 
     assertEquals("Fridge looks fine", answer.answer());
-    assertEquals(Specialist.COLD.tools(), seen.getFirst().tools());
+    assertEquals(java.util.Set.of("view_cold_chain", "view_expiries"), seen.getFirst().tools());
     assertThrows(
         IllegalArgumentException.class,
         () ->

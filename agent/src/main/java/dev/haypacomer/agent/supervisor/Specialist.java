@@ -42,8 +42,8 @@ public record Specialist(
       new Specialist(
           "cold",
           "Fridge temperature, cold chain incidents, and which food needs review.",
-          Set.of("view_cold_chain", "view_expiries"),
-          List.of("view_cold_chain", "view_expiries"));
+          Set.of("view_cold_chain", "investigate_cold", "view_expiries"),
+          List.of("view_cold_chain", "investigate_cold", "view_expiries"));
 
   public static final Specialist COACH =
       new Specialist(
