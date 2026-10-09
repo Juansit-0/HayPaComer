@@ -31,7 +31,7 @@ Guides for roadmap steps assigned to a teammate. Each guide explains the goal, t
 | 87 | [Hands-free voice in the kitchen with Web Speech (frontend)](step-87-hands-free-voice.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 88 | [Indexes, partitions, and inventory queries](step-88-persistence-performance.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 89 | [Full demo flow and extreme noise tests](step-89-demo-flow-noise.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
-| 90 | Expanded demo script (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
+| 90 | [Expanded demo script](step-90-demo-script.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 91 | Final README with badges, architecture, and patterns (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 92 | Release v1.0.0 (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 
