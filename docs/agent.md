@@ -13,6 +13,13 @@ Trigger (chat / schedule / event)
 Fallback: Circuit Breaker -> rule-based planner (offline)
 ```
 
+## Runtime (step 69)
+
+- `AgentRuntime` runs `plan -> tool -> observation` until the `Planner` returns a final answer.
+- `AgentBudget`: 8 steps and 30 s by default (at most 20 steps); exhausting either ends the run as OUT_OF_BUDGET.
+- WRITE tools are never invoked by the loop: the run stops in WAITING_CONFIRMATION with a `PendingConfirmation`.
+- Unknown or failing tools become failed observations; a planner outage switches to `RuleBasedPlanner` and is audited as FALLBACK.
+
 ## Tools
 
 | Tool | Kind | Effect |
