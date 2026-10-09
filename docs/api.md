@@ -198,10 +198,11 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 | POST | `/agent/chat` | guest | Chef chat; streams answer, trace, and confirmation requests over SSE |
 | GET | `/agent/conversations` | user | Caller conversations |
 | GET | `/agent/conversations/{id}` | user | Conversation messages |
-| GET | `/agent/runs/{id}/trace` | user | Visible trace: tools, arguments, results |
-| GET | `/agent/confirmations` | user | Pending writes proposed by the agent |
-| POST | `/agent/confirmations/{id}/approve` | member | Approve; runs the real use case |
-| POST | `/agent/confirmations/{id}/reject` | user | Reject |
+| POST | `/households/{h}/agent/runs` | guest | Run the agent on a goal (`specialist`: chef, market, cold, coach); answer, or a confirmation when it proposes a write |
+| GET | `/agent/runs/{id}/trace` | user (member of the run's household) | Visible trace: plan, tool calls with arguments, observations, answer |
+| GET | `/agent/confirmations` | user | Pending writes the agent proposed to the caller (10 minutes) |
+| POST | `/agent/confirmations/{id}/approve` | author of the request | Approve; permissions are checked again and the real use case runs once (410 expired, 409 refused) |
+| POST | `/agent/confirmations/{id}/reject` | author of the request | Reject; the run closes without changes |
 | GET | `/households/{h}/agent/memory` | guest | Household memory as notes (`topic`: PREFERENCE, USUAL_QUANTITY, ACCEPTED_DISH, DECISION; `subject`; `value`) |
 | PATCH | `/households/{h}/agent/memory` | member (COOK) | `forget` then `remember` up to 20 notes each; usual quantities must be readable (422), at most 200 notes |
 | DELETE | `/households/{h}/agent/memory` | owner | Clear memory |

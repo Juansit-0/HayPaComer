@@ -10,6 +10,7 @@ import java.util.UUID;
 
 public record PendingConfirmation(
     UUID id,
+    AgentRunId run,
     HouseholdId household,
     UserId user,
     String tool,
@@ -22,6 +23,7 @@ public record PendingConfirmation(
 
   public PendingConfirmation {
     Objects.requireNonNull(id, "id");
+    Objects.requireNonNull(run, "run");
     Objects.requireNonNull(household, "household");
     Objects.requireNonNull(user, "user");
     Objects.requireNonNull(tool, "tool");
@@ -35,6 +37,7 @@ public record PendingConfirmation(
   }
 
   public static PendingConfirmation propose(
+      AgentRunId run,
       HouseholdId household,
       UserId user,
       String tool,
@@ -42,7 +45,15 @@ public record PendingConfirmation(
       String summary,
       Instant at) {
     return new PendingConfirmation(
-        UUID.randomUUID(), household, user, tool, arguments, summary, at, at.plus(TIME_TO_LIVE));
+        UUID.randomUUID(),
+        run,
+        household,
+        user,
+        tool,
+        arguments,
+        summary,
+        at,
+        at.plus(TIME_TO_LIVE));
   }
 
   public boolean expired(Instant now) {

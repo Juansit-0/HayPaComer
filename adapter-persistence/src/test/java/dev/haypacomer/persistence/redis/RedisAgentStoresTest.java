@@ -138,6 +138,7 @@ class RedisAgentStoresTest {
         new RedisConfirmationStore(redis, Clock.fixed(NOW, ZoneOffset.UTC));
     PendingConfirmation add =
         PendingConfirmation.propose(
+            AgentRunId.newId(),
             household,
             juan,
             "add_to_market",
@@ -146,7 +147,13 @@ class RedisAgentStoresTest {
             NOW);
     PendingConfirmation stale =
         PendingConfirmation.propose(
-            household, juan, "add_to_market", Map.of(), "Old", NOW.minusSeconds(900));
+            AgentRunId.newId(),
+            household,
+            juan,
+            "add_to_market",
+            Map.of(),
+            "Old",
+            NOW.minusSeconds(900));
 
     store.propose(add);
     store.propose(stale);

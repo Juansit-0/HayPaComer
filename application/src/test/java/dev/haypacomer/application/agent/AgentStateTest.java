@@ -37,6 +37,7 @@ class AgentStateTest {
   void confirmationsExpireAfterTenMinutes() {
     PendingConfirmation pending =
         PendingConfirmation.propose(
+            AgentRunId.newId(),
             HouseholdId.newId(),
             UserId.newId(),
             "add_to_market",
@@ -52,6 +53,7 @@ class AgentStateTest {
         () ->
             new PendingConfirmation(
                 pending.id(),
+                pending.run(),
                 pending.household(),
                 pending.user(),
                 "add_to_market",
