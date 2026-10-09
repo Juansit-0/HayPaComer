@@ -3,6 +3,7 @@ package dev.haypacomer.persistence.relational;
 import dev.haypacomer.application.port.FoodCatalogRepository;
 import dev.haypacomer.domain.food.Allergen;
 import dev.haypacomer.domain.food.FoodMetadata;
+import java.text.Normalizer;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -43,13 +44,22 @@ public class PostgresFoodCatalogRepository implements FoodCatalogRepository {
       throw new IllegalArgumentException("Limit must be positive: " + limit);
     }
     String prefix =
-        FoodMetadata.keyOf(text).replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+        FoodMetadata.keyOf(plain(text))
+            .replace("\\", "\\\\")
+            .replace("%", "\\%")
+            .replace("_", "\\_");
     return List.copyOf(
         FoodRows.load(
                 jdbc,
-                "WHERE name_key LIKE :prefix ORDER BY name_key LIMIT :limit",
+                "WHERE name_key LIKE :prefix OR name_key IN (SELECT substr(t.key, 6) FROM"
+                    + " translations t WHERE t.key LIKE 'food.%' AND translate(lower(t.text),"
+                    + " 'áéíóúüñ', 'aeiouun') LIKE :prefix) ORDER BY name_key LIMIT :limit",
                 Map.of("prefix", prefix + "%", "limit", limit))
             .values());
+  }
+
+  private static String plain(String text) {
+    return Normalizer.normalize(text, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
   }
 
   private void write(FoodMetadata food) {

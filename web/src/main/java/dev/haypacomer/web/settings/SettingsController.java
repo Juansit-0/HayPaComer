@@ -6,6 +6,7 @@ import dev.haypacomer.application.settings.SettingDefinition;
 import dev.haypacomer.application.settings.SettingView;
 import dev.haypacomer.application.settings.ViewHouseholdSettings;
 import dev.haypacomer.domain.household.HouseholdId;
+import dev.haypacomer.web.i18n.Localizer;
 import dev.haypacomer.web.security.CurrentUser;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -27,11 +28,14 @@ public class SettingsController {
   private final ViewHouseholdSettings viewSettings;
   private final ChangeHouseholdSetting changeSetting;
   private final ListSettingDefinitions definitions;
+  private final Localizer localizer;
 
   public SettingsController(
       ViewHouseholdSettings viewSettings,
       ChangeHouseholdSetting changeSetting,
-      ListSettingDefinitions definitions) {
+      ListSettingDefinitions definitions,
+      Localizer localizer) {
+    this.localizer = localizer;
     this.viewSettings = viewSettings;
     this.changeSetting = changeSetting;
     this.definitions = definitions;
@@ -39,13 +43,26 @@ public class SettingsController {
 
   @GetMapping("/api/v1/settings/defaults")
   List<DefinitionResponse> defaults() {
-    return definitions.list().stream().map(DefinitionResponse::from).toList();
+    return definitions.list().stream()
+        .map(DefinitionResponse::from)
+        .map(
+            response ->
+                new DefinitionResponse(
+                    response.key(),
+                    response.kind(),
+                    response.scope(),
+                    response.value(),
+                    response.min(),
+                    response.max(),
+                    localizer.text("setting." + response.key(), response.description())))
+        .toList();
   }
 
   @GetMapping("/api/v1/households/{householdId}/settings")
   List<SettingResponse> view(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID householdId) {
     return viewSettings.view(CurrentUser.of(jwt), new HouseholdId(householdId)).stream()
         .map(SettingResponse::from)
+        .map(this::localized)
         .toList();
   }
 
@@ -54,12 +71,25 @@ public class SettingsController {
       @AuthenticationPrincipal Jwt jwt,
       @PathVariable UUID householdId,
       @Valid @RequestBody ChangeRequest request) {
-    return SettingResponse.from(
-        changeSetting.change(
-            CurrentUser.of(jwt),
-            new HouseholdId(householdId),
-            request.key(),
-            Optional.ofNullable(request.value())));
+    return localized(
+        SettingResponse.from(
+            changeSetting.change(
+                CurrentUser.of(jwt),
+                new HouseholdId(householdId),
+                request.key(),
+                Optional.ofNullable(request.value()))));
+  }
+
+  private SettingResponse localized(SettingResponse response) {
+    return new SettingResponse(
+        response.key(),
+        response.kind(),
+        response.value(),
+        response.defaultValue(),
+        response.min(),
+        response.max(),
+        response.overridden(),
+        localizer.text("setting." + response.key(), response.description()));
   }
 
   record ChangeRequest(@NotBlank String key, String value) {}

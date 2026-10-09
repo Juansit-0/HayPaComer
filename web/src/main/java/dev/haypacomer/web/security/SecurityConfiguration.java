@@ -66,6 +66,8 @@ public class SecurityConfiguration {
                         "/actuator/health",
                         "/actuator/health/**",
                         "/actuator/info",
+                        "/api/v1/i18n",
+                        "/api/v1/i18n/*",
                         "/",
                         "/index.html",
                         "/app/**",

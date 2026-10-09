@@ -17,6 +17,7 @@ import dev.haypacomer.application.coldchain.FridgeNotFoundException;
 import dev.haypacomer.application.device.DeviceNotFoundException;
 import dev.haypacomer.application.household.HouseholdNotFoundException;
 import dev.haypacomer.application.household.InvitationEmailMismatchException;
+import dev.haypacomer.application.i18n.UnknownLocaleException;
 import dev.haypacomer.application.inventory.FoodItemNotFoundException;
 import dev.haypacomer.application.inventory.FoodNotInCatalogException;
 import dev.haypacomer.application.inventory.NothingToUndoException;
@@ -157,6 +158,11 @@ public class ApiExceptionHandler {
 
   @ExceptionHandler(DeviceNotFoundException.class)
   ProblemDetail deviceNotFound(DeviceNotFoundException exception) {
+    return problem(HttpStatus.NOT_FOUND, "Not found", exception.getMessage());
+  }
+
+  @ExceptionHandler(UnknownLocaleException.class)
+  ProblemDetail unknownLocale(UnknownLocaleException exception) {
     return problem(HttpStatus.NOT_FOUND, "Not found", exception.getMessage());
   }
 
