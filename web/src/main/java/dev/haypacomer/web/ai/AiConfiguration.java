@@ -18,7 +18,6 @@ import dev.haypacomer.ai.resilience.ProviderCircuit;
 import dev.haypacomer.ai.resilience.ResilientChatModel;
 import dev.haypacomer.ai.resilience.ResilientKitchenAdvisor;
 import dev.haypacomer.ai.resilience.ResilientRecipePhotoReader;
-import dev.haypacomer.application.ai.CircuitPolicy;
 import dev.haypacomer.application.ai.ReadRecipePhoto;
 import dev.haypacomer.application.port.AiAuditLog;
 import dev.haypacomer.application.port.AiRateLimiter;
@@ -27,6 +26,7 @@ import dev.haypacomer.application.port.CircuitBreakerStore;
 import dev.haypacomer.application.port.FoodCatalogRepository;
 import dev.haypacomer.application.port.HouseholdRepository;
 import dev.haypacomer.application.port.KitchenAdvisor;
+import dev.haypacomer.application.port.PolicySource;
 import dev.haypacomer.application.port.RecipePhotoReader;
 import dev.haypacomer.application.port.ServiceHealth;
 import dev.haypacomer.persistence.redis.RedisAiRateLimiter;
@@ -62,6 +62,7 @@ public class AiConfiguration {
       AiResponseCache cache,
       CircuitBreakerStore breaker,
       ServiceHealth health,
+      PolicySource policies,
       Clock clock) {
     OfflineRuleEngine offline = new OfflineRuleEngine();
     if (properties.provider() == AiProperties.Provider.OFFLINE) {
@@ -71,7 +72,7 @@ public class AiConfiguration {
     return new ResilientKitchenAdvisor(
         new LlmKitchenAdvisor(client, cache, properties.cacheTimeToLive()),
         offline,
-        circuit(client, breaker, health, clock));
+        circuit(client, breaker, health, policies, clock));
   }
 
   @Bean
@@ -80,6 +81,7 @@ public class AiConfiguration {
       ToolRegistry agentTools,
       CircuitBreakerStore breaker,
       ServiceHealth health,
+      PolicySource policies,
       Clock clock) {
     if (properties.provider() == AiProperties.Provider.OFFLINE) {
       return new OfflinePlanners();
@@ -87,24 +89,34 @@ public class AiConfiguration {
     LlmClient client = client(properties);
     return new LlmPlannerFactory(
         new ResilientChatModel(
-            new LlmChatModel(client), new NullChatModel(), circuit(client, breaker, health, clock)),
+            new LlmChatModel(client),
+            new NullChatModel(),
+            circuit(client, breaker, health, policies, clock)),
         agentTools);
   }
 
   @Bean
   RecipePhotoReader recipePhotoReader(
-      AiProperties properties, CircuitBreakerStore breaker, ServiceHealth health, Clock clock) {
+      AiProperties properties,
+      CircuitBreakerStore breaker,
+      ServiceHealth health,
+      PolicySource policies,
+      Clock clock) {
     if (properties.provider() == AiProperties.Provider.OFFLINE) {
       return new OfflineRecipePhotoReader();
     }
     LlmClient client = client(properties);
     return new ResilientRecipePhotoReader(
-        new LlmRecipePhotoReader(client), circuit(client, breaker, health, clock));
+        new LlmRecipePhotoReader(client), circuit(client, breaker, health, policies, clock));
   }
 
   private static ProviderCircuit circuit(
-      LlmClient client, CircuitBreakerStore breaker, ServiceHealth health, Clock clock) {
-    return new ProviderCircuit(client.source(), breaker, CircuitPolicy.DEFAULT, health, clock);
+      LlmClient client,
+      CircuitBreakerStore breaker,
+      ServiceHealth health,
+      PolicySource policies,
+      Clock clock) {
+    return new ProviderCircuit(client.source(), breaker, policies::circuit, health, clock);
   }
 
   @Bean
@@ -114,8 +126,9 @@ public class AiConfiguration {
       FoodCatalogRepository catalog,
       AiRateLimiter rateLimiter,
       AiAuditLog audit,
+      PolicySource policies,
       Clock clock) {
-    return new ReadRecipePhoto(households, reader, catalog, rateLimiter, audit, clock);
+    return new ReadRecipePhoto(households, reader, catalog, rateLimiter, audit, policies, clock);
   }
 
   static LlmClient client(AiProperties properties) {

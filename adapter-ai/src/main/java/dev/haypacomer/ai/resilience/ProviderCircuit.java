@@ -17,7 +17,7 @@ public final class ProviderCircuit {
 
   private final AdvisorSource source;
   private final CircuitBreakerStore store;
-  private final CircuitPolicy policy;
+  private final Supplier<CircuitPolicy> policies;
   private final ServiceHealth health;
   private final Clock clock;
 
@@ -27,9 +27,18 @@ public final class ProviderCircuit {
       CircuitPolicy policy,
       ServiceHealth health,
       Clock clock) {
+    this(source, store, constant(policy), health, clock);
+  }
+
+  public ProviderCircuit(
+      AdvisorSource source,
+      CircuitBreakerStore store,
+      Supplier<CircuitPolicy> policies,
+      ServiceHealth health,
+      Clock clock) {
     this.source = Objects.requireNonNull(source, "source");
     this.store = Objects.requireNonNull(store, "store");
-    this.policy = Objects.requireNonNull(policy, "policy");
+    this.policies = Objects.requireNonNull(policies, "policies");
     this.health = Objects.requireNonNull(health, "health");
     this.clock = Objects.requireNonNull(clock, "clock");
   }
@@ -41,6 +50,7 @@ public final class ProviderCircuit {
   public <T> T call(
       Supplier<T> provider, Supplier<T> fallback, Predicate<RuntimeException> outage) {
     Instant now = clock.instant();
+    CircuitPolicy policy = policies.get();
     CircuitState state = store.load(source);
     if (!state.allows(now, policy)) {
       health.degraded(component(), "Resting after repeated failures; offline rules answer", now);
@@ -69,6 +79,11 @@ public final class ProviderCircuit {
       }
       return fallback.get();
     }
+  }
+
+  private static Supplier<CircuitPolicy> constant(CircuitPolicy policy) {
+    Objects.requireNonNull(policy, "policy");
+    return () -> policy;
   }
 
   private String component() {

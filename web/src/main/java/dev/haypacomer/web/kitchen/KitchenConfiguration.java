@@ -37,6 +37,7 @@ import dev.haypacomer.application.port.HouseholdRepository;
 import dev.haypacomer.application.port.InventoryMovementLog;
 import dev.haypacomer.application.port.KitchenAdvisor;
 import dev.haypacomer.application.port.MarketListRepository;
+import dev.haypacomer.application.port.PolicySource;
 import dev.haypacomer.application.port.ScaleSessionStore;
 import dev.haypacomer.application.port.SensorHistory;
 import dev.haypacomer.application.port.SnapshotStore;
@@ -57,8 +58,6 @@ import dev.haypacomer.application.session.StartCookingSession;
 import dev.haypacomer.application.session.ViewCookingSession;
 import dev.haypacomer.application.session.ViewStepTimer;
 import dev.haypacomer.application.session.WeighStep;
-import dev.haypacomer.domain.inventory.FreshnessPolicy;
-import dev.haypacomer.domain.sensor.FridgeThresholds;
 import dev.haypacomer.sensors.cooking.InMemoryStepTimerStore;
 import java.time.Clock;
 import org.springframework.context.annotation.Bean;
@@ -66,11 +65,6 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class KitchenConfiguration {
-
-  @Bean
-  FreshnessPolicy freshnessPolicy() {
-    return FreshnessPolicy.DEFAULT;
-  }
 
   @Bean
   SetUpFridge setUpFridge(HouseholdRepository households, FridgeRepository fridges) {
@@ -88,8 +82,8 @@ public class KitchenConfiguration {
       FridgeRepository fridges,
       FoodOwnershipRepository ownerships,
       ColdChainRepository coldChains,
-      FreshnessPolicy freshness) {
-    return new ViewInventory(households, fridges, ownerships, coldChains, freshness);
+      PolicySource policies) {
+    return new ViewInventory(households, fridges, ownerships, coldChains, policies);
   }
 
   @Bean
@@ -119,9 +113,10 @@ public class KitchenConfiguration {
       SubstitutionRuleRepository rules,
       KitchenAdvisor advisor,
       AiRateLimiter rateLimiter,
+      PolicySource policies,
       Clock clock) {
     return new SuggestDishes(
-        households, viewInventory, profiles, rules, advisor, rateLimiter, clock);
+        households, viewInventory, profiles, rules, advisor, rateLimiter, policies, clock);
   }
 
   @Bean
@@ -146,8 +141,8 @@ public class KitchenConfiguration {
   }
 
   @Bean
-  TrackColdChain trackColdChain(ColdChainRepository chains) {
-    return new TrackColdChain(chains, FridgeThresholds.DEFAULT);
+  TrackColdChain trackColdChain(ColdChainRepository chains, PolicySource policies) {
+    return new TrackColdChain(chains, policies);
   }
 
   @Bean
@@ -165,8 +160,10 @@ public class KitchenConfiguration {
       FridgeRepository fridges,
       SensorHistory history,
       ViewInventory viewInventory,
+      PolicySource policies,
       Clock clock) {
-    return new InvestigateColdIncidents(households, fridges, history, viewInventory, clock);
+    return new InvestigateColdIncidents(
+        households, fridges, history, viewInventory, policies, clock);
   }
 
   @Bean

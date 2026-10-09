@@ -18,6 +18,7 @@ import dev.haypacomer.application.port.FridgeMonitorRegistry;
 import dev.haypacomer.application.port.FridgeRepository;
 import dev.haypacomer.application.port.FridgeSessionRegistry;
 import dev.haypacomer.application.port.HouseholdRepository;
+import dev.haypacomer.application.port.PolicySource;
 import dev.haypacomer.application.port.ScaleAssignmentRepository;
 import dev.haypacomer.application.port.ScaleCalibrationRepository;
 import dev.haypacomer.application.port.ScaleSampleStore;
@@ -37,8 +38,6 @@ import dev.haypacomer.application.sensor.IngestSensorEvents;
 import dev.haypacomer.application.sensor.ObserveSensorEvent;
 import dev.haypacomer.application.sensor.WeightReadingHandlers;
 import dev.haypacomer.application.sensor.validation.ValidateSensorEvent;
-import dev.haypacomer.domain.quantity.Grams;
-import dev.haypacomer.domain.sensor.FridgeThresholds;
 import dev.haypacomer.sensors.fridge.InMemoryFridgeSessionRegistry;
 import dev.haypacomer.sensors.hardware.Esp32HardwareFactory;
 import dev.haypacomer.sensors.hardware.SimulatedHardwareFactory;
@@ -147,8 +146,8 @@ public class DeviceConfiguration {
   }
 
   @Bean
-  FridgeMonitorRegistry fridgeMonitorRegistry() {
-    return new InMemoryFridgeMonitorRegistry(FridgeThresholds.DEFAULT);
+  FridgeMonitorRegistry fridgeMonitorRegistry(PolicySource policies) {
+    return new InMemoryFridgeMonitorRegistry(policies::thresholdsOf);
   }
 
   @Bean
@@ -213,13 +212,9 @@ public class DeviceConfiguration {
       ScaleAssignmentRepository assignments,
       FridgeRepository fridges,
       ExecuteInventoryCommand commands,
-      FridgeSessionRegistry sessions) {
-    return new ApplyFridgeScaleReading(
-        assignments,
-        fridges,
-        commands,
-        sessions,
-        Grams.of(FridgeThresholds.DEFAULT.minimumWeightChange()));
+      FridgeSessionRegistry sessions,
+      PolicySource policies) {
+    return new ApplyFridgeScaleReading(assignments, fridges, commands, sessions, policies);
   }
 
   @Bean

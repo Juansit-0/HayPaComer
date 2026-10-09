@@ -17,6 +17,7 @@ import dev.haypacomer.application.port.AccessTokenIssuer;
 import dev.haypacomer.application.port.EmailSender;
 import dev.haypacomer.application.port.LoginAttemptLog;
 import dev.haypacomer.application.port.PasswordHasher;
+import dev.haypacomer.application.port.PolicySource;
 import dev.haypacomer.application.port.RefreshTokenStore;
 import dev.haypacomer.application.port.UserRepository;
 import dev.haypacomer.application.port.UserTokenStore;
@@ -26,6 +27,7 @@ import dev.haypacomer.web.security.JwtProperties;
 import java.time.Clock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 
 @Configuration
@@ -37,8 +39,9 @@ public class AuthConfiguration {
   }
 
   @Bean
-  AuthSettings authSettings() {
-    return AuthSettings.DEFAULT;
+  @DependsOn("flywayInitializer")
+  AuthSettings authSettings(PolicySource policies) {
+    return policies.auth();
   }
 
   @Bean

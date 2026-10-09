@@ -2,6 +2,7 @@ package dev.haypacomer.sensors.hardware;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -9,6 +10,7 @@ import dev.haypacomer.domain.device.DeviceId;
 import dev.haypacomer.domain.fridge.FridgeId;
 import dev.haypacomer.domain.sensor.Finding;
 import dev.haypacomer.domain.sensor.FindingKind;
+import dev.haypacomer.domain.sensor.FridgeMonitor;
 import dev.haypacomer.domain.sensor.FridgeThresholds;
 import dev.haypacomer.sensors.monitor.InMemoryFridgeMonitorRegistry;
 import java.math.BigDecimal;
@@ -41,5 +43,18 @@ class InMemoryFridgeMonitorRegistryTest {
     assertEquals(List.of(fridge), List.copyOf(registry.fridges()));
     assertTrue(registry.firstReport(fridge, open));
     assertFalse(registry.firstReport(fridge, open));
+  }
+
+  @Test
+  void rebuildsTheMonitorWhenTheThresholdsChange() {
+    FridgeThresholds[] current = {FridgeThresholds.DEFAULT};
+    InMemoryFridgeMonitorRegistry registry = new InMemoryFridgeMonitorRegistry(id -> current[0]);
+    FridgeId fridge = FridgeId.newId();
+    FridgeMonitor first = registry.monitor(fridge);
+
+    assertSame(first, registry.monitor(fridge));
+    current[0] = FridgeThresholds.DEFAULT.withMinimumWeightChange(BigDecimal.TEN);
+
+    assertNotSame(first, registry.monitor(fridge));
   }
 }

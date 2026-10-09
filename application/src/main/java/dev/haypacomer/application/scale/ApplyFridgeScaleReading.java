@@ -5,14 +5,17 @@ import dev.haypacomer.application.inventory.ConsumeFoodCommand;
 import dev.haypacomer.application.inventory.ExecuteInventoryCommand;
 import dev.haypacomer.application.port.FridgeRepository;
 import dev.haypacomer.application.port.FridgeSessionRegistry;
+import dev.haypacomer.application.port.PolicySource;
 import dev.haypacomer.application.port.ScaleAssignmentRepository;
 import dev.haypacomer.application.sensor.WeightReadingHandler;
+import dev.haypacomer.application.settings.FixedPolicies;
 import dev.haypacomer.domain.device.Device;
 import dev.haypacomer.domain.fridge.FoodItem;
 import dev.haypacomer.domain.household.AccessDeniedException;
 import dev.haypacomer.domain.identity.UserId;
 import dev.haypacomer.domain.inventory.MovementSource;
 import dev.haypacomer.domain.quantity.Grams;
+import dev.haypacomer.domain.sensor.FridgeThresholds;
 import dev.haypacomer.domain.sensor.ScaleMode;
 import dev.haypacomer.domain.sensor.WeightReading;
 import java.util.Objects;
@@ -24,7 +27,7 @@ public final class ApplyFridgeScaleReading implements WeightReadingHandler {
   private final FridgeRepository fridges;
   private final ExecuteInventoryCommand commands;
   private final FridgeSessionRegistry sessions;
-  private final Grams minimumChange;
+  private final PolicySource policies;
 
   public ApplyFridgeScaleReading(
       ScaleAssignmentRepository assignments,
@@ -32,11 +35,26 @@ public final class ApplyFridgeScaleReading implements WeightReadingHandler {
       ExecuteInventoryCommand commands,
       FridgeSessionRegistry sessions,
       Grams minimumChange) {
+    this(
+        assignments,
+        fridges,
+        commands,
+        sessions,
+        FixedPolicies.DEFAULT.withThresholds(
+            FridgeThresholds.DEFAULT.withMinimumWeightChange(minimumChange.value())));
+  }
+
+  public ApplyFridgeScaleReading(
+      ScaleAssignmentRepository assignments,
+      FridgeRepository fridges,
+      ExecuteInventoryCommand commands,
+      FridgeSessionRegistry sessions,
+      PolicySource policies) {
     this.assignments = Objects.requireNonNull(assignments, "assignments");
     this.fridges = Objects.requireNonNull(fridges, "fridges");
     this.commands = Objects.requireNonNull(commands, "commands");
     this.sessions = Objects.requireNonNull(sessions, "sessions");
-    this.minimumChange = Objects.requireNonNull(minimumChange, "minimumChange");
+    this.policies = Objects.requireNonNull(policies, "policies");
   }
 
   @Override
@@ -61,6 +79,8 @@ public final class ApplyFridgeScaleReading implements WeightReadingHandler {
             ? reading.grams().minus(item.tare())
             : Grams.ZERO;
     Grams consumed = measuredNet.shortfallTo(item.quantity());
+    Grams minimumChange =
+        Grams.of(policies.thresholds(assignment.household()).minimumWeightChange());
     if (consumed.compareTo(minimumChange) < 0) {
       return Optional.empty();
     }

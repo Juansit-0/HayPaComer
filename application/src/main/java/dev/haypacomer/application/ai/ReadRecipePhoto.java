@@ -7,7 +7,9 @@ import dev.haypacomer.application.port.AiAuditLog;
 import dev.haypacomer.application.port.AiRateLimiter;
 import dev.haypacomer.application.port.FoodCatalogRepository;
 import dev.haypacomer.application.port.HouseholdRepository;
+import dev.haypacomer.application.port.PolicySource;
 import dev.haypacomer.application.port.RecipePhotoReader;
+import dev.haypacomer.application.settings.FixedPolicies;
 import dev.haypacomer.domain.food.FoodMetadata;
 import dev.haypacomer.domain.household.HouseholdId;
 import dev.haypacomer.domain.identity.UserId;
@@ -26,6 +28,7 @@ public final class ReadRecipePhoto {
   private final FoodCatalogRepository catalog;
   private final AiRateLimiter rateLimiter;
   private final AiAuditLog audit;
+  private final PolicySource policies;
   private final Clock clock;
 
   public ReadRecipePhoto(
@@ -35,18 +38,30 @@ public final class ReadRecipePhoto {
       AiRateLimiter rateLimiter,
       AiAuditLog audit,
       Clock clock) {
+    this(households, reader, catalog, rateLimiter, audit, FixedPolicies.DEFAULT, clock);
+  }
+
+  public ReadRecipePhoto(
+      HouseholdRepository households,
+      RecipePhotoReader reader,
+      FoodCatalogRepository catalog,
+      AiRateLimiter rateLimiter,
+      AiAuditLog audit,
+      PolicySource policies,
+      Clock clock) {
     this.households = new GetHousehold(households);
     this.reader = Objects.requireNonNull(reader, "reader");
     this.catalog = Objects.requireNonNull(catalog, "catalog");
     this.rateLimiter = Objects.requireNonNull(rateLimiter, "rateLimiter");
     this.audit = Objects.requireNonNull(audit, "audit");
+    this.policies = Objects.requireNonNull(policies, "policies");
     this.clock = Objects.requireNonNull(clock, "clock");
   }
 
   public RecipeDraft read(UserId actor, HouseholdId household, RecipePhoto photo) {
     households.get(actor, household);
     if (!rateLimiter.tryAcquire(
-        actor.value().toString(), SuggestDishes.CALLS_PER_MINUTE, Duration.ofMinutes(1))) {
+        actor.value().toString(), policies.aiCallsPerMinute(), Duration.ofMinutes(1))) {
       throw new AiRateLimitExceededException();
     }
     Instant started = clock.instant();

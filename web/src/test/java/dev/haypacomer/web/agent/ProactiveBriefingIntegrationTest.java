@@ -2,12 +2,14 @@ package dev.haypacomer.web.agent;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.jayway.jsonpath.JsonPath;
 import dev.haypacomer.agent.proactive.ScheduledBriefings;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneOffset;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,6 +88,15 @@ class ProactiveBriefingIntegrationTest {
             + "\",\"trayId\":\""
             + JsonPath.read(fridge, "$.children[0].children[0].id")
             + "\",";
+    String quietHour = String.valueOf((LocalTime.now(ZoneOffset.UTC).getHour() + 12) % 24);
+    for (String key : new String[] {"briefing.morning-hour", "briefing.digest-hour"}) {
+      mvc.perform(
+              put(base + "/settings")
+                  .header("Authorization", juan)
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content("{\"key\":\"" + key + "\",\"value\":\"" + quietHour + "\"}"))
+          .andExpect(status().isOk());
+    }
     String tomorrow = LocalDate.now(ZoneOffset.UTC).plusDays(1).toString();
     for (String food : new String[] {"Milk", "Yogurt", "Chicken breast"}) {
       send(
