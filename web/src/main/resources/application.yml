@@ -61,11 +61,11 @@ haypacomer:
       bot-token: ${TELEGRAM_BOT_TOKEN:}
   ai:
     provider: ${AI_PROVIDER:offline}
-    timeout: 10s
+    timeout: ${AI_TIMEOUT:60s}
     cache-time-to-live: 1h
     gemini:
       api-key: ${GEMINI_API_KEY:}
-      model: ${GEMINI_MODEL:gemini-2.5-flash}
+      model: ${GEMINI_MODEL:gemini-flash-latest}
     openai-compatible:
       base-url: ${OPENAI_COMPATIBLE_BASE_URL:}
       api-key: ${OPENAI_COMPATIBLE_API_KEY:}

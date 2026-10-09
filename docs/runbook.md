@@ -10,7 +10,7 @@ How HayPaComer runs on Render with the domain haypacomer.dev, and what to do whe
    - the database `haypacomer-db` (PostgreSQL);
    - the Key Value `haypacomer-redis`.
    `JWT_SECRET` is generated automatically.
-3. **Secrets in the dashboard.** In the web service, Environment, fill `GEMINI_API_KEY` (only to use Gemini; also change `AI_PROVIDER` to `gemini`) and `TELEGRAM_BOT_TOKEN` (only for Telegram alerts). Leave them empty to run offline.
+3. **Secrets in the dashboard.** In the web service, Environment, fill `GEMINI_API_KEY` (only to use Gemini; also change `AI_PROVIDER` to `gemini`) and `TELEGRAM_BOT_TOKEN` (only for Telegram alerts). Leave them empty to run offline. The default model is `gemini-flash-latest` and the provider timeout is 60 s (`AI_TIMEOUT`); Google retires older models for new keys, so if the AI suddenly answers with the offline rules, check the log and set `GEMINI_MODEL` to a model your key can use.
 4. **First deploy.** Render builds the image and runs Flyway migrations at startup. Open the `onrender.com` address it shows and check:
    - `/actuator/health/readiness` answers `UP`;
    - `/actuator/info` shows version `1.1.0` and the commit.
