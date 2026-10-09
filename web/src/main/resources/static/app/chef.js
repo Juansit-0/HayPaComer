@@ -1,24 +1,29 @@
 import { api } from "./api.js";
+import { currentLocale, locales, t } from "./i18n.js";
 import { esc, toast } from "./ui.js";
 import { commandOf, defaultLanguage, listen, speak, speechSupported, voiceSupported } from "./voice.js";
 
-const state = { conversationId: null, messages: [], lang: defaultLanguage(), handsFree: false, recognition: null };
+const state = { conversationId: null, messages: [], lang: null, handsFree: false, recognition: null };
 
-const SPECIALISTS = { chef: "Chef", market: "Market", cold: "Cold", coach: "Coach" };
+function voiceLanguage() {
+  return state.lang ?? (currentLocale().startsWith("es") ? "es-CO" : currentLocale().startsWith("en") ? "en-US" : defaultLanguage());
+}
+
+const SPECIALISTS = { chef: "chef.specialist.chef", market: "chef.specialist.market", cold: "chef.specialist.cold", coach: "chef.specialist.coach" };
 
 function spoken(answer) {
   return answer.replace(/^Offline answer based on measured data:\s*/i, "").replace(/\b[a-z_]+: /g, "");
 }
 
 function message(entry) {
-  if (entry.role === "user") return `<li class="said"><span class="who">You</span><p>${esc(entry.text)}</p></li>`;
-  const runs = (entry.runs || []).map((run) => SPECIALISTS[run.specialist] ?? run.specialist).join(", ");
+  if (entry.role === "user") return `<li class="said"><span class="who">${t("chef.you")}</span><p>${esc(entry.text)}</p></li>`;
+  const runs = (entry.runs || []).map((run) => (SPECIALISTS[run.specialist] ? t(SPECIALISTS[run.specialist]) : run.specialist)).join(", ");
   return `<li class="answer">
-    <span class="who">${esc(runs || "Kitchen")}</span>
+    <span class="who">${esc(runs || t("chef.kitchen"))}</span>
     <p>${esc(entry.text).replace(/\n/g, "<br>")}</p>
     ${
       entry.evidence?.length
-        ? `<details><summary>What this is based on</summary><ul>${entry.evidence
+        ? `<details><summary>${t("chef.evidence")}</summary><ul>${entry.evidence
             .map((item) => `<li><span class="data">${esc(item.tool)}</span> ${esc(item.content)}</li>`)
             .join("")}</ul></details>`
         : ""
@@ -29,26 +34,26 @@ function message(entry) {
 function stepCard(session) {
   if (!session) return "";
   const step = session.step;
-  return `<article class="panel stack cooking" aria-label="Cooking ${esc(session.recipe)}">
-    <div class="item-meta"><span class="item-name">${esc(session.recipe)}</span><span class="status quiet">Step ${session.currentStep} of ${session.totalSteps}</span><span class="status">${esc(session.phase.toLowerCase())}</span></div>
-    <p class="step-text">${step ? esc(step.instruction) : "All steps are done."}</p>
+  return `<article class="panel stack cooking" aria-label="${esc(t("chef.cooking", { recipe: session.recipe }))}">
+    <div class="item-meta"><span class="item-name">${esc(session.recipe)}</span><span class="status quiet">${t("chef.step-of", { step: session.currentStep, total: session.totalSteps })}</span><span class="status">${esc(t(`chef.phase.${session.phase}`))}</span></div>
+    <p class="step-text">${step ? esc(step.instruction) : t("chef.all-done")}</p>
     <div class="row-form">
-      <button class="primary" type="button" data-cook="next">Next step</button>
-      <button type="button" data-cook="${session.phase === "PAUSED" ? "resume" : "pause"}">${session.phase === "PAUSED" ? "Resume" : "Pause"}</button>
-      <button type="button" data-cook="repeat">Read it aloud</button>
+      <button class="primary" type="button" data-cook="next">${t("chef.next")}</button>
+      <button type="button" data-cook="${session.phase === "PAUSED" ? "resume" : "pause"}">${session.phase === "PAUSED" ? t("chef.resume") : t("chef.pause")}</button>
+      <button type="button" data-cook="repeat">${t("chef.read-aloud")}</button>
     </div>
-    <p class="hint">Say "next", "pause", "go on", or "repeat" (or "siguiente", "pausa", "sigue", "repite").</p>
+    <p class="hint">${t("chef.voice-hint")}</p>
   </article>`;
 }
 
 function confirmations(list) {
   if (!list.length) return "";
   return `<section class="stack" aria-labelledby="confirm-title">
-    <h2 id="confirm-title">Waiting for your yes</h2>
+    <h2 id="confirm-title">${t("chef.waiting")}</h2>
     <ul class="list">${list
       .map(
         (pending) => `<li><span class="item-name">${esc(pending.summary)}</span>
-          <span class="item-actions"><button class="primary" type="button" data-approve="${esc(pending.id)}">Do it</button><button type="button" data-reject="${esc(pending.id)}">No</button></span></li>`,
+          <span class="item-actions"><button class="primary" type="button" data-approve="${esc(pending.id)}">${t("chef.approve")}</button><button type="button" data-reject="${esc(pending.id)}">${t("chef.reject")}</button></span></li>`,
       )
       .join("")}</ul>
   </section>`;
@@ -64,22 +69,27 @@ export async function renderChef(main, household) {
   main.innerHTML = `
     <section class="stack" aria-labelledby="chef-title">
       <div>
-        <h1 id="chef-title">Ask the kitchen</h1>
-        <p class="lead">Answers use what is measured in your fridge. Anything that changes it waits for your yes.</p>
+        <h1 id="chef-title">${t("chef.title")}</h1>
+        <p class="lead">${t("chef.lead")}</p>
       </div>
       ${stepCard(session)}
       ${confirmations(pending)}
-      <ol class="chat" aria-live="polite">${state.messages.map(message).join("") || `<li class="lead">Try "What can I cook tonight?" or "¿Qué compro?"</li>`}</ol>
+      <ol class="chat" aria-live="polite">${state.messages.map(message).join("") || `<li class="lead">${t("chef.empty")}</li>`}</ol>
       <form class="ask panel" data-ask>
-        <label class="grow">Your question<input name="message" autocomplete="off" maxlength="1000" required placeholder="What should we use first?"></label>
-        <button class="primary" type="submit">Ask</button>
-        <button type="button" data-mic aria-pressed="false" ${voiceSupported ? "" : "disabled"}>Speak</button>
+        <label class="grow">${t("chef.question")}<input name="message" autocomplete="off" maxlength="1000" required placeholder="${esc(t("chef.question-example"))}"></label>
+        <button class="primary" type="submit">${t("chef.ask")}</button>
+        <button type="button" data-mic aria-pressed="false" ${voiceSupported ? "" : "disabled"}>${t("chef.speak")}</button>
       </form>
       <div class="row-form voice-options">
-        <label class="check"><input type="checkbox" data-hands-free ${state.handsFree ? "checked" : ""} ${voiceSupported ? "" : "disabled"}> Hands-free: keep listening and read answers aloud</label>
-        <label>Language<select data-lang><option value="es-CO" ${state.lang === "es-CO" ? "selected" : ""}>Español</option><option value="en-US" ${state.lang === "en-US" ? "selected" : ""}>English</option></select></label>
+        <label class="check"><input type="checkbox" data-hands-free ${state.handsFree ? "checked" : ""} ${voiceSupported ? "" : "disabled"}> ${t("chef.hands-free")}</label>
+        <label>${t("chef.voice-language")}<select data-lang>${locales()
+          .map((option) => {
+            const value = option.code.startsWith("en") ? "en-US" : option.code;
+            return `<option value="${esc(value)}" ${voiceLanguage() === value ? "selected" : ""}>${esc(option.name)}</option>`;
+          })
+          .join("")}</select></label>
       </div>
-      ${voiceSupported ? "" : `<p class="hint">This browser cannot listen. Typing works everywhere; Chrome and Edge also listen.</p>`}
+      ${voiceSupported ? "" : `<p class="hint">${t("chef.no-voice")}</p>`}
     </section>`;
 
   const form = main.querySelector("[data-ask]");
@@ -89,7 +99,7 @@ export async function renderChef(main, household) {
   async function cook(action) {
     if (!session) return false;
     if (action === "repeat") {
-      speak(session.step?.instruction ?? "All steps are done.", state.lang);
+      speak(session.step?.instruction ?? t("chef.all-done"), voiceLanguage());
       return true;
     }
     const updated = await api(`${base}/cooking-sessions/${session.id}/${action}`, { method: "POST" }).catch((error) => {
@@ -97,7 +107,7 @@ export async function renderChef(main, household) {
       return null;
     });
     if (updated) {
-      if (action === "next") speak(updated.step?.instruction ?? "That was the last step. Enjoy.", state.lang);
+      if (action === "next") speak(updated.step?.instruction ?? t("chef.last-step"), voiceLanguage());
       await renderChef(main, household);
     }
     return true;
@@ -115,7 +125,7 @@ export async function renderChef(main, household) {
       });
       state.conversationId = reply.conversationId;
       state.messages.push({ role: "assistant", text: reply.answer, runs: reply.runs, evidence: reply.evidence });
-      if (state.handsFree || mic.getAttribute("aria-pressed") === "true") speak(spoken(reply.answer), state.lang);
+      if (state.handsFree || mic.getAttribute("aria-pressed") === "true") speak(spoken(reply.answer), voiceLanguage());
     } catch (error) {
       state.messages.push({ role: "assistant", text: error.message, runs: [] });
     }
@@ -130,13 +140,13 @@ export async function renderChef(main, household) {
   function startListening(continuous) {
     state.recognition?.stop();
     state.recognition = listen({
-      lang: state.lang,
+      lang: voiceLanguage(),
       continuous,
       onText: (text) => ask(text.trim()),
       onState: (now) => {
         mic.setAttribute("aria-pressed", String(now === "listening"));
-        mic.textContent = now === "listening" ? "Listening…" : "Speak";
-        if (now === "blocked") toast("Allow the microphone to talk to the kitchen");
+        mic.textContent = now === "listening" ? t("chef.listening") : t("chef.speak");
+        if (now === "blocked") toast(t("chef.mic-blocked"));
       },
     });
   }
@@ -176,7 +186,7 @@ export async function renderChef(main, household) {
   main.querySelectorAll("[data-reject]").forEach((button) =>
     button.addEventListener("click", async () => {
       await api(`/agent/confirmations/${button.dataset.reject}/reject`, { method: "POST" }).catch(() => null);
-      toast("Nothing was changed");
+      toast(t("chef.nothing-changed"));
       renderChef(main, household);
     }),
   );

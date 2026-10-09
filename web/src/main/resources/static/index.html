@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="en">
+<html lang="es-CO">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>HayPaComer</title>
-  <meta name="description" content="What can you cook right now with what is really in your fridge.">
+  <meta name="description" content="Qué puedes cocinar ahora con lo que de verdad hay en tu nevera. What can you cook right now with what is really in your fridge.">
   <link rel="icon" href="/brand/logo-mark.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,9 +14,9 @@
   <script type="module" src="/app/main.js"></script>
 </head>
 <body>
-  <a class="skip" href="#main">Skip to content</a>
+  <a class="skip" href="#main" data-i18n="nav.skip">Skip to content</a>
   <header class="bar">
-    <a class="brand" href="#/now" aria-label="HayPaComer, now">
+    <a class="brand" href="#/now" data-i18n-label="nav.home">
       <svg class="mark" viewBox="0 0 64 64" aria-hidden="true">
         <rect x="12" y="10" width="8" height="44" rx="3" fill="currentColor"/>
         <rect x="44" y="10" width="8" height="44" rx="3" fill="currentColor"/>
@@ -25,19 +25,20 @@
       </svg>
       <span class="wordmark">HayPaComer</span>
     </a>
-    <nav class="tabs" aria-label="Sections" hidden>
-      <a href="#/now" data-tab="now">Now</a>
-      <a href="#/fridge" data-tab="fridge">Fridge</a>
-      <a href="#/market" data-tab="market">Market</a>
-      <a href="#/numbers" data-tab="numbers">Numbers</a>
-      <a href="#/chef" data-tab="chef">Chef</a>
+    <nav class="tabs" data-i18n-label="nav.sections" hidden>
+      <a href="#/now" data-tab="now" data-i18n="nav.now">Now</a>
+      <a href="#/fridge" data-tab="fridge" data-i18n="nav.fridge">Fridge</a>
+      <a href="#/market" data-tab="market" data-i18n="nav.market">Market</a>
+      <a href="#/numbers" data-tab="numbers" data-i18n="nav.numbers">Numbers</a>
+      <a href="#/chef" data-tab="chef" data-i18n="nav.chef">Chef</a>
     </nav>
     <div class="session" hidden>
-      <span class="live" data-live data-state="off" role="status">Connecting</span>
-      <a class="inbox" href="#/now" data-inbox aria-label="Notifications"></a>
+      <span class="live" data-live data-state="off" role="status" data-i18n="live.connecting">Connecting</span>
+      <a class="inbox" href="#/now" data-inbox data-i18n-label="nav.notifications"></a>
       <span class="household" data-household></span>
-      <button class="ghost" type="button" data-signout>Sign out</button>
+      <button class="ghost" type="button" data-signout data-i18n="nav.signout">Sign out</button>
     </div>
+    <label class="language"><span class="visually-hidden" data-i18n="nav.language">Language</span><select data-language></select></label>
   </header>
   <p class="notice" role="status" data-degraded hidden></p>
   <main id="main" tabindex="-1"></main>

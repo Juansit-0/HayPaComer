@@ -6,7 +6,8 @@ import { renderChef } from "./chef.js";
 import { renderMarket } from "./market.js";
 import { connectLive, disconnectLive } from "./live.js";
 import { renderNow } from "./now.js";
-import { errorText } from "./ui.js";
+import { currentLocale, loadLocale, locales, plural, t, translatePage } from "./i18n.js";
+import { errorText, esc } from "./ui.js";
 
 const main = document.getElementById("main");
 const tabs = document.querySelector(".tabs");
@@ -23,7 +24,7 @@ async function refreshInbox() {
   const notifications = await api("/notifications").catch(() => []);
   const unread = notifications.filter((notification) => !notification.readAt).length;
   const link = document.querySelector("[data-inbox]");
-  link.textContent = unread ? `${unread} unread ${unread === 1 ? "alert" : "alerts"}` : "";
+  link.textContent = unread ? plural("inbox.unread", unread) : "";
   link.title = notifications[0]?.title ?? "";
 }
 
@@ -35,7 +36,7 @@ async function refreshStatus() {
     return;
   }
   const parts = status.degraded.map((item) => item.component).join(", ");
-  notice.textContent = `Running in saved mode: ${parts} come from the last saved copy. Measured stock is always live.`;
+  notice.textContent = t("status.saved-mode", { parts });
   notice.hidden = false;
 }
 
@@ -67,7 +68,7 @@ async function render() {
     refreshInbox();
     refreshStatus();
   } catch (error) {
-    main.innerHTML = `<section class="empty"><h1>This screen did not load</h1><p>${errorText(error)}</p><button type="button" data-retry>Try again</button></section>`;
+    main.innerHTML = `<section class="empty"><h1>${t("screen.failed")}</h1><p>${esc(errorText(error))}</p><button type="button" data-retry>${t("action.retry")}</button></section>`;
     main.querySelector("[data-retry]").addEventListener("click", render);
   }
 }
@@ -80,7 +81,7 @@ window.addEventListener("hashchange", async () => {
 
 window.addEventListener("hpc:live-state", (event) => {
   document.querySelector("[data-live]").dataset.state = event.detail;
-  document.querySelector("[data-live]").textContent = event.detail === "on" ? "Live" : "Reconnecting";
+  document.querySelector("[data-live]").textContent = event.detail === "on" ? t("live.on") : t("live.reconnecting");
 });
 
 window.addEventListener("hpc:live", (event) => {
@@ -112,4 +113,27 @@ document.querySelector("[data-signout]").addEventListener("click", async () => {
   render();
 });
 
+const languageSelect = document.querySelector("[data-language]");
+
+function drawLanguages() {
+  languageSelect.innerHTML = locales()
+    .map(
+      (option) =>
+        `<option value="${esc(option.code)}" ${option.code === currentLocale() ? "selected" : ""}>${esc(option.name)}</option>`,
+    )
+    .join("");
+}
+
+languageSelect.addEventListener("change", async () => {
+  await loadLocale(languageSelect.value);
+  drawLanguages();
+  if (session.signedIn) {
+    await api("/me/locale", { method: "PUT", body: { locale: currentLocale() } }).catch(() => null);
+  }
+  translatePage();
+  await render();
+});
+
+await loadLocale();
+drawLanguages();
 render();

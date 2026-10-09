@@ -1,10 +1,12 @@
+import { t } from "./i18n.js";
+
 const KEYS = { access: "hpc.access", refresh: "hpc.refresh", household: "hpc.household" };
 const LOCK = "hpc.refresh";
 const EARLY_SECONDS = 30;
 
 export class ApiError extends Error {
   constructor(problem, status) {
-    super(problem.detail || problem.title || "The request failed");
+    super(problem.detail || problem.title || t("error.request"));
     this.status = status;
     this.problem = problem;
   }
