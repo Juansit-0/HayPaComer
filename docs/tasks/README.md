@@ -24,7 +24,7 @@ Guides for roadmap steps assigned to a teammate. Each guide explains the goal, t
 | 80 | [Degraded mode with cache and retries (Proxy)](step-80-degraded-mode.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 81 | [Circuit breaker and degraded responses (Null Object)](step-81-ai-circuit-null-object.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 82 | [Proactive briefings by schedule and events](step-82-proactive-briefings.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
-| 83 | Reactive copilot with live scale (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
+| 83 | [Reactive copilot with live scale](step-83-scale-copilot.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 84 | Market agent with budget (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 85 | Cold incident investigation (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 86 | Anti-waste coach and weekly digest (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |

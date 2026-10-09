@@ -133,7 +133,7 @@ export async function renderFridge(main, household) {
       window.removeEventListener("hpc:live", onLive);
       return;
     }
-    if (event.detail.kind === "alert") return;
+    if (event.detail.kind === "alert" || event.detail.kind === "copilot") return;
     if (main.querySelector("form :focus")) return;
     clearTimeout(pending);
     pending = setTimeout(() => {
