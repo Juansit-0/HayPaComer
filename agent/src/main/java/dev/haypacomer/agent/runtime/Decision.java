@@ -14,6 +14,13 @@ public sealed interface Decision {
     }
   }
 
+  record Defer(String reason) implements Decision {
+
+    public Defer {
+      Objects.requireNonNull(reason, "reason");
+    }
+  }
+
   record FinalAnswer(String text) implements Decision {
 
     public FinalAnswer {

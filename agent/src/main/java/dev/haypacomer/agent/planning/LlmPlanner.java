@@ -128,6 +128,9 @@ public final class LlmPlanner implements Planner {
     return switch (action) {
       case "call" -> call(root);
       case "answer" -> answer(root, context);
+      case "defer" ->
+          new Decision.Defer(
+              clip(root.path("reason").asString("The model has no answer").strip(), 200));
       default -> throw new PlannerUnavailableException("Unknown action " + action);
     };
   }

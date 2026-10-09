@@ -143,6 +143,17 @@ class LlmPlannerTest {
   }
 
   @Test
+  void aModelWithNothingToSayDefers() {
+    assertEquals(
+        new Decision.Defer("No AI provider is answering right now"),
+        planner("{\"action\":\"defer\",\"reason\":\"No AI provider is answering right now\"}")
+            .next(fresh()));
+    assertEquals(
+        new Decision.Defer("The model has no answer"),
+        planner("{\"action\":\"defer\"}").next(fresh()));
+  }
+
+  @Test
   void anythingElseMakesThePlannerUnavailable() {
     for (String answer :
         List.of(

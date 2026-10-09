@@ -47,7 +47,8 @@ public final class LlmRecipePhotoReader implements RecipePhotoReader {
               new LlmPrompt(
                   SYSTEM, "Read this recipe photo.", LlmImage.of(photo.mimeType(), photo.bytes())));
     } catch (AiUnavailableException unavailable) {
-      throw new PhotoReadingUnavailableException("The AI provider is not answering; try later");
+      throw PhotoReadingUnavailableException.providerDown(
+          "The AI provider is not answering; try later");
     }
     try {
       return parse(answer);

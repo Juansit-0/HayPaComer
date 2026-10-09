@@ -49,7 +49,41 @@ class AiConfigurationTest {
   }
 
   private static Object advisor(AiProperties properties) {
-    return new AiConfiguration().kitchenAdvisor(properties, NO_CACHE, BREAKER, Clock.systemUTC());
+    return new AiConfiguration()
+        .kitchenAdvisor(properties, NO_CACHE, BREAKER, HEALTH, Clock.systemUTC());
+  }
+
+  private static final dev.haypacomer.application.port.ServiceHealth HEALTH =
+      new dev.haypacomer.persistence.resilience.InMemoryServiceHealth();
+
+  @Test
+  void everyAiFeatureSharesTheProviderCircuitOrStaysOffline() {
+    AiConfiguration configuration = new AiConfiguration();
+    AiProperties gemini = properties(AiProperties.Provider.GEMINI, "key", "", "");
+    AiProperties offline = properties(AiProperties.Provider.OFFLINE, "", "", "");
+
+    assertInstanceOf(
+        dev.haypacomer.ai.resilience.ResilientRecipePhotoReader.class,
+        configuration.recipePhotoReader(gemini, BREAKER, HEALTH, Clock.systemUTC()));
+    assertInstanceOf(
+        dev.haypacomer.ai.offline.OfflineRecipePhotoReader.class,
+        configuration.recipePhotoReader(offline, BREAKER, HEALTH, Clock.systemUTC()));
+    assertInstanceOf(
+        dev.haypacomer.agent.planning.LlmPlannerFactory.class,
+        configuration.agentPlanners(
+            gemini,
+            new dev.haypacomer.agent.tools.ToolRegistry(java.util.List.of()),
+            BREAKER,
+            HEALTH,
+            Clock.systemUTC()));
+    assertInstanceOf(
+        dev.haypacomer.agent.supervisor.OfflinePlanners.class,
+        configuration.agentPlanners(
+            offline,
+            new dev.haypacomer.agent.tools.ToolRegistry(java.util.List.of()),
+            BREAKER,
+            HEALTH,
+            Clock.systemUTC()));
   }
 
   @Test
