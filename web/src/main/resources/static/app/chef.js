@@ -34,7 +34,7 @@ function message(entry) {
 function stepCard(session) {
   if (!session) return "";
   const step = session.step;
-  return `<article class="panel stack cooking" aria-label="${esc(t("chef.cooking", { recipe: session.recipe }))}">
+  return `<article class="tile cooking" aria-label="${esc(t("chef.cooking", { recipe: session.recipe }))}">
     <div class="item-meta"><span class="item-name">${esc(session.recipe)}</span><span class="status quiet">${t("chef.step-of", { step: session.currentStep, total: session.totalSteps })}</span><span class="status">${esc(t(`chef.phase.${session.phase}`))}</span></div>
     <p class="step-text">${step ? esc(step.instruction) : t("chef.all-done")}</p>
     <div class="row-form">
@@ -48,7 +48,7 @@ function stepCard(session) {
 
 function confirmations(list) {
   if (!list.length) return "";
-  return `<section class="stack" aria-labelledby="confirm-title">
+  return `<section class="tile" aria-labelledby="confirm-title">
     <h2 id="confirm-title">${t("chef.waiting")}</h2>
     <ul class="list">${list
       .map(
@@ -66,31 +66,33 @@ export async function renderChef(main, household) {
     api("/agent/confirmations").catch(() => []),
   ]);
 
+  const side = stepCard(session) + confirmations(pending);
   main.innerHTML = `
-    <section class="stack" aria-labelledby="chef-title">
-      <div>
-        <h1 id="chef-title">${t("chef.title")}</h1>
-        <p class="lead">${t("chef.lead")}</p>
-      </div>
-      ${stepCard(session)}
-      ${confirmations(pending)}
-      <ol class="chat" aria-live="polite">${state.messages.map(message).join("") || `<li class="lead">${t("chef.empty")}</li>`}</ol>
-      <form class="ask panel" data-ask>
-        <label class="grow">${t("chef.question")}<input name="message" autocomplete="off" maxlength="1000" required placeholder="${esc(t("chef.question-example"))}"></label>
-        <button class="primary" type="submit">${t("chef.ask")}</button>
-        <button type="button" data-mic aria-pressed="false" ${voiceSupported ? "" : "disabled"}>${t("chef.speak")}</button>
-      </form>
-      <div class="row-form voice-options">
-        <label class="check"><input type="checkbox" data-hands-free ${state.handsFree ? "checked" : ""} ${voiceSupported ? "" : "disabled"}> ${t("chef.hands-free")}</label>
-        <label>${t("chef.voice-language")}<select data-lang>${locales()
-          .map((option) => {
-            const value = option.code.startsWith("en") ? "en-US" : option.code;
-            return `<option value="${esc(value)}" ${voiceLanguage() === value ? "selected" : ""}>${esc(option.name)}</option>`;
-          })
-          .join("")}</select></label>
-      </div>
-      ${voiceSupported ? "" : `<p class="hint">${t("chef.no-voice")}</p>`}
-    </section>`;
+    <header>
+      <h1 id="chef-title">${t("chef.title")}</h1>
+      <p class="lead">${t("chef.lead")}</p>
+    </header>
+    <div class="bento">
+      <section class="tile ${side ? "w-8" : "w-12"} chef-tile" aria-labelledby="chef-title">
+        <ol class="chat" aria-live="polite">${state.messages.map(message).join("") || `<li class="hint">${t("chef.empty")}</li>`}</ol>
+        <form class="ask" data-ask>
+          <label class="grow">${t("chef.question")}<input name="message" autocomplete="off" maxlength="1000" required placeholder="${esc(t("chef.question-example"))}"></label>
+          <button class="primary" type="submit">${t("chef.ask")}</button>
+          <button type="button" data-mic aria-pressed="false" ${voiceSupported ? "" : "disabled"}>${t("chef.speak")}</button>
+        </form>
+        <div class="row-form voice-options">
+          <label class="check"><input type="checkbox" data-hands-free ${state.handsFree ? "checked" : ""} ${voiceSupported ? "" : "disabled"}> ${t("chef.hands-free")}</label>
+          <label>${t("chef.voice-language")}<select data-lang>${locales()
+            .map((option) => {
+              const value = option.code.startsWith("en") ? "en-US" : option.code;
+              return `<option value="${esc(value)}" ${voiceLanguage() === value ? "selected" : ""}>${esc(option.name)}</option>`;
+            })
+            .join("")}</select></label>
+        </div>
+        ${voiceSupported ? "" : `<p class="hint">${t("chef.no-voice")}</p>`}
+      </section>
+      ${side ? `<div class="w-4 stack">${side}</div>` : ""}
+    </div>`;
 
   const form = main.querySelector("[data-ask]");
   const input = form.querySelector("[name=message]");
