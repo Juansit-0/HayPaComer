@@ -19,6 +19,7 @@ abstract class PostgresTestSupport {
   static DataSource dataSource;
   static int appliedMigrations;
   static int seededFoods;
+  static int pricedFoods;
   static int soySauceAllergens;
   static int seededSubstitutionRules;
   static int seededTemplates;
@@ -34,6 +35,10 @@ abstract class PostgresTestSupport {
     appliedMigrations = Flyway.configure().dataSource(source).load().migrate().migrationsExecuted;
     JdbcClient jdbc = JdbcClient.create(source);
     seededFoods = jdbc.sql("SELECT count(*) FROM food_catalog").query(Integer.class).single();
+    pricedFoods =
+        jdbc.sql("SELECT count(*) FROM food_catalog WHERE reference_price_cop_per_kg IS NOT NULL")
+            .query(Integer.class)
+            .single();
     soySauceAllergens =
         jdbc.sql(
                 "SELECT count(*) FROM food_allergens fa JOIN food_catalog f ON f.id = fa.food_id"

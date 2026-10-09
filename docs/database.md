@@ -437,7 +437,7 @@ erDiagram
 - `inventory_movements.command_id` unique: a replayed command never discounts twice.
 - `refresh_tokens`: index `(family_id)`; reuse of a revoked token revokes the whole family.
 - `temperature_readings`, `scale_readings`, `door_openings`: index `(fridge_id or device_id, at DESC)`; old rows can be partitioned by month.
-- Analytics (kg saved, money avoided, ranking, trend) are queries over `inventory_movements`; no duplicated aggregate tables.
+- Analytics (kg saved, money avoided, ranking, trend) are queries over `inventory_movements`; no duplicated aggregate tables. Since `V18` every movement keeps `food_key` and `expires_on`, `food_catalog.reference_price_cop_per_kg` gives COP reference prices, and `food_prices` holds household overrides.
 
 ## Redis key map (AI state)
 

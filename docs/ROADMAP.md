@@ -124,6 +124,10 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 75. chef chat as an agent with evidence
 - [x] 76. response contract, weekly plan, and offline fallback
 
+## F7 detail
+
+- [x] 77. consumption, avoided waste, and money saved
+
 ## F6 assignments
 
 - Steps 61, 62, and 63 (planning) belong to Jenifer Urbano (`Jenifrutica`); guides in [`docs/tasks/`](tasks/README.md).

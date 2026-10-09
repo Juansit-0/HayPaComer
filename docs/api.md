@@ -187,6 +187,9 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 |---|---|---|---|
 | GET | `/notifications` | user | Caller's web inbox, newest first (50): door left open and fridge too warm |
 | PATCH | `/notifications/{id}/read` | user | Mark read (204); 404 for notifications of other users |
+| GET | `/households/{h}/analytics?from=&to=` | guest | Consumed, rescued, and discarded grams, money saved and wasted in the household currency, per food, per member, and per day (default last 30 days, at most 366) |
+| GET | `/households/{h}/prices` | guest | Price per kilogram for each food (COP reference prices plus household overrides) |
+| PUT | `/households/{h}/prices` | member | Set a household price per kilogram for a catalog food |
 | GET | `/households/{h}/analytics/summary?month=` | guest | Kg saved, money avoided, waste |
 | GET | `/households/{h}/analytics/ranking?month=` | guest | Per-member ranking |
 | GET | `/households/{h}/analytics/trend?months=` | guest | Monthly trend |

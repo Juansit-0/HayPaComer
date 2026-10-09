@@ -18,7 +18,7 @@ Guides for roadmap steps assigned to a teammate. Each guide explains the goal, t
 | 74 | [Photo to structured, verifiable recipe](step-74-photo-recipe.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 75 | [Chef chat as an agent with evidence](step-75-chef-chat.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 76 | [Response contract, weekly plan, and offline fallback tests](step-76-ai-contract-tests.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
-| 77 | Consumption, avoided waste, and money saved (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
+| 77 | [Consumption, avoided waste, and money saved](step-77-analytics.md) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 78 | Reports (Template Method, Visitor) (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 79 | Analytics dashboard with charts and household ranking (frontend) (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |
 | 80 | Degraded mode with cache and retries (Proxy) (guide when the step starts) | Jenifer Urbano (`Jenifrutica`) | previous steps of its phase |

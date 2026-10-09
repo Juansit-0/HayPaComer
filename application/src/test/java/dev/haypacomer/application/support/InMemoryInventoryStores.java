@@ -5,6 +5,7 @@ import dev.haypacomer.application.port.AuditLog;
 import dev.haypacomer.application.port.FoodCatalogRepository;
 import dev.haypacomer.application.port.FoodOwnershipRepository;
 import dev.haypacomer.application.port.InventoryMovementLog;
+import dev.haypacomer.application.port.MovementHistory;
 import dev.haypacomer.application.port.UnitOfWork;
 import dev.haypacomer.domain.food.FoodMetadata;
 import dev.haypacomer.domain.fridge.FoodItemId;
@@ -86,6 +87,13 @@ public final class InMemoryInventoryStores {
           return work.get();
         }
       };
+
+  public final MovementHistory history =
+      (household, from, to) ->
+          movementLog.stream()
+              .filter(movement -> movement.household().equals(household))
+              .filter(movement -> !movement.at().isBefore(from) && movement.at().isBefore(to))
+              .toList();
 
   public final FoodCatalogRepository catalog =
       new FoodCatalogRepository() {
