@@ -90,7 +90,7 @@ public class PostgresSensorEventLog implements SensorEventLog, SensorHistory {
                                        stable, scale_mode, occurred_at, received_at)
             VALUES (:id, :device, :fridge, :type, :door, :celsius, :grams, :stable, :mode,
                     :occurredAt, :receivedAt)
-            ON CONFLICT (id) DO NOTHING
+            ON CONFLICT (id, occurred_at) DO NOTHING
             """)
         .param("id", event.id().value())
         .param("device", event.device().value())

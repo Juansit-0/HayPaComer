@@ -435,6 +435,8 @@ erDiagram
 - `food_items`: index `(household_id, expires_on)` for expiry queries; `CHECK (quantity_g >= 0)`; `version` for optimistic locking.
 - `sensor_events.id` is the client-generated event id; a duplicate insert is a no-op (idempotent ingestion).
 - `inventory_movements.command_id` unique: a replayed command never discounts twice.
+- `sensor_events` is partitioned by month on `occurred_at` since `V20` (primary key `(id, occurred_at)`, DEFAULT partition, `ensure_sensor_event_partitions` keeps 3 months ahead every night); old months can be detached or dropped as whole partitions.
+- A fridge loads with one ordered join and saves with JDBC batches and set-based deletes, so its cost does not grow with the number of items.
 - `refresh_tokens`: index `(family_id)`; reuse of a revoked token revokes the whole family.
 - `temperature_readings`, `scale_readings`, `door_openings`: index `(fridge_id or device_id, at DESC)`; old rows can be partitioned by month.
 - Analytics (kg saved, money avoided, ranking, trend) are queries over `inventory_movements`; no duplicated aggregate tables. Since `V18` every movement keeps `food_key` and `expires_on`, `food_catalog.reference_price_cop_per_kg` gives COP reference prices, and `food_prices` holds household overrides.
