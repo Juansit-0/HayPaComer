@@ -89,7 +89,7 @@ public record StockFoodCommand(
         .record(
             id,
             household,
-            item.id(),
+            item,
             workspace.actor(),
             MovementType.ADD,
             item.quantity().value(),

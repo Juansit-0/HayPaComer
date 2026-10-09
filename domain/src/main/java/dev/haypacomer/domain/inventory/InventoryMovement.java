@@ -5,7 +5,9 @@ import dev.haypacomer.domain.household.HouseholdId;
 import dev.haypacomer.domain.identity.UserId;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 public record InventoryMovement(
@@ -16,7 +18,9 @@ public record InventoryMovement(
     MovementType type,
     BigDecimal deltaGrams,
     MovementSource source,
-    Instant at) {
+    Instant at,
+    String foodKey,
+    LocalDate expiresOn) {
 
   public InventoryMovement {
     Objects.requireNonNull(commandId, "commandId");
@@ -27,5 +31,25 @@ public record InventoryMovement(
     Objects.requireNonNull(deltaGrams, "deltaGrams");
     Objects.requireNonNull(source, "source");
     Objects.requireNonNull(at, "at");
+  }
+
+  public InventoryMovement(
+      UUID commandId,
+      HouseholdId household,
+      FoodItemId item,
+      UserId actor,
+      MovementType type,
+      BigDecimal deltaGrams,
+      MovementSource source,
+      Instant at) {
+    this(commandId, household, item, actor, type, deltaGrams, source, at, null, null);
+  }
+
+  public Optional<String> food() {
+    return Optional.ofNullable(foodKey);
+  }
+
+  public Optional<LocalDate> expiry() {
+    return Optional.ofNullable(expiresOn);
   }
 }

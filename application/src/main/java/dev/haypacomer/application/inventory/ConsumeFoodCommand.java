@@ -53,7 +53,7 @@ public record ConsumeFoodCommand(
         .record(
             id,
             household,
-            item,
+            located.item(),
             workspace.actor(),
             MovementType.CONSUME,
             grams.value().negate(),

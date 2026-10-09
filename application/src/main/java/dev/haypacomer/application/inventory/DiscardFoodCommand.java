@@ -45,7 +45,7 @@ public record DiscardFoodCommand(UUID id, HouseholdId household, FoodItemId item
         .record(
             id,
             household,
-            item,
+            removed,
             workspace.actor(),
             MovementType.DISCARD,
             removed.quantity().value().negate(),

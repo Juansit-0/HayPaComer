@@ -100,4 +100,64 @@ class PostgresOwnershipAndMovementsTest extends PostgresTestSupport {
 
     assertEquals(List.of(consumed), log.history(milk.id()));
   }
+
+  @Test
+  void movementsKeepTheirFoodAndAreReadByPeriod() {
+    PostgresInventoryMovementLog log = new PostgresInventoryMovementLog(dataSource);
+    InventoryMovement rescued =
+        new InventoryMovement(
+            UUID.randomUUID(),
+            household.id(),
+            milk.id(),
+            juan.id(),
+            MovementType.CONSUME,
+            new BigDecimal("-200.00"),
+            MovementSource.SCALE,
+            NOW,
+            "milk",
+            java.time.LocalDate.of(2026, 10, 10));
+    InventoryMovement added =
+        new InventoryMovement(
+            UUID.randomUUID(),
+            household.id(),
+            milk.id(),
+            juan.id(),
+            MovementType.ADD,
+            new BigDecimal("842.00"),
+            MovementSource.MANUAL,
+            NOW.minusSeconds(60),
+            "milk",
+            null);
+    log.record(added);
+    log.record(rescued);
+
+    assertEquals(
+        List.of(rescued), log.between(household.id(), NOW.minusSeconds(3600), NOW.plusSeconds(1)));
+    assertTrue(log.between(household.id(), NOW.plusSeconds(1), NOW.plusSeconds(60)).isEmpty());
+  }
+
+  @Test
+  void householdPricesOverrideTheColombianReference() {
+    PostgresFoodPriceRepository prices = new PostgresFoodPriceRepository(dataSource);
+    org.springframework.jdbc.core.simple.JdbcClient.create(dataSource)
+        .sql("UPDATE food_catalog SET reference_price_cop_per_kg = 4800 WHERE name_key = 'milk'")
+        .update();
+
+    assertEquals(
+        0,
+        new BigDecimal("4800")
+            .compareTo(
+                prices
+                    .pricesFor(household.id(), java.util.Currency.getInstance("COP"))
+                    .get("milk")));
+    prices.save(household.id(), "milk", new BigDecimal("5200.00"));
+    prices.save(household.id(), "milk", new BigDecimal("5300.00"));
+
+    assertEquals(
+        new BigDecimal("5300.00"),
+        prices.pricesFor(household.id(), java.util.Currency.getInstance("COP")).get("milk"));
+    assertEquals(
+        java.util.Map.of("milk", new BigDecimal("5300.00")),
+        prices.pricesFor(household.id(), java.util.Currency.getInstance("USD")));
+  }
 }

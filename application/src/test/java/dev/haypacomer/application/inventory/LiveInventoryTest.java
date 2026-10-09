@@ -169,6 +169,9 @@ class LiveInventoryTest {
     InventoryMovement added = stores.movementLog.getFirst();
     assertEquals(MovementType.ADD, added.type());
     assertEquals(0, new BigDecimal("842").compareTo(added.deltaGrams()));
+    assertEquals("milk", added.food().orElseThrow());
+    consume(juan, milk.id(), 842, MovementSource.SCALE);
+    assertEquals("milk", stores.movementLog.getLast().food().orElseThrow());
   }
 
   @Test
@@ -251,6 +254,7 @@ class LiveInventoryTest {
     assertTrue(fridge.findItem(yogurt.id()).isEmpty());
     assertEquals(0, new BigDecimal("-125").compareTo(stores.movementLog.getLast().deltaGrams()));
     assertEquals(MovementType.DISCARD, stores.movementLog.getLast().type());
+    assertEquals("yogurt", stores.movementLog.getLast().food().orElseThrow());
   }
 
   @Test

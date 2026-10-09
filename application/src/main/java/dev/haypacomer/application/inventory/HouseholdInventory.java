@@ -78,14 +78,24 @@ final class HouseholdInventory {
   void record(
       UUID commandId,
       HouseholdId household,
-      FoodItemId item,
+      FoodItem item,
       UserId actor,
       MovementType type,
       BigDecimal delta,
       MovementSource source,
       Instant at) {
     movements.record(
-        new InventoryMovement(commandId, household, item, actor, type, delta, source, at));
+        new InventoryMovement(
+            commandId,
+            household,
+            item.id(),
+            actor,
+            type,
+            delta,
+            source,
+            at,
+            item.food().key(),
+            item.expiresOn().orElse(null)));
   }
 
   record Located(Fridge fridge, FoodItem item) {}
