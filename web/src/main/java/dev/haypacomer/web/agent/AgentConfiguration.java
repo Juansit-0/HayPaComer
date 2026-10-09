@@ -6,6 +6,7 @@ import dev.haypacomer.agent.confirm.ApproveConfirmation;
 import dev.haypacomer.agent.kitchen.AddToMarketTool;
 import dev.haypacomer.agent.kitchen.KitchenToday;
 import dev.haypacomer.agent.kitchen.QueryInventoryTool;
+import dev.haypacomer.agent.kitchen.ReviewBudgetTool;
 import dev.haypacomer.agent.kitchen.ViewColdChainTool;
 import dev.haypacomer.agent.kitchen.ViewExpiriesTool;
 import dev.haypacomer.agent.kitchen.ViewMarketListTool;
@@ -28,6 +29,7 @@ import dev.haypacomer.application.agent.ViewHouseholdMemory;
 import dev.haypacomer.application.coldchain.ListColdChains;
 import dev.haypacomer.application.inventory.ViewInventory;
 import dev.haypacomer.application.market.AddToMarketList;
+import dev.haypacomer.application.market.ViewMarketBudget;
 import dev.haypacomer.application.market.ViewMarketList;
 import dev.haypacomer.application.planning.ViewCurrentPlan;
 import dev.haypacomer.application.port.AgentRunStore;
@@ -54,6 +56,7 @@ public class AgentConfiguration {
       FoodCatalogRepository catalog,
       ListColdChains coldChains,
       ViewCurrentPlan plans,
+      ViewMarketBudget budget,
       HouseholdRepository households,
       Clock clock) {
     KitchenToday today = new KitchenToday(households, clock);
@@ -66,7 +69,8 @@ public class AgentConfiguration {
             new ViewMarketListTool(market),
             new AddToMarketTool(addToMarket, catalog),
             new ViewColdChainTool(coldChains),
-            new ViewWeeklyPlanTool(plans)));
+            new ViewWeeklyPlanTool(plans),
+            new ReviewBudgetTool(budget)));
   }
 
   @Bean

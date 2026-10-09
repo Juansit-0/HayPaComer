@@ -133,6 +133,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 81. circuit breaker and degraded responses (circuit breaker, null object)
 - [x] 82. proactive briefings by schedule and events
 - [x] 83. reactive copilot with live scale
+- [x] 84. market agent with budget
 
 ## F6 assignments
 

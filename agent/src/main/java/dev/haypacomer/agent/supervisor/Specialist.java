@@ -34,8 +34,9 @@ public record Specialist(
               "view_weekly_plan",
               "query_inventory",
               "recall_memory",
-              "add_to_market"),
-          List.of("view_market_list", "view_weekly_plan"));
+              "add_to_market",
+              "review_budget"),
+          List.of("view_market_list", "review_budget", "view_weekly_plan"));
 
   public static final Specialist COLD =
       new Specialist(

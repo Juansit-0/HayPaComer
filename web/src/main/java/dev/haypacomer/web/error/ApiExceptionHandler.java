@@ -22,6 +22,7 @@ import dev.haypacomer.application.inventory.FoodNotInCatalogException;
 import dev.haypacomer.application.inventory.NothingToUndoException;
 import dev.haypacomer.application.inventory.PermissionRequiredException;
 import dev.haypacomer.application.inventory.SnapshotNotFoundException;
+import dev.haypacomer.application.market.MarketBudgetNotSetException;
 import dev.haypacomer.application.notification.NotificationNotFoundException;
 import dev.haypacomer.application.planning.RecipeNotFoundException;
 import dev.haypacomer.application.planning.WeeklyPlanNotFoundException;
@@ -223,6 +224,11 @@ public class ApiExceptionHandler {
     return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
         .header(HttpHeaders.RETRY_AFTER, "5")
         .body(problem);
+  }
+
+  @ExceptionHandler(MarketBudgetNotSetException.class)
+  ProblemDetail budgetNotSet(MarketBudgetNotSetException exception) {
+    return problem(HttpStatus.NOT_FOUND, "Not found", exception.getMessage());
   }
 
   @ExceptionHandler(PhotoReadingUnavailableException.class)

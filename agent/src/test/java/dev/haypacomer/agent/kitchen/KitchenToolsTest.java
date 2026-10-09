@@ -119,4 +119,91 @@ class KitchenToolsTest {
         tool.invoke(call(Map.of())).content());
     assertEquals("Read the weekly plan", tool.describe(call(Map.of())));
   }
+
+  @Test
+  void theBudgetToolExplainsWhatFitsAndCheaperOptions() {
+    java.util.Map<dev.haypacomer.domain.household.HouseholdId, java.math.BigDecimal> budgets =
+        new java.util.HashMap<>();
+    dev.haypacomer.domain.food.FoodMetadata beef = KitchenFixture.food("Ground beef");
+    dev.haypacomer.domain.food.FoodMetadata chicken = KitchenFixture.food("Chicken breast");
+    dev.haypacomer.domain.food.FoodMetadata saffron = KitchenFixture.food("Saffron");
+    kitchen.stores.catalog.save(beef);
+    kitchen.stores.catalog.save(chicken);
+    kitchen.stores.catalog.save(saffron);
+    ReviewBudgetTool tool =
+        new ReviewBudgetTool(
+            new dev.haypacomer.application.market.ViewMarketBudget(
+                kitchen.households,
+                new dev.haypacomer.application.port.MarketBudgetRepository() {
+                  @Override
+                  public java.util.Optional<java.math.BigDecimal> monthly(
+                      dev.haypacomer.domain.household.HouseholdId household) {
+                    return java.util.Optional.ofNullable(budgets.get(household));
+                  }
+
+                  @Override
+                  public void save(
+                      dev.haypacomer.domain.household.HouseholdId household,
+                      java.math.BigDecimal monthly) {
+                    budgets.put(household, monthly);
+                  }
+                },
+                kitchen.marketLists,
+                new dev.haypacomer.application.port.FoodPriceRepository() {
+                  @Override
+                  public java.util.Map<String, java.math.BigDecimal> pricesFor(
+                      dev.haypacomer.domain.household.HouseholdId household,
+                      java.util.Currency currency) {
+                    return java.util.Map.of(
+                        "ground beef", new java.math.BigDecimal("30000"),
+                        "chicken breast", new java.math.BigDecimal("22000"));
+                  }
+
+                  @Override
+                  public void save(
+                      dev.haypacomer.domain.household.HouseholdId household,
+                      String foodKey,
+                      java.math.BigDecimal pricePerKg) {}
+                },
+                new dev.haypacomer.application.port.SubstitutionRuleRepository() {
+                  @Override
+                  public void save(dev.haypacomer.domain.substitution.SubstitutionRule rule) {}
+
+                  @Override
+                  public List<dev.haypacomer.domain.substitution.SubstitutionRule> all() {
+                    return List.of(
+                        dev.haypacomer.domain.substitution.SubstitutionRule.of(
+                            beef, chicken, "1", 1000));
+                  }
+                },
+                kitchen.clock));
+    assertEquals("No monthly market budget yet", tool.invoke(call(Map.of())).content());
+    kitchen
+        .addToMarket()
+        .add(
+            kitchen.owner,
+            kitchen.home.id(),
+            "Ground beef",
+            dev.haypacomer.domain.quantity.Grams.of(500),
+            dev.haypacomer.domain.market.MarketSource.MANUAL);
+    kitchen
+        .addToMarket()
+        .add(
+            kitchen.owner,
+            kitchen.home.id(),
+            "Saffron",
+            dev.haypacomer.domain.quantity.Grams.of(5),
+            dev.haypacomer.domain.market.MarketSource.MANUAL);
+    budgets.put(kitchen.home.id(), new java.math.BigDecimal("10000"));
+
+    String content = tool.invoke(call(Map.of())).content();
+
+    assertTrue(content.startsWith("Budget 10000.00 COP, spent 0.00, left 10000.00"));
+    assertTrue(
+        content.contains(
+            "Does not fit: Ground beef 500 g for 15000.00 (cheaper: Chicken breast 500 g for"
+                + " 11000.00)"));
+    assertTrue(content.contains("No price yet: Saffron"));
+    assertEquals("Review the market budget", tool.describe(call(Map.of())));
+  }
 }

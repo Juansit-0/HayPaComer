@@ -125,5 +125,15 @@ class MarketFlowIntegrationTest {
         .andExpect(status().isUnprocessableContent());
     call(HttpMethod.GET, list, signUp("outsider@haypacomer.dev"), "")
         .andExpect(status().isNotFound());
+
+    String budget = list.replace("/market-list", "/market-budget");
+    call(HttpMethod.GET, budget, juan, "").andExpect(status().isNotFound());
+    call(HttpMethod.PUT, budget, juan, "{\"monthly\":5000}")
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.currency").value("COP"))
+        .andExpect(jsonPath("$.monthly").value(5000))
+        .andExpect(jsonPath("$.lines.length()").value(2))
+        .andExpect(jsonPath("$.lines[?(@.withinBudget == false)]").isNotEmpty());
+    call(HttpMethod.PUT, budget, juan, "{\"monthly\":0}").andExpect(status().isBadRequest());
   }
 }
