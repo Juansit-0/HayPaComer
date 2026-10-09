@@ -23,3 +23,5 @@ logs/
 
 firmware/**/secrets.h
 firmware/**/build/
+
+.demo-credentials.json

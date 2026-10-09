@@ -50,3 +50,5 @@ Then open `http://localhost:8080`. The web UI has three screens: Now (what to us
 ## Demo promise
 
 Door open 40 s -> buzzer, Telegram, and a live panel. Milk 842 g -> 650 g -> 192 g consumed, tare included. Chicken 200 g required vs 80 g measured -> reduce or weigh a substitute. AI outage -> rules keep dinner working.
+
+The full script, with a seed script and simulated sensors, is in [`docs/demo.md`](docs/demo.md).
