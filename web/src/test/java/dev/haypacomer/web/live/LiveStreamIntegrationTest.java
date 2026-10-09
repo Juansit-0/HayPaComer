@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -130,7 +131,33 @@ class LiveStreamIntegrationTest {
                             simulator.temperature("4.2", now)))))
         .andExpect(status().isAccepted());
 
+    String scaleBody =
+        body(
+            send(
+                base + "/devices",
+                juan,
+                "{\"fridgeId\":\"" + fridgeId + "\",\"name\":\"Counter\",\"kind\":\"SIMULATOR\"}"));
+    mvc.perform(
+            put(base + "/devices/" + JsonPath.read(scaleBody, "$.device.id") + "/scale/mode")
+                .header("Authorization", juan)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"mode\":\"COOKING\",\"food\":\"Rice\",\"targetGrams\":150}"))
+        .andExpect(status().isOk());
+    mvc.perform(
+            post("/api/v1/device/events")
+                .header("X-Device-Key", (String) JsonPath.read(scaleBody, "$.apiKey"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    new Esp32Simulator("scale-01")
+                        .toJson(
+                            List.of(
+                                new Esp32Simulator("scale-01")
+                                    .weight("60", true, "COOKING", now.plusSeconds(1))))))
+        .andExpect(status().isAccepted());
+
     String events = stream.getResponse().getContentAsString();
+    assertTrue(events.contains("event:copilot"));
+    assertTrue(events.contains("Add 90 g more Rice (40%)."));
     assertTrue(events.contains("event:ready"));
     assertTrue(events.contains("event:inventory"));
     assertTrue(events.contains("STOCK_FOOD 842.00 g left"));

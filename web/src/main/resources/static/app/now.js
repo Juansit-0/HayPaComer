@@ -3,7 +3,7 @@ import { liveFeed } from "./live.js";
 import { esc, grams, showError, statusPill, toast, whenText } from "./ui.js";
 
 const URGENT = ["EXPIRED", "UNDER_REVIEW", "AT_RISK", "LEFTOVER"];
-const LABELS = { inventory: "Stock", sensor: "Sensor", alert: "Alert" };
+const LABELS = { inventory: "Stock", sensor: "Sensor", alert: "Alert", copilot: "Scale" };
 const ACTIONS = { STOCK_FOOD: "Food added", CONSUME_FOOD: "Food used", DISCARD_FOOD: "Food thrown away" };
 const sentence = (text) => {
   const stock = text.match(/^([A-Z_]+) ([\d.]+) g left$/);

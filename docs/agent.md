@@ -56,6 +56,10 @@ Fallback: Circuit Breaker -> rule-based planner (offline)
 - Editable by the household through `/households/{h}/agent/memory` (members with COOK edit, the owner clears); memory never overrides measured inventory or rules.
 - Tools: `recall_memory` (read) and `remember` (write, needs confirmation).
 
+## Scale copilot (step 83)
+
+- `ScaleCopilot` reacts to stable cooking readings with measured advice (add, on target, or over with the rest of the recipe rescaled) and streams it as COPILOT live updates only when the hint changes.
+
 ## Supervisor
 
 - Routes work to lightweight specialists: Chef, Market, Cold, and Coach (`KeywordRouter`, English and Spanish, at most two per question, Chef by default).

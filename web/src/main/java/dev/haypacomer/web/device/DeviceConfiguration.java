@@ -1,5 +1,6 @@
 package dev.haypacomer.web.device;
 
+import dev.haypacomer.agent.copilot.ScaleCopilot;
 import dev.haypacomer.application.auth.OpaqueTokens;
 import dev.haypacomer.application.coldchain.TrackColdChain;
 import dev.haypacomer.application.device.AuthenticateDevice;
@@ -10,6 +11,7 @@ import dev.haypacomer.application.inventory.ExecuteInventoryCommand;
 import dev.haypacomer.application.inventory.FoodAccessGuard;
 import dev.haypacomer.application.live.BroadcastLiveUpdate;
 import dev.haypacomer.application.notification.NotifyHousehold;
+import dev.haypacomer.application.port.CookingSessionRepository;
 import dev.haypacomer.application.port.DeviceRepository;
 import dev.haypacomer.application.port.FoodOwnershipRepository;
 import dev.haypacomer.application.port.FridgeMonitorRegistry;
@@ -33,6 +35,7 @@ import dev.haypacomer.application.sensor.CheckFridgeAlerts;
 import dev.haypacomer.application.sensor.HardwareFactories;
 import dev.haypacomer.application.sensor.IngestSensorEvents;
 import dev.haypacomer.application.sensor.ObserveSensorEvent;
+import dev.haypacomer.application.sensor.WeightReadingHandlers;
 import dev.haypacomer.application.sensor.validation.ValidateSensorEvent;
 import dev.haypacomer.domain.quantity.Grams;
 import dev.haypacomer.domain.sensor.FridgeThresholds;
@@ -180,10 +183,24 @@ public class DeviceConfiguration {
       ObserveSensorEvent observe,
       TrackColdChain coldChain,
       ApplyFridgeScaleReading fridgeScale,
+      ScaleCopilot copilot,
       BroadcastLiveUpdate live,
       Clock clock) {
     return new IngestSensorEvents(
-        hardware, validation, log, observe, coldChain, fridgeScale, live, clock);
+        hardware,
+        validation,
+        log,
+        observe,
+        coldChain,
+        new WeightReadingHandlers(List.of(fridgeScale, copilot)),
+        live,
+        clock);
+  }
+
+  @Bean
+  ScaleCopilot scaleCopilot(
+      ScaleSessionStore scales, CookingSessionRepository sessions, BroadcastLiveUpdate live) {
+    return new ScaleCopilot(scales, sessions, live);
   }
 
   @Bean
