@@ -1,5 +1,7 @@
 package dev.haypacomer.web.agent;
 
+import dev.haypacomer.agent.chat.ChefChat;
+import dev.haypacomer.agent.chat.ReadConversation;
 import dev.haypacomer.agent.confirm.ApproveConfirmation;
 import dev.haypacomer.agent.kitchen.AddToMarketTool;
 import dev.haypacomer.agent.kitchen.KitchenToday;
@@ -11,7 +13,7 @@ import dev.haypacomer.agent.kitchen.ViewWeeklyPlanTool;
 import dev.haypacomer.agent.memory.RecallMemoryTool;
 import dev.haypacomer.agent.memory.RememberTool;
 import dev.haypacomer.agent.supervisor.KeywordRouter;
-import dev.haypacomer.agent.supervisor.OfflinePlanners;
+import dev.haypacomer.agent.supervisor.PlannerFactory;
 import dev.haypacomer.agent.supervisor.Supervisor;
 import dev.haypacomer.agent.tools.GuardrailChain;
 import dev.haypacomer.agent.tools.PermissionGuardrail;
@@ -31,6 +33,7 @@ import dev.haypacomer.application.planning.ViewCurrentPlan;
 import dev.haypacomer.application.port.AgentRunStore;
 import dev.haypacomer.application.port.AiAuditLog;
 import dev.haypacomer.application.port.ConfirmationStore;
+import dev.haypacomer.application.port.ConversationStore;
 import dev.haypacomer.application.port.FoodCatalogRepository;
 import dev.haypacomer.application.port.HouseholdRepository;
 import java.time.Clock;
@@ -79,17 +82,28 @@ public class AgentConfiguration {
       AgentRunStore runs,
       ConfirmationStore confirmations,
       AiAuditLog audit,
+      PlannerFactory planners,
       Clock clock) {
     return new Supervisor(
         households,
         tools,
         guardrails,
         new KeywordRouter(),
-        new OfflinePlanners(),
+        planners,
         runs,
         confirmations,
         audit,
         clock);
+  }
+
+  @Bean
+  ChefChat chefChat(Supervisor supervisor, ConversationStore conversations, Clock clock) {
+    return new ChefChat(supervisor, conversations, clock);
+  }
+
+  @Bean
+  ReadConversation readConversation(ConversationStore conversations) {
+    return new ReadConversation(conversations);
   }
 
   @Bean

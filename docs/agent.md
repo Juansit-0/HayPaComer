@@ -62,6 +62,11 @@ Fallback: Circuit Breaker -> rule-based planner (offline)
 - Each specialist runs with its own tool allowlist: Chef (memory, inventory, expiries, plan, remember), Market (market list, plan, inventory, memory, add to market), Cold (cold chain, expiries), Coach (expiries, inventory, memory, remember).
 - Specialists share tools and memory; the supervisor stops at the first proposed write and merges results into one answer with evidence.
 
+## Chef chat (step 75)
+
+- `POST /households/{h}/agent/chat` runs the supervisor with the last 6 messages as context and returns the answer plus the observations it used.
+- With an AI provider, `LlmPlanner` decides each step as JSON; an answer that quotes grams no tool observed, or cites a tool it never used, is refused and the run falls back to offline rules.
+
 ## Proactivity
 
 - Scheduled briefings (daily plan, expiring soon).

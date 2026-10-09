@@ -121,6 +121,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 72. trace console and human confirmations
 - [x] 73. chef, market, cold, and coach multi-agent supervisor
 - [x] 74. photo to structured, verifiable recipe
+- [x] 75. chef chat as an agent with evidence
 
 ## F6 assignments
 

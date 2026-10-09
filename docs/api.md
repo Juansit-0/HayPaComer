@@ -195,9 +195,9 @@ Access column: `public` (no token), `user` (any authenticated person), `member` 
 
 | Method | Path | Access | Purpose |
 |---|---|---|---|
-| POST | `/agent/chat` | guest | Chef chat; streams answer, trace, and confirmation requests over SSE |
+| POST | `/households/{h}/agent/chat` | guest | Chef chat (`message`, optional `conversationId`, `specialist`); answer with the `evidence` it relied on, the specialist `runs`, and a `confirmation` when a write is proposed |
 | GET | `/agent/conversations` | user | Caller conversations |
-| GET | `/agent/conversations/{id}` | user | Conversation messages |
+| GET | `/agent/conversations/{id}` | user (author) | Conversation messages, oldest first (404 for anyone else) |
 | POST | `/households/{h}/agent/runs` | guest | Ask the supervisor (`goal`, optional `specialist`: chef, market, cold, coach); answers `runs` (one per specialist), the merged `answer`, and a `confirmation` when a write is proposed |
 | GET | `/agent/runs/{id}/trace` | user (member of the run's household) | Visible trace: plan, tool calls with arguments, observations, answer |
 | GET | `/agent/confirmations` | user | Pending writes the agent proposed to the caller (10 minutes) |
