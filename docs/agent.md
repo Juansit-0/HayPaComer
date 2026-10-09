@@ -52,8 +52,9 @@ Fallback: Circuit Breaker -> rule-based planner (offline)
 
 ## Memory
 
-- Household memory: preferences, usual quantities, accepted dishes, and decisions.
-- Editable by the user; memory never overrides measured inventory or rules.
+- Household memory: preferences, usual quantities, accepted dishes, and decisions, stored as `topic:subject` notes in `agent:memory:{householdId}`.
+- Editable by the household through `/households/{h}/agent/memory` (members with COOK edit, the owner clears); memory never overrides measured inventory or rules.
+- Tools: `recall_memory` (read) and `remember` (write, needs confirmation).
 
 ## Supervisor
 
