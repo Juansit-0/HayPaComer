@@ -138,6 +138,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 86. anti-waste coach and weekly digest
 - [x] 87. hands-free voice in the kitchen (web speech)
 - [x] 88. indexes, partitions, and inventory queries
+- [x] 89. full demo flow and extreme noise
 
 ## F6 assignments
 

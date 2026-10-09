@@ -43,7 +43,8 @@ public final class UndoLastChange {
 
   public InventorySnapshot undo(UserId actor, HouseholdId householdId) {
     Household household = services.household(actor, householdId);
-    return services.unitOfWork.run(
+    return services.unitOfWork.runFor(
+        householdId,
         () -> {
           InventorySnapshot latest =
               services
