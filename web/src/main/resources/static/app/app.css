@@ -456,3 +456,22 @@ input.grams { width: 9ch; font-family: var(--data-font); font-variant-numeric: t
   color: var(--color-text);
   font-size: var(--size-small);
 }
+
+.chat { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-s); }
+.chat > li { display: grid; gap: var(--space-xs); padding: var(--space-s) var(--space-m); border-radius: var(--radius-10); }
+.chat .said { background: var(--color-surface); justify-self: end; max-width: 80%; }
+.chat .answer { border: 1px solid var(--color-border); max-width: 92%; }
+.chat p { margin: 0; }
+.chat .who { font-size: var(--size-small); color: var(--color-text-weak); }
+.chat details { font-size: var(--size-small); color: var(--color-text-weak); }
+.chat details ul { margin: var(--space-xs) 0 0; padding-left: var(--space-m); }
+.ask { display: flex; flex-wrap: wrap; align-items: end; gap: var(--space-s); }
+.ask .grow { flex: 1 1 16rem; display: grid; }
+[data-mic][aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--color-primary); }
+.step-text { font-size: var(--size-h4); margin: 0; }
+.hint { color: var(--color-text-weak); font-size: var(--size-small); margin: 0; }
+.voice-options { align-items: center; }
+@media (max-width: 760px) {
+  .tabs { gap: 0; }
+  .tabs a { flex: 1 1 0; justify-content: center; min-width: 0; padding: 0 2px; font-size: var(--size-small); }
+}
