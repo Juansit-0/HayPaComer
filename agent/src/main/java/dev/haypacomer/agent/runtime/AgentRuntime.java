@@ -100,7 +100,8 @@ public final class AgentRuntime {
           }
           ToolInvocation invocation =
               new ToolInvocation(task.household(), task.user(), call.arguments());
-          Optional<String> rejection = guardrails.reject(tool.spec(), invocation);
+          Optional<String> rejection =
+              guardrails.reject(tool.spec(), invocation).or(() -> tool.problem(invocation));
           if (rejection.isPresent()) {
             record(active, Duration.ZERO, AiOutcome.REJECTED);
             observe(run, history, call, Observation.failure(call.tool(), rejection.get()));

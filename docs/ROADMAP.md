@@ -117,6 +117,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 68. redis stores for agent memory, conversations, traces, and confirmations
 - [x] 69. plan-tool-observation runtime with budget
 - [x] 70. tool registry with validation and permissions
+- [x] 71. editable household memory
 
 ## F6 assignments
 
