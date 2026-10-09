@@ -118,6 +118,42 @@
 
   --status-attention: var(--color-attention);
   --status-positive: var(--color-positive);
+
+  --size-display: clamp(32px, 2.4vw + 22px, 48px);
+  --size-input: 18px;
+  --size-kpi: clamp(28px, 1.6vw + 20px, 40px);
+
+  --control-height: 52px;
+  --control-height-large: 56px;
+  --control-gap: 12px;
+
+  --radius-20: 20px;
+
+  --tile-bg: var(--color-surface);
+  --tile-border: var(--color-border);
+  --tile-radius: var(--radius-20);
+  --tile-padding: var(--space-m);
+  --tile-gap: var(--space-s);
+
+  --bento-columns: 12;
+  --bento-columns-compact: 4;
+  --bento-gap: var(--space-s);
+  --bento-max-width: 1200px;
+
+  --stepper-button: var(--control-height);
+  --number-width-grams: 8ch;
+  --number-width-money: 12ch;
+
+  --chip-height: 44px;
+  --chip-bg: transparent;
+  --chip-border: var(--color-border-strong);
+  --chip-selected-bg: var(--color-text);
+  --chip-selected-fg: var(--color-bg);
+
+  --sheet-bg: var(--color-bg);
+  --sheet-radius: var(--radius-20);
+  --sheet-shadow: 0 -8px 32px rgb(41 37 36 / 0.24);
+  --scrim: rgb(28 25 23 / 0.48);
 }
 
 @media (prefers-reduced-motion: reduce) {

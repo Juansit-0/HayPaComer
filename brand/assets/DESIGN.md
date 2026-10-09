@@ -125,11 +125,11 @@ Rules: sentence case everywhere; left-aligned; line length 45 to 75 characters; 
 | Active bg | `--button-primary-bg-active` | `--color-surface` | `--color-surface` |
 | Radius | `--button-radius` | `--button-radius` | `--button-radius` |
 
-Sizes: minimum 48x48 px target; padding 12px 20px; font 16/500; label is verb + noun ("Weigh ingredient", "Confirm substitution"). One primary button per screen. Disabled buttons are avoided: validate on submit and show inline errors instead. Focus is always visible: 2px `--color-focus` outline with 2px offset.
+Sizes: `--control-height` 52 px (56 px next to a number stepper), never below 48x48 px; padding 12px 24px; font 16/600; label is verb + noun ("Weigh ingredient", "Confirm substitution"). One primary button per screen. Disabled buttons are avoided: validate on submit and show inline errors instead. Focus is always visible: 2px `--color-focus` outline with 2px offset.
 
 ### Inputs
 
-Single column, label above the field, hint above the field as well. Field width matches expected input (gram amounts are narrow, names are wide). Border 1px `--input-border`; focus ring 2px `--input-focus-ring`; placeholder uses `--input-placeholder`. Validation appears after interaction using `:user-valid` and `:user-invalid`.
+Single column, label above the field (16/600), hint above the field as well. Text is `--size-input` 18 px and fields are `--control-height` tall. Field width matches expected input: grams use `--number-width-grams` (8 characters), money uses `--number-width-money` (12 characters), names are wide. Border 1px `--input-border`; focus ring 2px `--input-focus-ring`; placeholder uses `--input-placeholder`. Validation appears after interaction using `:user-valid` and `:user-invalid`.
 
 ### Cards
 
@@ -142,6 +142,34 @@ Badges use `--badge-*` tokens with small text. Status is a dot plus label: `--st
 ### Data display
 
 The data-display component renders the primary measurement of a view: data font, `--data-size` or larger (up to `--size-h2` for hero numbers), tabular numerals, unit separated by a thin space ("842 g", "192 g used", "15 min").
+
+## Version 2 (plan v2, step B2)
+
+Version 2 keeps the Copper Counter palette and type and changes scale and layout for everyday use in the kitchen: bigger controls, numbers that are easy to read and type, and screens ordered as a bento grid.
+
+### Bento grid
+
+- `.bento` is a 12-column grid (`--bento-columns`) with `--bento-gap`, up to `--bento-max-width` 1200 px. Below 760 px it becomes 4 columns (`--bento-columns-compact`).
+- Children span the full width by default; `.w-8`, `.w-7`, `.w-6`, `.w-5`, `.w-4`, `.w-3` set the span on wide screens. On phones every tile is full width except `.w-3`, which takes half.
+- The most urgent tile goes first and widest (for example "Use this first" at 8 of 12 columns), with the related numbers beside it.
+
+### Tile
+
+`.tile` uses `--tile-bg`, `--tile-border`, `--tile-radius` 20 px, `--tile-padding`, and `--tile-gap`. It is a size container, so forms inside a narrow tile stack and stretch their buttons. `.tile.alert` adds a 6 px attention edge plus the attention border; the status label still carries the meaning.
+
+### KPI
+
+`kpi(value, label, tone)` renders a measurement in the data font at `--size-kpi` (28 to 40 px) with a weak label below. Tones: none, `attention`, `positive`.
+
+### Number field
+
+`numberField({ name, label, unit, value, min, max, step, bigStep, money, hint })` renders a label, an optional hint, and a stepper: a minus button, a wide input in the data font at 20 px, the unit (g, min, COP), and a plus button, all 56 px tall. `bigStep` is how much each button adds (50 g, 10 min, 10,000 COP) while typing stays free. `wireSteppers(root)` connects the buttons.
+
+### Chips, date, and sheet
+
+- `chips(name, legend, options, selected)`: radio choices as 44 px pills inside a fieldset; the selected chip uses the text color as background.
+- `dateField({ name, label })`: a date input with an "I don't know" check that clears and disables the date, for food whose expiry is unknown (estimated in step A3).
+- `openSheet(title, body, onReady)`: a native `dialog` that is a centered panel on wide screens and a bottom sheet on phones, with a scrim, a Close button, Escape to close, and steppers and date fields already wired.
 
 ## Accessibility checklist (current status)
 

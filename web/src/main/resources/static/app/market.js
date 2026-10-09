@@ -1,5 +1,5 @@
 import { api } from "./api.js";
-import { esc, foodOptions, formData, grams, showError, toast, wireFoodSearch } from "./ui.js";
+import { esc, foodOptions, formData, grams, numberField, showError, toast, wireFoodSearch, wireSteppers } from "./ui.js";
 
 const CATEGORY = (category) => category.charAt(0) + category.slice(1).toLowerCase();
 
@@ -21,10 +21,10 @@ function money(value, currency) {
   return new Intl.NumberFormat(undefined, { style: "currency", currency, maximumFractionDigits: 0 }).format(Number(value));
 }
 
-function budgetPanel(budget) {
+function budgetPanel(budget, currency) {
   if (!budget) {
     return `<form class="row-form panel" data-budget>
-      <label>Monthly budget<input class="grams" name="monthly" type="number" min="1" step="1" required></label>
+      ${numberField({ name: "monthly", label: "Monthly budget", unit: currency, min: 1, bigStep: 10000, money: true })}
       <button type="submit">Set budget</button>
     </form>`;
   }
@@ -49,7 +49,7 @@ function budgetPanel(budget) {
         : `<p class="lead">Everything on the list fits in the budget.</p>`
     }
     <form class="row-form" data-budget>
-      <label>Monthly budget<input class="grams" name="monthly" type="number" min="1" step="1" required value="${Math.round(budget.monthly)}"></label>
+      ${numberField({ name: "monthly", label: "Monthly budget", unit: budget.currency, value: Math.round(budget.monthly), min: 1, bigStep: 10000, money: true })}
       <button type="submit">Update budget</button>
     </form>
   </div>`;
@@ -73,7 +73,7 @@ export async function renderMarket(main, household) {
             : "Nothing to buy yet. Add food, or let the weekly plan fill the gaps."
         }</p>
       </div>
-      ${budgetPanel(budget)}
+      ${budgetPanel(budget, household.currency ?? "")}
       <form class="row-form panel" data-add>
         <label>Food<input name="food" list="market-foods" required autocomplete="off" placeholder="Rice"></label>
         <label>Grams<input class="grams" name="grams" type="number" min="1" step="1" required></label>
@@ -99,6 +99,7 @@ export async function renderMarket(main, household) {
         : ""
     }`;
 
+  wireSteppers(main);
   const budgetForm = main.querySelector("[data-budget]");
   budgetForm.addEventListener("submit", async (event) => {
     event.preventDefault();
