@@ -2,6 +2,7 @@ import { api, session } from "./api.js";
 import { chooseHousehold, householdLabel, renderSignIn } from "./auth.js";
 import { renderFridge } from "./fridge.js";
 import { renderAnalytics } from "./analytics.js";
+import { renderChef } from "./chef.js";
 import { renderMarket } from "./market.js";
 import { connectLive, disconnectLive } from "./live.js";
 import { renderNow } from "./now.js";
@@ -10,7 +11,7 @@ import { errorText } from "./ui.js";
 const main = document.getElementById("main");
 const tabs = document.querySelector(".tabs");
 const sessionBar = document.querySelector(".session");
-const views = { now: renderNow, fridge: renderFridge, market: renderMarket, numbers: renderAnalytics };
+const views = { now: renderNow, fridge: renderFridge, market: renderMarket, numbers: renderAnalytics, chef: renderChef };
 let household = null;
 
 function current() {

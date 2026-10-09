@@ -38,6 +38,13 @@ class StaticUiIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(content().string(containsString("Who rescued the most")));
     mvc.perform(get("/index.html")).andExpect(content().string(containsString("#/numbers")));
+    mvc.perform(get("/index.html")).andExpect(content().string(containsString("#/chef")));
+    mvc.perform(get("/app/chef.js"))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("/agent/chat")));
+    mvc.perform(get("/app/voice.js"))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("SpeechRecognition")));
     mvc.perform(get("/app/app.css")).andExpect(status().isOk());
     mvc.perform(get("/brand/tokens.css"))
         .andExpect(status().isOk())

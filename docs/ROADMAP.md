@@ -136,6 +136,7 @@ Status tracker for the ~92 steps defined in `PLAN.md` section 9. `PLAN.md` remai
 - [x] 84. market agent with budget
 - [x] 85. cold incident investigation
 - [x] 86. anti-waste coach and weekly digest
+- [x] 87. hands-free voice in the kitchen (web speech)
 
 ## F6 assignments
 
