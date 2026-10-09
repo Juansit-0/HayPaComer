@@ -61,7 +61,7 @@ public final class AgentRuntime {
     while (true) {
       if (clock.instant().isAfter(deadline)) {
         trace(run, TraceKind.ANSWER, "Stopped: the run took longer than " + budget.timeout());
-        return new AgentResult(finish(run, RunStatus.OUT_OF_BUDGET), null, null);
+        return new AgentResult(finish(run, RunStatus.OUT_OF_BUDGET), null, null, evidence(history));
       }
       AgentContext context =
           new AgentContext(task, tools.names(), history, run.stepBudget() - run.stepsUsed());
@@ -71,7 +71,7 @@ public final class AgentRuntime {
       } catch (PlannerUnavailableException unavailable) {
         if (active == fallback) {
           trace(run, TraceKind.ANSWER, "Stopped: no planner is available");
-          return new AgentResult(finish(run, RunStatus.FAILED), null, null);
+          return new AgentResult(finish(run, RunStatus.FAILED), null, null, evidence(history));
         }
         trace(
             run, TraceKind.PLAN, "Planner " + active.name() + " unavailable, using offline rules");
@@ -82,12 +82,14 @@ public final class AgentRuntime {
       switch (decision) {
         case Decision.FinalAnswer answer -> {
           trace(run, TraceKind.ANSWER, answer.text());
-          return new AgentResult(finish(run, RunStatus.DONE), answer.text(), null);
+          return new AgentResult(
+              finish(run, RunStatus.DONE), answer.text(), null, evidence(history));
         }
         case Decision.CallTool call -> {
           if (run.stepsUsed() >= run.stepBudget()) {
             trace(run, TraceKind.ANSWER, "Stopped: step budget of " + run.stepBudget() + " used");
-            return new AgentResult(finish(run, RunStatus.OUT_OF_BUDGET), null, null);
+            return new AgentResult(
+                finish(run, RunStatus.OUT_OF_BUDGET), null, null, evidence(history));
           }
           trace(run, TraceKind.PLAN, call.reason());
           run = step(run);
@@ -120,12 +122,19 @@ public final class AgentRuntime {
             confirmations.propose(pending);
             trace(run, TraceKind.OBSERVATION, "Waiting for confirmation " + pending.id());
             run = save(run, RunStatus.WAITING_CONFIRMATION, null);
-            return new AgentResult(run, null, pending);
+            return new AgentResult(run, null, pending, evidence(history));
           }
           observe(run, history, call, invoke(tool, invocation));
         }
       }
     }
+  }
+
+  private static List<Observation> evidence(List<Exchange> history) {
+    return history.stream()
+        .map(Exchange::observation)
+        .filter(observation -> !observation.failed())
+        .toList();
   }
 
   private Decision decide(Planner active, AgentContext context) {

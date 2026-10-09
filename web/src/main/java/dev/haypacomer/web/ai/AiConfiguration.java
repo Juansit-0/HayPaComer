@@ -1,6 +1,11 @@
 package dev.haypacomer.web.ai;
 
+import dev.haypacomer.agent.planning.LlmPlannerFactory;
+import dev.haypacomer.agent.supervisor.OfflinePlanners;
+import dev.haypacomer.agent.supervisor.PlannerFactory;
+import dev.haypacomer.agent.tools.ToolRegistry;
 import dev.haypacomer.ai.llm.GeminiClient;
+import dev.haypacomer.ai.llm.LlmChatModel;
 import dev.haypacomer.ai.llm.LlmClient;
 import dev.haypacomer.ai.llm.LlmKitchenAdvisor;
 import dev.haypacomer.ai.llm.LlmRecipePhotoReader;
@@ -61,6 +66,14 @@ public class AiConfiguration {
         breaker,
         CircuitPolicy.DEFAULT,
         clock);
+  }
+
+  @Bean
+  PlannerFactory agentPlanners(AiProperties properties, ToolRegistry agentTools) {
+    if (properties.provider() == AiProperties.Provider.OFFLINE) {
+      return new OfflinePlanners();
+    }
+    return new LlmPlannerFactory(new LlmChatModel(client(properties)), agentTools);
   }
 
   @Bean

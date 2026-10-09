@@ -1,5 +1,6 @@
 package dev.haypacomer.web.error;
 
+import dev.haypacomer.agent.chat.ConversationNotFoundException;
 import dev.haypacomer.agent.confirm.ConfirmationRefusedException;
 import dev.haypacomer.application.agent.AgentRunNotFoundException;
 import dev.haypacomer.application.agent.ConfirmationExpiredException;
@@ -215,6 +216,11 @@ public class ApiExceptionHandler {
   @ExceptionHandler(MaxUploadSizeExceededException.class)
   ProblemDetail tooLarge(MaxUploadSizeExceededException exception) {
     return problem(HttpStatus.CONTENT_TOO_LARGE, "Photo too large", "Send a photo of at most 4 MB");
+  }
+
+  @ExceptionHandler(ConversationNotFoundException.class)
+  ProblemDetail conversationNotFound(ConversationNotFoundException exception) {
+    return problem(HttpStatus.NOT_FOUND, "Not found", exception.getMessage());
   }
 
   @ExceptionHandler(AgentRunNotFoundException.class)

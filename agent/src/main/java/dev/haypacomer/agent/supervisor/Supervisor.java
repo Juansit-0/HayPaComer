@@ -71,7 +71,10 @@ public final class Supervisor {
     for (Specialist current : chosen) {
       AgentRuntime runtime =
           new AgentRuntime(
-              tools.allow(current.tools()),
+              tools.allow(
+                  current.tools().stream()
+                      .filter(tools.names()::contains)
+                      .collect(Collectors.toSet())),
               guardrails,
               planners.plannerFor(current),
               new RuleBasedPlanner(current.offlineReads()),
