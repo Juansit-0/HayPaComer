@@ -5,16 +5,28 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import dev.haypacomer.agent.tools.GuardrailChain;
+import dev.haypacomer.agent.tools.ParameterSpec;
+import dev.haypacomer.agent.tools.ParameterType;
+import dev.haypacomer.agent.tools.PermissionGuardrail;
+import dev.haypacomer.agent.tools.SchemaGuardrail;
+import dev.haypacomer.agent.tools.ToolRegistry;
+import dev.haypacomer.agent.tools.ToolSpec;
 import dev.haypacomer.application.agent.AgentRun;
 import dev.haypacomer.application.agent.AiOutcome;
 import dev.haypacomer.application.agent.PendingConfirmation;
 import dev.haypacomer.application.agent.RunStatus;
 import dev.haypacomer.application.agent.TraceKind;
 import dev.haypacomer.application.agent.TraceStep;
-import dev.haypacomer.domain.household.HouseholdId;
+import dev.haypacomer.application.port.HouseholdRepository;
+import dev.haypacomer.domain.household.Household;
+import dev.haypacomer.domain.household.Permission;
+import dev.haypacomer.domain.household.Role;
 import dev.haypacomer.domain.identity.UserId;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.Currency;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -25,19 +37,43 @@ class AgentRuntimeTest {
 
   private final InMemoryAgentStores stores = new InMemoryAgentStores();
   private final FakeTool inventory =
-      new FakeTool("query_inventory", ToolKind.READ, "chicken 650 g, rice 900 g");
+      new FakeTool(
+          ToolSpec.read("query_inventory", "Inventory", List.of()), "chicken 650 g, rice 900 g");
   private final FakeTool expiries =
-      new FakeTool("view_expiries", ToolKind.READ, "chicken expires tomorrow");
-  private final FakeTool weigh = new FakeTool("weigh_now", ToolKind.READ, null);
-  private final FakeTool market = new FakeTool("add_to_market", ToolKind.WRITE, "added");
+      new FakeTool(
+          ToolSpec.read("view_expiries", "Expiries", List.of()), "chicken expires tomorrow");
+  private final FakeTool weigh = new FakeTool(ToolSpec.read("weigh_now", "Scale", List.of()), null);
+  private final FakeTool market =
+      new FakeTool(
+          ToolSpec.write(
+              "add_to_market",
+              "Market",
+              Permission.MANAGE_MARKET_LIST,
+              List.of(
+                  ParameterSpec.required("food", ParameterType.TEXT, "Food name"),
+                  ParameterSpec.optional("grams", ParameterType.GRAMS, "Grams"))),
+          "added");
+  private final UserId owner = UserId.newId();
+  private final UserId guest = UserId.newId();
+  private final Household home =
+      Household.create("Home", Currency.getInstance("COP"), ZoneOffset.UTC, owner, START);
   private final AgentTask task =
-      new AgentTask(HouseholdId.newId(), UserId.newId(), "chef", "What can I cook tonight?");
+      new AgentTask(home.id(), owner, "chef", "What can I cook tonight?");
+  private final HouseholdRepository households = new SingleHousehold(home);
+  private final GuardrailChain guardrails =
+      new GuardrailChain(List.of(new SchemaGuardrail(), new PermissionGuardrail(households)));
+
+  {
+    home.join(guest, Role.GUEST, START);
+  }
+
   private final RuleBasedPlanner offline =
       new RuleBasedPlanner(List.of("view_expiries", "query_inventory"));
 
   private AgentRuntime runtime(Planner planner, Duration tick) {
     return new AgentRuntime(
-        List.of(inventory, expiries, weigh, market),
+        new ToolRegistry(List.of(inventory, expiries, weigh, market)),
+        guardrails,
         planner,
         offline,
         stores,
@@ -190,7 +226,8 @@ class AgentRuntimeTest {
         };
     AgentRuntime runtime =
         new AgentRuntime(
-            List.of(inventory),
+            new ToolRegistry(List.of(inventory)),
+            guardrails,
             broken,
             broken,
             stores,
@@ -202,6 +239,67 @@ class AgentRuntimeTest {
 
     assertEquals(RunStatus.FAILED, result.run().status());
     assertEquals(0, result.run().stepsUsed());
+  }
+
+  @Test
+  void guardrailsRejectBadArgumentsAndMissingPermissions() {
+    ScriptedPlanner planner =
+        new ScriptedPlanner(
+            context -> new Decision.CallTool("add_to_market", Map.of("grams", "500"), "Rice"),
+            context ->
+                new Decision.CallTool(
+                    "add_to_market", Map.of("food", "rice", "grams", "-3"), "Rice"),
+            context ->
+                new Decision.CallTool(
+                    "add_to_market", Map.of("food", "rice", "price", "9"), "Rice"),
+            context -> new Decision.FinalAnswer("Could not add rice"));
+
+    AgentResult result = runtime(planner).run(task, AgentBudget.DEFAULT);
+
+    assertEquals(RunStatus.DONE, result.run().status());
+    assertEquals(
+        List.of(
+            "Missing argument food",
+            "Argument grams must be whole grams between 1 and 100000",
+            "Unknown argument price"),
+        planner.seen.getLast().history().stream()
+            .map(exchange -> exchange.observation().content())
+            .toList());
+    assertTrue(stores.pending.isEmpty());
+  }
+
+  @Test
+  void guestsCannotProposeWritesTheirRoleDoesNotAllow() {
+    ScriptedPlanner planner =
+        new ScriptedPlanner(
+            context -> new Decision.CallTool("add_to_market", Map.of("food", "milk"), "Milk"),
+            context -> call("query_inventory"),
+            context -> new Decision.FinalAnswer("Ask the owner to add milk"));
+    AgentTask asGuest = new AgentTask(home.id(), guest, "market", "Add milk");
+
+    AgentResult result = runtime(planner).run(asGuest, AgentBudget.DEFAULT);
+
+    assertEquals(RunStatus.DONE, result.run().status());
+    assertEquals(
+        "Not allowed: add_to_market needs MANAGE_MARKET_LIST",
+        planner.seen.get(1).history().getFirst().observation().content());
+    assertEquals(1, inventory.invocations.size());
+    assertTrue(stores.pending.isEmpty());
+  }
+
+  @Test
+  void strangersCannotUseAnyTool() {
+    ScriptedPlanner planner =
+        new ScriptedPlanner(
+            context -> call("query_inventory"), context -> new Decision.FinalAnswer("Nothing"));
+    AgentTask stranger = new AgentTask(home.id(), UserId.newId(), "chef", "Peek");
+
+    runtime(planner).run(stranger, AgentBudget.DEFAULT);
+
+    assertTrue(inventory.invocations.isEmpty());
+    assertEquals(
+        "Not a member of this household",
+        planner.seen.getLast().history().getFirst().observation().content());
   }
 
   @Test
