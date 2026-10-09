@@ -34,6 +34,10 @@ class StaticUiIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(content().string(containsString("/app/main.js")));
     mvc.perform(get("/app/main.js")).andExpect(status().isOk());
+    mvc.perform(get("/app/analytics.js"))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("Who rescued the most")));
+    mvc.perform(get("/index.html")).andExpect(content().string(containsString("#/numbers")));
     mvc.perform(get("/app/app.css")).andExpect(status().isOk());
     mvc.perform(get("/brand/tokens.css"))
         .andExpect(status().isOk())

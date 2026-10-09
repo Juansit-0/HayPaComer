@@ -1,6 +1,7 @@
 package dev.haypacomer.web.analytics;
 
 import dev.haypacomer.application.analytics.ExportHouseholdReport;
+import dev.haypacomer.application.analytics.HouseholdMemberNames;
 import dev.haypacomer.application.analytics.ListFoodPrices;
 import dev.haypacomer.application.analytics.SetFoodPrice;
 import dev.haypacomer.application.analytics.ViewHouseholdMetrics;
@@ -35,6 +36,11 @@ public class AnalyticsConfiguration {
   ExportHouseholdReport exportHouseholdReport(
       HouseholdRepository households, UserRepository users, ViewHouseholdMetrics metrics) {
     return new ExportHouseholdReport(households, users, metrics);
+  }
+
+  @Bean
+  HouseholdMemberNames householdMemberNames(HouseholdRepository households, UserRepository users) {
+    return new HouseholdMemberNames(households, users);
   }
 
   @Bean

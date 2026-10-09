@@ -2,6 +2,7 @@ package dev.haypacomer.web.analytics;
 
 import dev.haypacomer.application.analytics.ExportHouseholdReport;
 import dev.haypacomer.application.analytics.ExportedReport;
+import dev.haypacomer.application.analytics.HouseholdMemberNames;
 import dev.haypacomer.application.analytics.ListFoodPrices;
 import dev.haypacomer.application.analytics.MetricsReport;
 import dev.haypacomer.application.analytics.ReportFormat;
@@ -54,6 +55,7 @@ public class AnalyticsController {
   private final SetFoodPrice setFoodPrice;
   private final ListFoodPrices listFoodPrices;
   private final ExportHouseholdReport exportReport;
+  private final HouseholdMemberNames memberNames;
   private final GetHousehold getHousehold;
   private final Clock clock;
 
@@ -62,12 +64,14 @@ public class AnalyticsController {
       SetFoodPrice setFoodPrice,
       ListFoodPrices listFoodPrices,
       ExportHouseholdReport exportReport,
+      HouseholdMemberNames memberNames,
       GetHousehold getHousehold,
       Clock clock) {
     this.viewMetrics = viewMetrics;
     this.setFoodPrice = setFoodPrice;
     this.listFoodPrices = listFoodPrices;
     this.exportReport = exportReport;
+    this.memberNames = memberNames;
     this.getHousehold = getHousehold;
     this.clock = clock;
   }
@@ -81,7 +85,9 @@ public class AnalyticsController {
     UserId actor = CurrentUser.of(jwt);
     HouseholdId household = new HouseholdId(householdId);
     LocalDate[] period = period(actor, household, from, to);
-    return MetricsResponse.from(viewMetrics.view(actor, household, period[0], period[1]));
+    return MetricsResponse.from(
+        viewMetrics.view(actor, household, period[0], period[1]),
+        memberNames.names(actor, household));
   }
 
   @GetMapping("/analytics/report")
@@ -161,10 +167,13 @@ public class AnalyticsController {
     }
   }
 
-  record MemberResponse(UUID userId, TallyResponse tally) {
+  record MemberResponse(UUID userId, String name, TallyResponse tally) {
 
-    static MemberResponse from(MemberTally member) {
-      return new MemberResponse(member.user().value(), TallyResponse.from(member.tally()));
+    static MemberResponse from(MemberTally member, Map<UserId, String> names) {
+      return new MemberResponse(
+          member.user().value(),
+          names.getOrDefault(member.user(), "Former member"),
+          TallyResponse.from(member.tally()));
     }
   }
 
@@ -187,7 +196,7 @@ public class AnalyticsController {
       List<DayResponse> days,
       Set<String> unpriced) {
 
-    static MetricsResponse from(MetricsReport report) {
+    static MetricsResponse from(MetricsReport report, Map<UserId, String> names) {
       HouseholdMetrics metrics = report.metrics();
       return new MetricsResponse(
           metrics.from(),
@@ -197,7 +206,7 @@ public class AnalyticsController {
           metrics.moneySaved(),
           metrics.moneyWasted(),
           metrics.foods().stream().map(FoodResponse::from).toList(),
-          metrics.members().stream().map(MemberResponse::from).toList(),
+          metrics.members().stream().map(member -> MemberResponse.from(member, names)).toList(),
           metrics.days().stream().map(DayResponse::from).toList(),
           metrics.unpriced());
     }
