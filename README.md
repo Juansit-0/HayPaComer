@@ -15,7 +15,7 @@
 
 Smart home fridge that answers a daily question: **what can I cook right now with what is actually at home?** A Java backend, an ESP32 module, and a kitchen scale keep a live inventory in grams, with expiry dates, food ownership, door openings, and the cold chain. Camera apps guess; HayPaComer measures. Premium fridges cost thousands; HayPaComer upgrades a normal one.
 
-Version **1.0.0**. Changes are in [`CHANGELOG.md`](CHANGELOG.md).
+Version **1.1.0**, served at [haypacomer.dev](https://haypacomer.dev) once the domain is connected. Changes are in [`CHANGELOG.md`](CHANGELOG.md).
 
 ## What it does
 
@@ -178,6 +178,7 @@ The 12 minute script, a seed script, and simulated sensors are in [`docs/demo.md
 
 - [`PLAN.md`](PLAN.md): master plan; progress in [`docs/ROADMAP.md`](docs/ROADMAP.md).
 - [`docs/api.md`](docs/api.md): REST catalog.
+- [`docs/runbook.md`](docs/runbook.md): production on Render, domain, backups, and rollback.
 - [`docs/database.md`](docs/database.md): data model and Redis key map.
 - [`docs/event-protocol.md`](docs/event-protocol.md): ESP32 events.
 - [`brand/brand-book.md`](brand/brand-book.md): brand, voice, and design tokens.
