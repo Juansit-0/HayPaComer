@@ -2,6 +2,28 @@
 
 All notable changes to HayPaComer. Each step of the roadmap was one pull request; the full list is in [`docs/ROADMAP.md`](docs/ROADMAP.md).
 
+## [1.1.0] - 2026-10-09
+
+Plan v2: Spanish first, settings in the database, expiry with logic, a redesigned interface, and production deployment. Release notes in [`docs/releases/v1.1.0.md`](docs/releases/v1.1.0.md).
+
+### Backend (A1 to A4, Jenifer Urbano)
+
+- Runtime settings in PostgreSQL with a cache and per household overrides; every rule threshold reads them.
+- Translations, localized problems, alerts, and food names in Spanish and English; the person's language is saved.
+- Shelf life by zone and opening, estimated dates, rejection of impossible dates, and opening food.
+- Expiry proposals from a label photo, checked by the rules, and the `estimate_expiry` agent tool.
+
+### Web interface (B1 to B7, Juan Camilo López Díaz)
+
+- The session survives closing the tab, with silent refresh shared across tabs.
+- Design system v2 with a bento grid, larger controls, number and money steppers, chips, and sheets.
+- Language switch with localized numbers, money, dates, and plurals; no visible text outside the translations.
+- Fridge with food cards and a four step add food flow; market and budget redesign; Numbers, Chef, and a new Settings screen; accessibility fixes from an axe pass in both themes.
+
+### Deployment (C1 to C3, Juan Camilo López Díaz)
+
+- Production Docker image and `prod` profile, a CI job that builds the image, a Render blueprint with deploys after green checks, a smoke workflow for the live commit, and the production runbook.
+
 ## [1.0.0] - 2026-10-09
 
 First complete release: the acceptance demo in `PLAN.md` section 10 runs end to end.
