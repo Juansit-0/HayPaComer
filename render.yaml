@@ -1,0 +1,65 @@
+services:
+  - type: web
+    name: haypacomer
+    runtime: docker
+    region: virginia
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /actuator/health/readiness
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: DB_HOST
+        fromDatabase:
+          name: haypacomer-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: haypacomer-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: haypacomer-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: haypacomer-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: haypacomer-db
+          property: password
+      - key: DB_SSLMODE
+        value: prefer
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: haypacomer-redis
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PUBLIC_BASE_URL
+        value: https://haypacomer.dev
+      - key: AI_PROVIDER
+        value: offline
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+
+  - type: keyvalue
+    name: haypacomer-redis
+    region: virginia
+    plan: free
+    maxmemoryPolicy: noeviction
+    ipAllowList: []
+
+databases:
+  - name: haypacomer-db
+    region: virginia
+    plan: free
+    databaseName: haypacomer
+    user: haypacomer
+    ipAllowList: []
